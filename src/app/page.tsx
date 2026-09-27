@@ -11,8 +11,6 @@ import {
   Truck,
   Bike,
   CreditCard,
-  Clock,
-  ShieldCheck,
   CheckCircle2,
   AlertTriangle,
   X,
@@ -20,14 +18,11 @@ import {
   Search,
   Grid,
   Printer,
-  MessageCircle,
   DollarSign,
-  ArrowRightLeft,
   Globe,
   Unlock,
   Percent,
   FileWarning,
-  Eye,
   LayoutDashboard,
   FileBarChart2,
   Camera
@@ -37,13 +32,12 @@ function CockpitContent() {
   const [slots, setSlots] = useState<ParkingSlot[]>([]);
   const [shift, setShift] = useState<Shift | null>(null);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState<string>('');
 
-  // Sub-modo en la consola izquierda (40%): 'pos' (Unificado Check-in & Digital Receipt) | 'activos'
+  // Vista de consola: 'pos' (Punto de venta y liquidación) | 'activos' (Lista de vehículos en recinto)
   const [consoleView, setConsoleView] = useState<'pos' | 'activos'>('pos');
 
-  // Estado del input principal de Patente / Ticket (F1 / F2)
+  // Input principal de Patente / Ticket (F1 / F2)
   const [plateInput, setPlateInput] = useState('ABCD-12');
   const [inTipo, setInTipo] = useState<VehicleType>('auto');
   const [selectedTariffPlan, setSelectedTariffPlan] = useState<'MINUTO' | 'JORNADA' | 'NOCHE'>('MINUTO');
@@ -56,7 +50,7 @@ function CockpitContent() {
     text: string;
   } | null>(null);
 
-  // Estado del Recibo Digital en Vivo (Digital Receipt en la consola 40%)
+  // Recibo Digital en Vivo
   const [activeReceipt, setActiveReceipt] = useState<{
     ticket?: Ticket;
     patente: string;
@@ -84,26 +78,19 @@ function CockpitContent() {
     isSimulated: true,
   });
 
-  // Medio de Pago y Calculadora de Vuelto en consola
+  // Calculadora de Vuelto
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('EFECTIVO');
   const [cashReceived, setCashReceived] = useState<number | ''>(5000);
   const [barrierOpenPulse, setBarrierOpenPulse] = useState(false);
 
-  // Pop-up 1: Ticket Térmico 80mm & PDF (F8)
+  // Modales Funcionales
   const [ticketPreviewModal, setTicketPreviewModal] = useState<Ticket | null>(null);
-
-  // Pop-up 2: Autorización PIN Antifraude (Verde: Descuento Operador [F6] | Rojo: Ticket Perdido Admin [F7])
   const [pinAuditModal, setPinAuditModal] = useState<'DISCOUNT' | 'LOST_TICKET' | null>(null);
   const [pinInput, setPinInput] = useState('');
   const [pinJustification, setPinJustification] = useState('');
   const [discountPercent, setDiscountPercent] = useState<number>(20);
   const [pinError, setPinError] = useState<string | null>(null);
-
-  // Pop-up 3: Arqueo de Caja Ciega
   const [activeShiftModal, setActiveShiftModal] = useState(false);
-
-  // Pop-up 4: Galería de Mockups Oficiales V2.0
-  const [showMockupReference, setShowMockupReference] = useState(false);
 
   // Reloj oficial CLT
   useEffect(() => {
@@ -136,8 +123,6 @@ function CockpitContent() {
       if (resAudit.logs) setAuditLogs(resAudit.logs);
     } catch (e) {
       console.error('Error cargando PMS:', e);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -147,7 +132,6 @@ function CockpitContent() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Formateo de patente chilena (ABCD-12)
   const formatPlate = (val: string) => {
     const raw = val.toUpperCase();
     if (inForeign) return raw.slice(0, 12);
@@ -158,7 +142,6 @@ function CockpitContent() {
     return clean.slice(0, 7);
   };
 
-  // Buscar patente en recinto o calcular recibo en vivo
   const handleLookupOrPreviewPlate = useCallback(
     async (queryPlate: string) => {
       const target = queryPlate.trim().toUpperCase();
@@ -199,15 +182,14 @@ function CockpitContent() {
           setCashReceived(Math.ceil((data.montoAPagar || 1000) / 1000) * 1000);
           setStatusBanner({
             type: 'success',
-            text: `Ticket activo localizado para ${t.patente} (${t.id_ticket}). Listo para liquidar.`,
+            text: `Ticket localizado: ${t.patente} (${t.id_ticket}). Listo para liquidar.`,
           });
           return;
         }
       } catch {
-        // Fallback a simulación interactiva
+        // Fallback a simulación
       }
 
-      // Si no está en recinto aún, actualiza vista previa de recibo según plan seleccionado
       const base =
         selectedTariffPlan === 'JORNADA'
           ? 6000
@@ -238,7 +220,6 @@ function CockpitContent() {
     [selectedTariffPlan]
   );
 
-  // Actualizar recibo cuando cambia la píldora de tarifa
   const handleSelectTariffPlan = (plan: 'MINUTO' | 'JORNADA' | 'NOCHE') => {
     setSelectedTariffPlan(plan);
     const base = plan === 'JORNADA' ? 6000 : plan === 'NOCHE' ? 5000 : 4500;
@@ -255,7 +236,6 @@ function CockpitContent() {
     setCashReceived(base >= 5000 ? 10000 : 5000);
   };
 
-  // Emitir Nuevo Ingreso (Check-in) -> Abre Ticket Térmico 80mm
   const handleCheckinVehicle = async () => {
     if (!plateInput.trim()) return;
     setInLoading(true);
@@ -292,7 +272,6 @@ function CockpitContent() {
     }
   };
 
-  // Liquidar Cobro y Abrir Barrera
   const handleProcessPayment = async (methodOverride?: PaymentMethod) => {
     const chosenMethod = methodOverride || paymentMethod;
     setPaymentMethod(chosenMethod);
@@ -319,7 +298,7 @@ function CockpitContent() {
           type: 'success',
           text: `Cobro liquidado ($${activeReceipt.finalAmount.toLocaleString(
             'es-CL'
-          )} CLP vía ${chosenMethod}). Barrera Abierta para ${activeReceipt.patente}.`,
+          )} CLP vía ${chosenMethod}). Barrera abierta para ${activeReceipt.patente}.`,
         });
         fetchData();
       } catch (err: any) {
@@ -328,33 +307,29 @@ function CockpitContent() {
         setInLoading(false);
       }
     } else {
-      // Simulación directa sobre el recibo activo
       setBarrierOpenPulse(true);
       setTimeout(() => setBarrierOpenPulse(false), 3000);
       setStatusBanner({
         type: 'success',
         text: `Cobro registrado ($${activeReceipt.finalAmount.toLocaleString(
           'es-CL'
-        )} CLP vía ${chosenMethod}). Barrera Abierta para ${activeReceipt.patente}.`,
+        )} CLP vía ${chosenMethod}). Barrera abierta para ${activeReceipt.patente}.`,
       });
     }
   };
 
-  // Aplicar Autorización Antifraude por PIN (Verde: Descuento Operador | Rojo: Ticket Perdido Admin)
   const handleConfirmPinAudit = (e: React.FormEvent) => {
     e.preventDefault();
     setPinError(null);
 
     if (pinInput.length < 4) {
-      setPinError('Debe ingresar un PIN válido de 4 dígitos.');
+      setPinError('Debe ingresar un PIN de 4 dígitos.');
       return;
     }
 
     if (pinAuditModal === 'DISCOUNT') {
       if (pinJustification.trim().length <= 10) {
-        setPinError(
-          'Regla Antifraude: La justificación escrita es obligatoria y debe superar los 10 caracteres.'
-        );
+        setPinError('La justificación es obligatoria y debe superar 10 caracteres.');
         return;
       }
       const disc = Math.round(activeReceipt.baseAmount * (discountPercent / 100));
@@ -367,9 +342,7 @@ function CockpitContent() {
       }));
       setStatusBanner({
         type: 'success',
-        text: `AUDITORÍA VERDE: Descuento ${discountPercent}% (-$${disc.toLocaleString(
-          'es-CL'
-        )}) autorizado con PIN Operador.`,
+        text: `Descuento ${discountPercent}% (-$${disc.toLocaleString('es-CL')}) autorizado con PIN Operador.`,
       });
     } else if (pinAuditModal === 'LOST_TICKET') {
       const recargo = 8000;
@@ -383,7 +356,7 @@ function CockpitContent() {
       setCashReceived(10000);
       setStatusBanner({
         type: 'warning',
-        text: 'AUDITORÍA ROJA: Recargo por Ticket Extraviado ($8.000 CLP) aplicado con PIN Administrador.',
+        text: 'Recargo por Ticket Extraviado ($8.000 CLP) aplicado con PIN Administrador.',
       });
     }
 
@@ -392,13 +365,11 @@ function CockpitContent() {
     setPinAuditModal(null);
   };
 
-  // Abrir vista previa de Ticket 80mm (F8)
   const handleOpen80mmTicketPreview = () => {
     if (activeReceipt.ticket) {
       setTicketPreviewModal(activeReceipt.ticket);
       return;
     }
-    // Construye un ticket demostrativo canónico si aún no se ha emitido
     const demoTicket: Ticket = {
       id_ticket: 'TKT-20260419-T01-0842',
       patente: (plateInput || 'ABCD-12').toUpperCase(),
@@ -414,7 +385,6 @@ function CockpitContent() {
     setTicketPreviewModal(demoTicket);
   };
 
-  // Atajos globales de Teclado (Regla 1 AGENTS.md: F1–F9, Enter, Esc)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'F1' || e.key === 'F2') {
@@ -454,13 +424,12 @@ function CockpitContent() {
         setTimeout(() => setBarrierOpenPulse(false), 3000);
         setStatusBanner({
           type: 'success',
-          text: ` Pulso LPR enviado a Barrera Principal (Serrano 447) para ${plateInput}.`,
+          text: `Pulso enviado a Barrera Principal para ${plateInput}.`,
         });
       } else if (e.key === 'Escape') {
         setTicketPreviewModal(null);
         setPinAuditModal(null);
         setActiveShiftModal(false);
-        setShowMockupReference(false);
       }
     },
     [plateInput, selectedTariffPlan, activeReceipt]
@@ -471,7 +440,6 @@ function CockpitContent() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  // Estadísticas rápidas y tickets activos
   const activeTickets: Ticket[] = slots
     .filter((s) => s.estado === 'OCUPADO' && s.ticket_actual)
     .map((s) => s.ticket_actual!);
@@ -482,260 +450,153 @@ function CockpitContent() {
       : 0;
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#F9F9FB] text-slate-900 flex flex-col font-sans select-none">
-      {/* ===================================================================== */}
-      {/* 1. BARRA SUPERIOR DE VENTANA ESTILO macOS SONOMA / SEQUOIA (48px)     */}
-      {/* ===================================================================== */}
-      <header className="h-12 bg-white/95 backdrop-blur-md border-b border-[#E2E2E4] px-4 flex items-center justify-between shrink-0 z-30 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-        {/* Izquierda: Semáforo macOS + Marca ParkOps Burgundy + Enlaces Rápidos */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E] inline-block" />
-            <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123] inline-block" />
-            <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29] inline-block" />
-          </div>
-
-          <div className="h-4 w-[1px] bg-slate-200" />
-
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#80093A] flex items-center justify-center text-white font-black text-xs shadow-sm">
+    <div className="h-screen w-screen overflow-hidden bg-slate-100 text-slate-900 flex flex-col font-sans select-none">
+      {/* 1. Encabezado Funcional Superior */}
+      <header className="h-12 bg-white border-b border-slate-200 px-4 flex items-center justify-between shrink-0 z-30">
+        <div className="flex items-center gap-3">
+          <Link href="/hub" className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded bg-[#80093A] text-white font-black text-xs flex items-center justify-center">
               P
-            </div>
-            <span className="font-extrabold text-sm tracking-tight text-[#80093A]">
-              ParkOps
             </span>
-            <span className="text-[11px] font-medium text-slate-400 hidden xl:inline">
-              PMS Cordano (Serrano 447, Iquique)
+            <span className="font-bold text-sm tracking-tight text-[#80093A]">
+              ParkOps Garita POS
             </span>
-          </div>
+          </Link>
+          <span className="text-xs text-slate-400 hidden sm:inline">| Serrano 447, Iquique</span>
 
-          {/* Navegación Rápida estilo Mockup #1 */}
-          <nav className="hidden md:flex items-center gap-1 ml-2 bg-[#F3F4F6] p-1 rounded-xl border border-slate-200/80 text-xs font-semibold">
-            <span className="px-3 py-1 rounded-lg bg-white text-slate-900 shadow-xs font-bold">
+          {/* Navegación básica */}
+          <nav className="hidden md:flex items-center gap-1 ml-3 text-xs font-semibold">
+            <span className="px-2.5 py-1 rounded bg-slate-100 text-slate-900 font-bold">
               Garita POS
             </span>
-            <Link
-              href="/hub"
-              className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center gap-1"
-            >
-              <Grid className="w-3.5 h-3.5 text-[#80093A]" />
-              <span>Menú Central</span>
+            <Link href="/hub" className="px-2 py-1 text-slate-600 hover:text-slate-900">
+              Menú Central
             </Link>
-            <Link
-              href="/admin"
-              className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center gap-1"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5 text-slate-500" />
-              <span>Panel Control</span>
+            <Link href="/admin" className="px-2 py-1 text-slate-600 hover:text-slate-900">
+              Panel Control
             </Link>
-            <Link
-              href="/convenios"
-              className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition"
-            >
+            <Link href="/convenios" className="px-2 py-1 text-slate-600 hover:text-slate-900">
               Convenios
             </Link>
-            <Link
-              href="/reportes"
-              className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center gap-1"
-            >
-              <FileBarChart2 className="w-3.5 h-3.5 text-slate-500" />
-              <span>Reportes</span>
+            <Link href="/reportes" className="px-2 py-1 text-slate-600 hover:text-slate-900">
+              Reportes
             </Link>
-            <Link
-              href="/cctv"
-              className="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 transition flex items-center gap-1"
-            >
-              <Camera className="w-3.5 h-3.5 text-slate-500" />
-              <span>CCTV</span>
+            <Link href="/cctv" className="px-2 py-1 text-slate-600 hover:text-slate-900">
+              CCTV
             </Link>
           </nav>
         </div>
 
-        {/* Derecha: Estado Online + Turno Cajero + Botón Caja Ciega + Referencia Visual */}
         <div className="flex items-center gap-2.5">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Online</span>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-lg bg-[#F3F4F6] border border-slate-200/80 text-[11px] text-slate-700 font-medium">
-            <span>
-              Shift: <strong className="font-semibold text-slate-900">Morning</strong>
-            </span>
-            <span className="text-slate-300">|</span>
-            <span>
-              Cashier:{' '}
-              <strong className="font-semibold text-slate-900">
-                {shift?.nombre_operador ? shift.nombre_operador.split(' ')[0] : 'Ana R.'}
-              </strong>
-            </span>
-            <span className="text-slate-300">|</span>
-            <span className="font-mono font-bold text-slate-900 tabular-nums">
-              {currentTime || '12:00:00'}
-            </span>
-          </div>
+          <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+            {currentTime || '12:00:00'} CLT
+          </span>
 
           <button
             type="button"
             onClick={() => setActiveShiftModal(true)}
-            className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-            title="Abrir Arqueo de Caja Ciega"
+            className="px-2.5 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center gap-1"
           >
             <Lock className="w-3.5 h-3.5 text-amber-700" />
-            <span>Arqueo Ciego</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowMockupReference(true)}
-            className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-[11px] font-bold flex items-center gap-1 transition cursor-pointer"
-            title="Ver Lámina Mockup #1 Oficial"
-          >
-            <Eye className="w-3.5 h-3.5 text-[#80093A]" />
-            <span className="hidden sm:inline">Mockup V2</span>
+            <span>Caja Ciega [F8]</span>
           </button>
         </div>
       </header>
 
-      {/* Banner flotante de notificación operativa */}
+      {/* Banner de Estado Operativo */}
       {statusBanner && (
         <div className="px-4 pt-2 shrink-0">
           <div
-            className={`px-4 py-2 rounded-xl border text-xs font-semibold flex items-center justify-between shadow-xs ${
+            className={`px-3 py-1.5 rounded border text-xs font-semibold flex items-center justify-between ${
               statusBanner.type === 'success'
                 ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
                 : statusBanner.type === 'warning'
-                ? 'bg-rose-50 border-rose-300 text-rose-900'
-                : 'bg-amber-50 border-amber-300 text-amber-900'
+                ? 'bg-amber-50 border-amber-300 text-amber-900'
+                : 'bg-rose-50 border-rose-300 text-rose-900'
             }`}
           >
             <div className="flex items-center gap-2">
               {statusBanner.type === 'success' ? (
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               ) : (
-                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
               )}
               <span>{statusBanner.text}</span>
             </div>
-            <button
-              type="button"
-              onClick={() => setStatusBanner(null)}
-              className="text-slate-400 hover:text-slate-700 p-0.5"
-            >
-              <X className="w-3.5 h-3.5" />
+            <button type="button" onClick={() => setStatusBanner(null)}>
+              <X className="w-3.5 h-3.5 text-slate-400" />
             </button>
           </div>
         </div>
       )}
 
-      {/* ===================================================================== */}
-      {/* 2. CUERPO OPERATIVO 40/60 SIN SCROLL (Mockup #1 Canónico)             */}
-      {/* ===================================================================== */}
-      <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 overflow-hidden min-h-0">
-        {/* ----------------------------------------------------------------- */}
-        {/* COLUMNA IZQUIERDA (40% -> 5 cols): POS BOOTH CONSOLE              */}
-        {/* ----------------------------------------------------------------- */}
-        <section className="lg:col-span-5 bg-white rounded-2xl border border-[#E2E2E4] shadow-[0_4px_14px_rgba(0,0,0,0.04)] p-4 flex flex-col justify-between overflow-hidden min-h-0">
-          {/* Cabecera Consola POS */}
+      {/* 2. Cuerpo Operativo 40/60 Sin Scroll */}
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 p-3 overflow-hidden min-h-0">
+        {/* Panel Izquierdo (40%): Consola POS */}
+        <section className="lg:col-span-5 bg-white rounded-xl border border-slate-200 p-4 flex flex-col justify-between overflow-hidden min-h-0 shadow-sm">
           <div className="space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div>
-                <h1 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                  <span>POS Booth Console</span>
-                  <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-md bg-[#80093A]/10 text-[#80093A]">
-                    Zero-Scroll
-                  </span>
-                </h1>
-                <p className="text-[11px] text-slate-500">
-                  Ingreso rotativo, liquidación por minuto y emisión térmica 80mm
-                </p>
-              </div>
-
-              {/* Conmutador rápido entre Consola POS y Lista de Activos */}
-              <div className="flex bg-[#F3F4F6] p-0.5 rounded-xl border border-slate-200 text-[11px] font-bold">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <h2 className="text-sm font-bold text-slate-900">Consola de Operación Garita</h2>
+              <div className="flex bg-slate-100 p-0.5 rounded text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => setConsoleView('pos')}
-                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                    consoleView === 'pos'
-                      ? 'bg-white text-slate-900 shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-800'
+                  className={`px-2 py-0.5 rounded ${
+                    consoleView === 'pos' ? 'bg-white shadow-xs' : 'text-slate-500'
                   }`}
                 >
-                  Consola POS
+                  POS
                 </button>
                 <button
                   type="button"
                   onClick={() => setConsoleView('activos')}
-                  className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
-                    consoleView === 'activos'
-                      ? 'bg-white text-slate-900 shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-800'
+                  className={`px-2 py-0.5 rounded ${
+                    consoleView === 'activos' ? 'bg-white shadow-xs' : 'text-slate-500'
                   }`}
                 >
-                  En Recinto ({activeTickets.length})
+                  Activos ({activeTickets.length})
                 </button>
               </div>
             </div>
 
             {consoleView === 'pos' ? (
               <div className="space-y-3">
-                {/* 1. Buscador / Input de Matrícula o Ticket con Autofoco Inmediato (F1 / F2) */}
+                {/* Input de Matrícula Patente */}
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label
-                      htmlFor="pos-plate-input"
-                      className="text-[11px] font-bold uppercase tracking-wider text-slate-500"
-                    >
-                      License Plate / Ticket Folio
+                  <div className="flex items-center justify-between mb-1 text-xs">
+                    <label htmlFor="pos-plate-input" className="font-bold text-slate-600">
+                      Patente / Folio Ticket [F1/F2]
                     </label>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setInForeign(!inForeign)}
-                        className={`text-[10px] px-2 py-0.5 rounded-md font-bold border transition cursor-pointer flex items-center gap-1 ${
-                          inForeign
-                            ? 'bg-amber-50 border-amber-300 text-amber-800'
-                            : 'bg-slate-100 border-slate-200 text-slate-600'
-                        }`}
-                      >
-                        <Globe className="w-3 h-3" />
-                        <span>{inForeign ? 'Extranjera' : 'CL'}</span>
-                      </button>
-                      <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-slate-100 text-slate-600 border border-slate-300 rounded">
-                        F2
-                      </kbd>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setInForeign(!inForeign)}
+                      className="text-[10px] font-bold text-slate-500 hover:text-slate-800"
+                    >
+                      {inForeign ? 'Patente Extranjera' : 'Chilena'}
+                    </button>
                   </div>
 
                   <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        id="pos-plate-input"
-                        type="text"
-                        autoFocus
-                        value={plateInput}
-                        onChange={(e) => setPlateInput(formatPlate(e.target.value))}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleLookupOrPreviewPlate(plateInput);
-                          }
-                        }}
-                        placeholder="ABCD-12"
-                        className="w-full h-12 pl-10 pr-16 rounded-xl bg-[#F9F9FB] border-2 border-slate-300 focus:border-[#80093A] focus:bg-white focus:outline-none font-mono font-black text-2xl tracking-widest text-slate-900 uppercase tabular-nums transition"
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-slate-200/80 text-[10px] font-mono font-bold text-slate-600">
-                        F1
-                      </span>
-                    </div>
+                    <input
+                      id="pos-plate-input"
+                      type="text"
+                      autoFocus
+                      value={plateInput}
+                      onChange={(e) => setPlateInput(formatPlate(e.target.value))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleLookupOrPreviewPlate(plateInput);
+                        }
+                      }}
+                      placeholder="ABCD-12"
+                      className="flex-1 h-11 px-3 text-center font-mono font-black text-2xl tracking-wider rounded border border-slate-300 focus:border-[#80093A] focus:outline-none uppercase tabular-nums"
+                    />
 
                     <button
                       type="button"
                       onClick={() => handleLookupOrPreviewPlate(plateInput)}
-                      className="px-3.5 h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer shrink-0"
-                      title="Consultar patente o calcular estadía"
+                      className="px-3 h-11 rounded bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold"
                     >
                       Buscar
                     </button>
@@ -744,33 +605,27 @@ function CockpitContent() {
                       type="button"
                       disabled={inLoading}
                       onClick={handleCheckinVehicle}
-                      className="px-3.5 h-12 rounded-xl bg-[#80093A] hover:bg-[#68072f] text-white text-xs font-bold transition cursor-pointer shrink-0 shadow-xs"
-                      title="Registrar Nuevo Ingreso y Emitir Ticket 80mm"
+                      className="px-3 h-11 rounded bg-[#80093A] hover:bg-[#68072f] text-white text-xs font-bold"
                     >
                       + Ingreso
                     </button>
                   </div>
                 </div>
 
-                {/* 2. Píldoras de Tarifa (Tariff Selection) + Categoría Vehicular */}
-                <div className="grid grid-cols-12 gap-2 items-center">
+                {/* Selección de Tarifa y Vehículo */}
+                <div className="grid grid-cols-12 gap-2">
                   <div className="col-span-8">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Tariff Selection
-                      </span>
-                      <kbd className="text-[10px] font-mono font-semibold text-slate-400">
-                        [F3]
-                      </kbd>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+                      Plan Tarifario [F3]
+                    </span>
+                    <div className="grid grid-cols-3 gap-1">
                       <button
                         type="button"
                         onClick={() => handleSelectTariffPlan('MINUTO')}
-                        className={`h-10 rounded-xl font-mono text-xs font-bold border transition cursor-pointer ${
+                        className={`py-1.5 rounded font-mono text-xs font-bold border ${
                           selectedTariffPlan === 'MINUTO'
-                            ? 'bg-[#80093A] text-white border-[#80093A] shadow-xs'
-                            : 'bg-[#F3F4F6] text-slate-700 border-slate-200 hover:bg-slate-200/70'
+                            ? 'bg-[#80093A] text-white border-[#80093A]'
+                            : 'bg-slate-50 border-slate-200 text-slate-700'
                         }`}
                       >
                         $30/min
@@ -778,114 +633,89 @@ function CockpitContent() {
                       <button
                         type="button"
                         onClick={() => handleSelectTariffPlan('JORNADA')}
-                        className={`h-10 rounded-xl font-mono text-xs font-bold border transition cursor-pointer ${
+                        className={`py-1.5 rounded font-mono text-xs font-bold border ${
                           selectedTariffPlan === 'JORNADA'
-                            ? 'bg-[#80093A] text-white border-[#80093A] shadow-xs'
-                            : 'bg-[#F3F4F6] text-slate-700 border-slate-200 hover:bg-slate-200/70'
+                            ? 'bg-[#80093A] text-white border-[#80093A]'
+                            : 'bg-slate-50 border-slate-200 text-slate-700'
                         }`}
                       >
-                        Jornada $6.000
+                        Jornada $6k
                       </button>
                       <button
                         type="button"
                         onClick={() => handleSelectTariffPlan('NOCHE')}
-                        className={`h-10 rounded-xl font-mono text-xs font-bold border transition cursor-pointer ${
+                        className={`py-1.5 rounded font-mono text-xs font-bold border ${
                           selectedTariffPlan === 'NOCHE'
-                            ? 'bg-[#80093A] text-white border-[#80093A] shadow-xs'
-                            : 'bg-[#F3F4F6] text-slate-700 border-slate-200 hover:bg-slate-200/70'
+                            ? 'bg-[#80093A] text-white border-[#80093A]'
+                            : 'bg-slate-50 border-slate-200 text-slate-700'
                         }`}
                       >
-                        Noche $5.000
+                        Noche $5k
                       </button>
                     </div>
                   </div>
 
-                  {/* Selector compacto de tipo de vehículo */}
                   <div className="col-span-4">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
                       Vehículo
                     </span>
-                    <div className="grid grid-cols-3 gap-1 bg-[#F3F4F6] p-1 rounded-xl border border-slate-200 h-10 items-center">
+                    <div className="grid grid-cols-3 gap-1 bg-slate-50 p-1 rounded border border-slate-200 h-9 items-center">
                       <button
                         type="button"
                         onClick={() => setInTipo('auto')}
-                        title="Auto ($25-$30/min)"
-                        className={`h-7 rounded-lg flex items-center justify-center transition cursor-pointer ${
-                          inTipo === 'auto'
-                            ? 'bg-white text-[#80093A] shadow-2xs'
-                            : 'text-slate-500'
+                        className={`h-7 rounded flex items-center justify-center ${
+                          inTipo === 'auto' ? 'bg-[#80093A] text-white' : 'text-slate-600'
                         }`}
                       >
-                        <Car className="w-4 h-4" />
+                        <Car className="w-3.5 h-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={() => setInTipo('camioneta')}
-                        title="Camioneta / SUV ($30/min)"
-                        className={`h-7 rounded-lg flex items-center justify-center transition cursor-pointer ${
-                          inTipo === 'camioneta'
-                            ? 'bg-white text-[#80093A] shadow-2xs'
-                            : 'text-slate-500'
+                        className={`h-7 rounded flex items-center justify-center ${
+                          inTipo === 'camioneta' ? 'bg-[#80093A] text-white' : 'text-slate-600'
                         }`}
                       >
-                        <Truck className="w-4 h-4" />
+                        <Truck className="w-3.5 h-3.5" />
                       </button>
                       <button
                         type="button"
                         onClick={() => setInTipo('moto')}
-                        title="Moto ($15/min)"
-                        className={`h-7 rounded-lg flex items-center justify-center transition cursor-pointer ${
-                          inTipo === 'moto'
-                            ? 'bg-white text-[#80093A] shadow-2xs'
-                            : 'text-slate-500'
+                        className={`h-7 rounded flex items-center justify-center ${
+                          inTipo === 'moto' ? 'bg-[#80093A] text-white' : 'text-slate-600'
                         }`}
                       >
-                        <Bike className="w-4 h-4" />
+                        <Bike className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* 3. Recibo Digital en Vivo (Digital Receipt con borde punteado estilo Mockup #1) */}
-                <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-[#F9F9FB] p-3.5 space-y-2">
-                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-1.5">
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                      Digital Receipt · {activeReceipt.patente}
-                    </span>
-                    <span className="text-[10px] font-mono font-semibold text-slate-500">
-                      {activeReceipt.ticket
-                        ? activeReceipt.ticket.id_ticket
-                        : 'TKT-20260419-T01-0842'}
+                {/* Desglose de Recibo Digital en Vivo */}
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 space-y-1.5 text-xs">
+                  <div className="flex justify-between border-b border-slate-200 pb-1 font-bold text-slate-700">
+                    <span>Recibo: {activeReceipt.patente}</span>
+                    <span className="font-mono text-[11px] text-slate-500">
+                      {activeReceipt.ticket?.id_ticket || 'TKT-20260419-T01-0842'}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-y-1 text-xs">
-                    <span className="text-slate-500">Entry Time:</span>
-                    <span className="text-right font-mono font-bold text-slate-800 tabular-nums">
-                      {activeReceipt.entryTime}
+                  <div className="grid grid-cols-2 gap-y-1 font-mono tabular-nums">
+                    <span className="text-slate-500 font-sans">Ingreso / Salida:</span>
+                    <span className="text-right text-slate-800">
+                      {activeReceipt.entryTime} → {activeReceipt.exitTime}
                     </span>
 
-                    <span className="text-slate-500">Exit Time:</span>
-                    <span className="text-right font-mono font-bold text-slate-800 tabular-nums">
-                      {activeReceipt.exitTime}
-                    </span>
+                    <span className="text-slate-500 font-sans">Duración:</span>
+                    <span className="text-right text-slate-800">{activeReceipt.durationText}</span>
 
-                    <span className="text-slate-500">Duration:</span>
-                    <span className="text-right font-mono font-bold text-slate-800 tabular-nums">
-                      {activeReceipt.durationText}
-                    </span>
-
-                    <span className="text-slate-500">Tariff:</span>
-                    <span className="text-right font-mono font-bold text-slate-800 tabular-nums">
-                      {activeReceipt.tariffLabel}
-                    </span>
+                    <span className="text-slate-500 font-sans">Tarifa aplicada:</span>
+                    <span className="text-right text-slate-800">{activeReceipt.tariffLabel}</span>
 
                     {activeReceipt.discountAmount > 0 && (
                       <>
-                        <span className="text-emerald-700 font-bold">
-                          Descuento Autorizado (PIN):
-                        </span>
-                        <span className="text-right font-mono font-bold text-emerald-700 tabular-nums">
+                        <span className="text-emerald-700 font-sans font-bold">Descuento PIN:</span>
+                        <span className="text-right text-emerald-700 font-bold">
                           -${activeReceipt.discountAmount.toLocaleString('es-CL')}
                         </span>
                       </>
@@ -893,62 +723,55 @@ function CockpitContent() {
 
                     {activeReceipt.surchargeAmount > 0 && (
                       <>
-                        <span className="text-rose-700 font-bold">
-                          Multa Ticket Extraviado (PIN):
-                        </span>
-                        <span className="text-right font-mono font-bold text-rose-700 tabular-nums">
-                          ${activeReceipt.surchargeAmount.toLocaleString('es-CL')}
+                        <span className="text-rose-700 font-sans font-bold">Multa Extravío:</span>
+                        <span className="text-right text-rose-700 font-bold">
+                          +${activeReceipt.surchargeAmount.toLocaleString('es-CL')}
                         </span>
                       </>
                     )}
                   </div>
 
                   <div className="pt-2 border-t border-slate-200 flex items-baseline justify-between">
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
-                      Total CLP
-                    </span>
-                    <span className="text-3xl font-mono font-black text-[#80093A] tabular-nums tracking-tight">
-                      ${activeReceipt.finalAmount.toLocaleString('es-CL')}
+                    <span className="font-bold text-slate-700">TOTAL A PAGAR:</span>
+                    <span className="text-2xl font-mono font-black text-[#80093A] tabular-nums">
+                      ${activeReceipt.finalAmount.toLocaleString('es-CL')} CLP
                     </span>
                   </div>
                 </div>
 
-                {/* 4. Medios de Pago (Cash F4 / Card F5) + Calculadora de Vuelto + Excepciones PIN */}
+                {/* Métodos de Pago y Calculadora de Vuelto */}
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => handleProcessPayment('EFECTIVO')}
-                      className={`h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition cursor-pointer ${
+                      className={`h-10 rounded font-bold text-xs flex items-center justify-center gap-1.5 border ${
                         paymentMethod === 'EFECTIVO'
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700 shadow-xs'
-                          : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+                          ? 'bg-emerald-600 text-white border-emerald-700'
+                          : 'bg-white text-slate-800 border-slate-300'
                       }`}
                     >
                       <DollarSign className="w-4 h-4" />
-                      <span>Cash (F4)</span>
+                      <span>Efectivo [F4]</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleProcessPayment('TARJETA')}
-                      className={`h-11 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition cursor-pointer ${
+                      className={`h-10 rounded font-bold text-xs flex items-center justify-center gap-1.5 border ${
                         paymentMethod === 'TARJETA'
-                          ? 'bg-sky-600 hover:bg-sky-700 text-white border-sky-700 shadow-xs'
-                          : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
+                          ? 'bg-sky-600 text-white border-sky-700'
+                          : 'bg-white text-slate-800 border-slate-300'
                       }`}
                     >
                       <CreditCard className="w-4 h-4" />
-                      <span>Card (F5)</span>
+                      <span>Tarjeta [F5]</span>
                     </button>
                   </div>
 
-                  {/* Calculadora compacta de Efectivo Recibido -> Vuelto */}
-                  <div className="grid grid-cols-2 gap-2 bg-[#F3F4F6] p-2 rounded-xl border border-slate-200/90">
-                    <div className="flex items-center justify-between px-2">
-                      <span className="text-[10px] font-bold uppercase text-slate-500">
-                        Efectivo:
-                      </span>
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2 rounded border border-slate-200 text-xs">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="font-bold text-slate-500">Recibido:</span>
                       <input
                         type="number"
                         step={500}
@@ -956,20 +779,18 @@ function CockpitContent() {
                         onChange={(e) =>
                           setCashReceived(e.target.value ? Number(e.target.value) : '')
                         }
-                        className="w-24 text-right font-mono font-bold text-xs bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-900 tabular-nums"
+                        className="w-24 text-right font-mono font-bold bg-white border border-slate-300 rounded px-1.5 py-0.5 tabular-nums"
                       />
                     </div>
-                    <div className="flex items-center justify-between px-2 border-l border-slate-300">
-                      <span className="text-[10px] font-bold uppercase text-emerald-700">
-                        Vuelto:
-                      </span>
-                      <span className="font-mono font-black text-sm text-emerald-700 tabular-nums">
+                    <div className="flex items-center justify-between px-1 border-l border-slate-200">
+                      <span className="font-bold text-emerald-700">Vuelto:</span>
+                      <span className="font-mono font-black text-emerald-700 tabular-nums">
                         ${vueltoCalculado.toLocaleString('es-CL')}
                       </span>
                     </div>
                   </div>
 
-                  {/* Botones de Auditoría Antifraude por PIN (Regla 5 AGENTS.md: Verde Descuento / Rojo Ticket Perdido) */}
+                  {/* Acciones de Auditoría Antifraude por PIN */}
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -977,9 +798,9 @@ function CockpitContent() {
                         setPinError(null);
                         setPinAuditModal('DISCOUNT');
                       }}
-                      className="h-9 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="h-8 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] font-bold flex items-center justify-center gap-1"
                     >
-                      <Percent className="w-3.5 h-3.5 text-emerald-600" />
+                      <Percent className="w-3 h-3 text-emerald-600" />
                       <span>Descuento PIN [F6]</span>
                     </button>
 
@@ -989,64 +810,42 @@ function CockpitContent() {
                         setPinError(null);
                         setPinAuditModal('LOST_TICKET');
                       }}
-                      className="h-9 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-[11px] font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="h-8 rounded bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-[11px] font-bold flex items-center justify-center gap-1"
                     >
-                      <FileWarning className="w-3.5 h-3.5 text-rose-600" />
+                      <FileWarning className="w-3 h-3 text-rose-600" />
                       <span>Ticket Perdido [F7]</span>
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              /* Vista rápida de Vehículos Activos en Recinto */
-              <div className="space-y-2 overflow-y-auto max-h-[380px] pr-1">
+              <div className="space-y-2 overflow-y-auto max-h-[380px]">
                 {activeTickets.length === 0 ? (
-                  <div className="p-6 text-center text-xs text-slate-400">
-                    No hay vehículos rotativos activos en este momento.
+                  <div className="p-4 text-center text-xs text-slate-400">
+                    No hay vehículos activos en este momento.
                   </div>
                 ) : (
                   activeTickets.map((t) => (
                     <div
                       key={t.id_ticket}
-                      className="p-3 rounded-xl bg-[#F9F9FB] border border-slate-200 flex items-center justify-between hover:border-[#80093A]/50 transition"
+                      className="p-2.5 rounded border border-slate-200 bg-slate-50 flex items-center justify-between"
                     >
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-black text-sm text-slate-900 tabular-nums">
-                            {t.patente}
-                          </span>
-                          <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-mono text-[10px] font-bold">
-                            Plaza {t.slot_numero || 'A'}
-                          </span>
+                        <div className="font-mono font-bold text-xs text-slate-900">
+                          {t.patente} <span className="text-slate-500">(Plaza {t.slot_numero})</span>
                         </div>
-                        <span className="text-[11px] font-mono text-slate-500">
-                          {t.id_ticket} • Ingreso:{' '}
-                          {new Date(t.fecha_hora_ingreso).toLocaleTimeString('es-CL', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
+                        <span className="text-[10px] font-mono text-slate-500">{t.id_ticket}</span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setTicketPreviewModal(t)}
-                          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700"
-                          title="Ver Ticket 80mm"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setConsoleView('pos');
-                            handleLookupOrPreviewPlate(t.patente);
-                          }}
-                          className="px-3 py-1.5 rounded-lg bg-[#80093A] text-white text-xs font-bold cursor-pointer"
-                        >
-                          Cobrar
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setConsoleView('pos');
+                          handleLookupOrPreviewPlate(t.patente);
+                        }}
+                        className="px-2.5 py-1 rounded bg-[#80093A] text-white text-xs font-bold"
+                      >
+                        Cobrar
+                      </button>
                     </div>
                   ))
                 )}
@@ -1054,15 +853,15 @@ function CockpitContent() {
             )}
           </div>
 
-          {/* 5. Pie de Consola POS: Print Ticket 80mm (F8) + Open Barrier (F9) */}
-          <div className="pt-2 border-t border-slate-100 grid grid-cols-12 gap-2">
+          {/* Pie de Consola: Imprimir Ticket (F8) + Abrir Barrera (F9) */}
+          <div className="pt-2 border-t border-slate-200 grid grid-cols-12 gap-2">
             <button
               type="button"
               onClick={handleOpen80mmTicketPreview}
-              className="col-span-7 h-12 rounded-xl bg-[#80093A] hover:bg-[#68072f] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition cursor-pointer active:scale-[0.99]"
+              className="col-span-7 h-11 rounded bg-[#80093A] hover:bg-[#68072f] text-white font-bold text-xs flex items-center justify-center gap-1.5"
             >
               <Printer className="w-4 h-4" />
-              <span>Print Ticket 80mm (F8)</span>
+              <span>Imprimir Ticket 80mm [F8]</span>
             </button>
 
             <button
@@ -1072,25 +871,23 @@ function CockpitContent() {
                 setTimeout(() => setBarrierOpenPulse(false), 3000);
                 setStatusBanner({
                   type: 'success',
-                  text: `Barrera Principal Abierta manualmente [F9] para ${plateInput}.`,
+                  text: `Barrera Principal Abierta [F9] para ${plateInput}.`,
                 });
               }}
-              className={`col-span-5 h-12 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 border transition cursor-pointer ${
+              className={`col-span-5 h-11 rounded font-bold text-xs flex items-center justify-center gap-1 border ${
                 barrierOpenPulse
                   ? 'bg-emerald-600 text-white border-emerald-700'
-                  : 'bg-[#F3F4F6] hover:bg-slate-200 text-slate-800 border-slate-300'
+                  : 'bg-slate-100 text-slate-800 border-slate-300'
               }`}
             >
               <Unlock className="w-4 h-4" />
-              <span>{barrierOpenPulse ? 'Barrier OPEN!' : 'Open Barrier (F9)'}</span>
+              <span>{barrierOpenPulse ? '¡Barrera Abierta!' : 'Abrir Barrera [F9]'}</span>
             </button>
           </div>
         </section>
 
-        {/* ----------------------------------------------------------------- */}
-        {/* COLUMNA DERECHA (60% -> 7 cols): INTERACTIVE PARKING LAYOUT       */}
-        {/* ----------------------------------------------------------------- */}
-        <section className="lg:col-span-7 h-full overflow-hidden min-h-0">
+        {/* Panel Derecho (60%): Matriz de 30 Plazas Serrano 447 */}
+        <section className="lg:col-span-7 h-full overflow-hidden min-h-0 bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
           <SerranoLayoutMap
             slots={slots}
             onSelectSlotForCheckout={(patente) => {
@@ -1107,57 +904,32 @@ function CockpitContent() {
         </section>
       </main>
 
-      {/* ===================================================================== */}
-      {/* POP-UP 1: TICKET TÉRMICO 80MM & PDF (Sección 12 del Catálogo)         */}
-      {/* ===================================================================== */}
+      {/* Modal: Ticket Térmico 80mm */}
       {ticketPreviewModal && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
           onClick={() => setTicketPreviewModal(null)}
         >
           <div
-            className="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto"
+            className="bg-white rounded-xl border border-slate-300 max-w-sm w-full p-4 shadow-xl space-y-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-                <span className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-                <span className="w-3 h-3 rounded-full bg-[#27C93F]" />
-                <span className="text-xs font-extrabold text-slate-800 ml-1">
-                  80mm Thermal & PDF Ticket Layout
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setTicketPreviewModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
-              >
-                <X className="w-4 h-4" />
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span className="text-xs font-bold text-slate-800">Ticket Térmico 80mm</span>
+              <button type="button" onClick={() => setTicketPreviewModal(null)}>
+                <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
 
             <ThermalTicketPDFTemplate
               folio={ticketPreviewModal.id_ticket}
               patente={ticketPreviewModal.patente}
-              fecha={new Date(ticketPreviewModal.fecha_hora_ingreso).toLocaleDateString(
-                'es-CL'
-              )}
-              horaIngreso={new Date(
-                ticketPreviewModal.fecha_hora_ingreso
-              ).toLocaleTimeString('es-CL', {
+              fecha={new Date(ticketPreviewModal.fecha_hora_ingreso).toLocaleDateString('es-CL')}
+              horaIngreso={new Date(ticketPreviewModal.fecha_hora_ingreso).toLocaleTimeString('es-CL', {
                 hour: '2-digit',
                 minute: '2-digit',
               })}
-              sectorPlaza={
-                ticketPreviewModal.slot_numero
-                  ? `${ticketPreviewModal.slot_numero <= 15 ? 'A' : 'B'}-${String(
-                      ticketPreviewModal.slot_numero
-                    ).padStart(2, '0')} (${
-                      ticketPreviewModal.vehiculo_tipo?.toUpperCase() || 'AUTO'
-                    })`
-                  : 'A-12 (General)'
-              }
+              sectorPlaza={`Plaza ${ticketPreviewModal.slot_numero}`}
               tarifaTexto={`$${ticketPreviewModal.tarifa_por_minuto || 30} / min`}
               isOffline={Boolean(ticketPreviewModal.is_offline)}
               showActions={true}
@@ -1167,64 +939,39 @@ function CockpitContent() {
         </div>
       )}
 
-      {/* ===================================================================== */}
-      {/* POP-UP 2: AUTORIZACIÓN PIN ANTIFRAUDE (Sección 9.3 del Catálogo)      */}
-      {/* ===================================================================== */}
+      {/* Modal: Autorización PIN Antifraude */}
       {pinAuditModal && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
           onClick={() => setPinAuditModal(null)}
         >
           <div
-            className="bg-white rounded-2xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+            className="bg-white rounded-xl border border-slate-300 max-w-md w-full p-5 shadow-xl space-y-3"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Cabecera Semántica Verde (Descuento) o Roja (Ticket Perdido) */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                    pinAuditModal === 'DISCOUNT'
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-rose-100 text-rose-700'
-                  }`}
-                >
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-slate-900">
-                    {pinAuditModal === 'DISCOUNT'
-                      ? 'Autorización PIN Operador · Descuento'
-                      : 'Autorización PIN Administrador · Ticket Perdido'}
-                  </h3>
-                  <p className="text-[11px] text-slate-500">
-                    {pinAuditModal === 'DISCOUNT'
-                      ? 'Auditoría Antifraude en Verde (Justificación >10 caracteres)'
-                      : 'Auditoría Antifraude en Rojo (Recargo fijo $8.000 CLP)'}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPinAuditModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-700"
-              >
-                <X className="w-4 h-4" />
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h3 className="text-xs font-bold text-slate-900">
+                {pinAuditModal === 'DISCOUNT'
+                  ? 'Autorización PIN Operador · Descuento Comercial'
+                  : 'Autorización PIN Administrador · Ticket Extraviado ($8.000)'}
+              </h3>
+              <button type="button" onClick={() => setPinAuditModal(null)}>
+                <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
 
             {pinError && (
-              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 font-medium">
+              <div className="p-2 rounded bg-rose-50 border border-rose-200 text-xs text-rose-800">
                 {pinError}
               </div>
             )}
 
-            <form onSubmit={handleConfirmPinAudit} className="space-y-4">
+            <form onSubmit={handleConfirmPinAudit} className="space-y-3">
               {pinAuditModal === 'DISCOUNT' ? (
                 <>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Porcentaje de Descuento Comercial
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                      Porcentaje de Descuento
                     </label>
                     <div className="grid grid-cols-3 gap-2">
                       {[10, 20, 50].map((pct) => (
@@ -1232,10 +979,10 @@ function CockpitContent() {
                           key={pct}
                           type="button"
                           onClick={() => setDiscountPercent(pct)}
-                          className={`py-2 rounded-xl font-mono text-xs font-bold border cursor-pointer ${
+                          className={`py-1.5 rounded font-mono text-xs font-bold border ${
                             discountPercent === pct
-                              ? 'bg-emerald-600 text-white border-emerald-700'
-                              : 'bg-slate-50 text-slate-700 border-slate-200'
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-slate-50 border-slate-200 text-slate-700'
                           }`}
                         >
                           -{pct}%
@@ -1245,7 +992,7 @@ function CockpitContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">
                       Justificación Escrita Obligatoria (&gt;10 caracteres)
                     </label>
                     <textarea
@@ -1253,45 +1000,31 @@ function CockpitContent() {
                       required
                       value={pinJustification}
                       onChange={(e) => setPinJustification(e.target.value)}
-                      placeholder="Ej: Cliente convenio Notaría Serrano con sello timbrado..."
-                      className="w-full px-3 py-2 rounded-xl bg-[#F9F9FB] border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+                      placeholder="Motivo comercial o institucional..."
+                      className="w-full px-2.5 py-1.5 rounded border border-slate-300 text-xs"
                     />
-                    <span className="text-[10px] font-mono text-slate-400">
-                      Caracteres ingresados: {pinJustification.trim().length} / mín. 11
-                    </span>
                   </div>
                 </>
               ) : (
-                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-rose-900 block">
-                      Multa Oficial por Extravío de Ticket
-                    </span>
-                    <span className="text-[11px] text-rose-700">
-                      Se registrará en rojo en el log inmutable de auditoría
-                    </span>
-                  </div>
-                  <span className="font-mono font-black text-xl text-rose-700 tabular-nums">
-                    $8.000
-                  </span>
+                <div className="p-2.5 rounded bg-rose-50 border border-rose-200 text-xs text-rose-900 flex justify-between items-center">
+                  <span>Recargo fijo por ticket extraviado:</span>
+                  <strong className="font-mono text-sm">$8.000 CLP</strong>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  {pinAuditModal === 'DISCOUNT'
-                    ? 'PIN Individual Operador (4 dígitos)'
-                    : 'PIN Supervisor / Administrador (4 dígitos)'}
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                  PIN de 4 dígitos
                 </label>
                 <input
                   type="password"
                   maxLength={4}
-                  autoFocus
                   required
+                  autoFocus
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="••••"
-                  className="w-full h-12 text-center font-mono font-black text-2xl tracking-[0.5em] rounded-xl bg-[#F9F9FB] border border-slate-300 focus:outline-none focus:border-[#80093A]"
+                  className="w-full h-10 text-center font-mono font-black text-xl tracking-[0.4em] rounded border border-slate-300"
                 />
               </div>
 
@@ -1299,21 +1032,17 @@ function CockpitContent() {
                 <button
                   type="button"
                   onClick={() => setPinAuditModal(null)}
-                  className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
+                  className="flex-1 h-9 rounded bg-slate-100 text-slate-700 text-xs font-bold"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className={`flex-1 h-11 rounded-xl text-white text-xs font-extrabold cursor-pointer shadow-sm ${
-                    pinAuditModal === 'DISCOUNT'
-                      ? 'bg-emerald-600 hover:bg-emerald-700'
-                      : 'bg-rose-600 hover:bg-rose-700'
+                  className={`flex-1 h-9 rounded text-white text-xs font-bold ${
+                    pinAuditModal === 'DISCOUNT' ? 'bg-emerald-600' : 'bg-rose-600'
                   }`}
                 >
-                  {pinAuditModal === 'DISCOUNT'
-                    ? 'Autorizar Descuento (Verde)'
-                    : 'Aplicar Recargo $8.000 (Rojo)'}
+                  Confirmar PIN
                 </button>
               </div>
             </form>
@@ -1321,16 +1050,14 @@ function CockpitContent() {
         </div>
       )}
 
-      {/* ===================================================================== */}
-      {/* POP-UP 3: ARQUEO DE CAJA CIEGA (Sección 9.2 del Catálogo)             */}
-      {/* ===================================================================== */}
+      {/* Modal: Arqueo de Caja Ciega */}
       {activeShiftModal && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
           onClick={() => setActiveShiftModal(false)}
         >
           <div
-            className="max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl"
+            className="max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-xl shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <ShiftModal
@@ -1341,59 +1068,13 @@ function CockpitContent() {
           </div>
         </div>
       )}
-
-      {/* ===================================================================== */}
-      {/* POP-UP 4: VISOR DE MOCKUP OFICIAL #1 (Garita POS & Layout 40/60)      */}
-      {/* ===================================================================== */}
-      {showMockupReference && (
-        <div
-          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4"
-          onClick={() => setShowMockupReference(false)}
-        >
-          <div
-            className="bg-white rounded-3xl border border-slate-200 max-w-5xl w-full p-5 shadow-2xl space-y-3"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-900">
-                  Lámina Oficial Mockup #1 · Garita POS (40%) + Layout Serrano 447 (60%)
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Especificación Canónica V2.0 consolidada en PRD & Catálogo de Estructuras
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowMockupReference(false)}
-                className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="rounded-2xl overflow-hidden border border-slate-200 bg-slate-50">
-              <img
-                src="/mockups/ui_garita_pos_y_layout_estacionamiento.jpg"
-                alt="Mockup Oficial Garita POS y Layout Serrano 447"
-                className="w-full h-auto object-contain max-h-[75vh]"
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 export default function Home() {
   return (
-    <Suspense
-      fallback={
-        <div className="h-screen w-screen bg-[#F9F9FB] flex items-center justify-center text-slate-700 font-mono text-sm">
-          Cargando ParkOps Garita POS...
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="p-4 text-center font-mono text-xs">Cargando Garita POS...</div>}>
       <CockpitContent />
     </Suspense>
   );

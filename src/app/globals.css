@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #F9F9FB;
-  --foreground: #1D1D1F;
+  --background: #FFFFFF;
+  --foreground: #0F172A;
   --cordano-burgundy: #80093A;
   --cordano-burgundy-hover: #60062B;
 }
@@ -12,80 +12,18 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Tipografía numérica tabular obligatoria (Regla #2) */
+/* Tipografía numérica tabular obligatoria para datos monetarios y tiempos */
 .pos-mono,
 .tabular-nums {
-  font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-variant-numeric: tabular-nums;
 }
 
-/* Superficies macOS Sonoma / Sequoia Enterprise V2.0 */
-.macos-window {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.03);
-}
-
-.macos-surface {
-  background: #F9F9FB;
-}
-
-.glass-panel {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 12px 32px -8px rgba(15, 23, 42, 0.08);
-}
-
-.macos-launchpad-card {
-  background: linear-gradient(180deg, #80093A 0%, #9E1B52 52%, #F8FAFC 88%, #FFFFFF 100%);
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  box-shadow: 0 10px 25px -5px rgba(128, 9, 58, 0.18);
-  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.macos-launchpad-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 35px -8px rgba(128, 9, 58, 0.28);
-}
-
-.macos-btn {
-  background: #F1F5F9;
-  border: 1px solid #E2E8F0;
-  color: #1E293B;
-  transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.macos-btn:hover {
-  background: #E2E8F0;
-}
-
-.macos-btn:active {
-  transform: scale(0.98);
-}
-
-.macos-btn-primary {
-  background: #80093A;
-  color: #FFFFFF;
-  border: 1px solid #60062B;
-  box-shadow: 0 4px 12px rgba(128, 9, 58, 0.25);
-  transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.macos-btn-primary:hover {
-  background: #60062B;
-}
-
-.macos-btn-primary:active {
-  transform: scale(0.98);
-}
-
-/* Estilos de impresión para Ticket Térmico 80mm (302px) */
+/* Estilos de impresión para Ticket Térmico 80mm */
 @media print {
   body {
     background: #FFFFFF !important;
