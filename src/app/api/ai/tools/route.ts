@@ -40,19 +40,11 @@ export async function POST(req: NextRequest) {
         const elapsedMinutes = Math.max(1, Math.ceil((Date.now() - entryDate.getTime()) / (1000 * 60)));
 
         const ratePerMin = vehicleType === 'CAMIONETA' ? 30 : vehicleType === 'MOTO' ? 15 : 25;
-        
-        let baseFee = 0;
-        let isGracePeriod = false;
-
-        if (elapsedMinutes <= 10 && !isLostTicket) {
-          isGracePeriod = true;
-          baseFee = 0;
-        } else {
-          baseFee = elapsedMinutes * ratePerMin;
-        }
+        const isGracePeriod = false; // Regla oficial Serrano 447: 0 minutos de gracia
+        let baseFee = elapsedMinutes * ratePerMin;
 
         if (isLostTicket) {
-          baseFee += 15000;
+          baseFee += 8000; // Recargo reglamentario oficial: $8.000 CLP
         }
 
         const discountAmount = Math.round(baseFee * (discountPct / 100));
@@ -67,7 +59,7 @@ export async function POST(req: NextRequest) {
           discountPct,
           discountAmountClp: discountAmount,
           finalFeeClp: finalFee,
-          lostTicketSurcharge: isLostTicket ? 15000 : 0
+          lostTicketSurcharge: isLostTicket ? 8000 : 0
         });
       }
 

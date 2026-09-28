@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { pmsStore } from '@/lib/pmsStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -6,21 +7,39 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const periodo = searchParams.get('periodo') || 'hoy';
 
-  const csvContent = [
-    'ID_Ticket,Patente,Fecha_Hora,Tipo_Vehiculo,Metodo_Pago,Monto_CLP,Operador,Estado',
-    'TKT-20260924-T01-0001,JKLP34,2026-09-24 08:30:00,AUTO,EFECTIVO,2000,Carlos Morales,PAGADO',
-    'TKT-20260924-T01-0002,CDAB89,2026-09-24 09:15:00,CAMIONETA,TARJETA,4800,Carlos Morales,PAGADO',
-    'TKT-20260924-T01-0003,FGHI12,2026-09-24 09:40:00,AUTO,EFECTIVO,2000,Carlos Morales,PAGADO',
-    'TKT-20260924-T01-0004,BCDE45,2026-09-24 10:15:00,AUTO,TRANSFERENCIA,3750,Carlos Morales,PAGADO',
-    'TKT-20260924-T01-0005,ABCD12,2026-09-24 11:30:00,AUTO,EFECTIVO,15250,Carlos Morales,MULTA_EXTRAVIO',
-    'TKT-20260924-T01-0006,WXYZ78,2026-09-24 12:10:00,CAMIONETA,TARJETA,6000,Carlos Morales,PAGADO',
-  ].join('\n');
+  const tickets = pmsStore.getTickets();
+  const activeShift = pmsStore.getCurrentShift();
+  const operatorName = activeShift?.nombre_operador || 'Juan Pérez';
+
+  const header = 'ID_Ticket,Patente,Plaza,Fecha_Hora_Ingreso,Tipo_Vehiculo,Modalidad,Metodo_Pago,Monto_CLP,Operador,Estado';
+
+  const rows = tickets.map((t) => {
+    const monto =
+      t.monto_total_cobrado ??
+      (t.duracion_total_minutos
+        ? t.duracion_total_minutos * (t.vehiculo_tipo === 'camioneta' ? 30 : t.vehiculo_tipo === 'moto' ? 15 : 25)
+        : 1500);
+    return [
+      t.id_ticket,
+      t.patente,
+      t.slot_codigo || `A-${String(t.slot_numero).padStart(2, '0')}`,
+      t.fecha_hora_ingreso,
+      (t.vehiculo_tipo || 'auto').toUpperCase(),
+      t.service_type || 'TRANSITORIO',
+      t.metodo_pago || 'PENDIENTE_EN_PATIO',
+      monto,
+      operatorName,
+      t.estado_ticket,
+    ].join(',');
+  });
+
+  const csvContent = [header, ...rows].join('\n');
 
   return new NextResponse('\uFEFF' + csvContent, {
     status: 200,
     headers: {
       'Content-Type': 'text/csv; charset=utf-8',
-      'Content-Disposition': `attachment; filename="parkops_export_${periodo}.csv"`,
+      'Content-Disposition': `attachment; filename="parkops_serrano447_${periodo}.csv"`,
       'Access-Control-Allow-Origin': '*',
     },
   });

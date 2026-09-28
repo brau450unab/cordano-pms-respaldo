@@ -1,149 +1,68 @@
-# Mapa de Sitio y Arquitectura de Navegación — ParkOps PMS & ERP
-## Cordano Inversiones Inmobiliarias Ltda. · Serrano 447, Iquique
-**Versión**: 2.0 Canónica  
-**Framework**: Next.js 14 App Router + Cloud Run Microservice  
+# Mapa de Sitio, Arquitectura de Información y Contratos de API v4.5 (ParkOps PMS & ERP)
+
+> **Proyecto**: ParkOps PMS — Cordano Inversiones Inmobiliarias Ltda. (Serrano 447, Iquique)  
+> **Arquitectura Frontend**: Single-Page Operational App (Next.js 16 + React 19 + Tailwind CSS v4)  
+> **Filosofía Visual**: Core Funcional Puro & Wireframe Estructural Limpio (Linear App / Vercel Dashboard) — Cero imágenes o videos incrustados.
 
 ---
 
-## 1. Diagrama Jerárquico del Mapa de Sitio
+## 1. Mapa de Sitio Estructural (7 Vistas + 4 Modales Críticos)
 
 ```mermaid
 flowchart TD
-    classDef public fill:#1e293b,stroke:#0ea5e9,stroke-width:2px,color:#f8fafc;
-    classDef auth fill:#334155,stroke:#f59e0b,stroke-width:2px,color:#f8fafc;
-    classDef operator fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#f8fafc;
-    classDef admin fill:#0f172a,stroke:#8b5cf6,stroke-width:2px,color:#f8fafc;
-    classDef api fill:#020617,stroke:#64748b,stroke-width:1px,color:#94a3b8;
+    Nav["Barra de Navegación Superior Fija (h-14)\nReloj Vivo · Estado Cloud Run / Offline (-O) · Atajos F1-F9"]
+    
+    Nav --> V1["1. #view-landing\nPortal de Garita & Apertura de Turno\n(PAS/AIDA Copy + Wireframe Slots + Login RBAC)"]
+    Nav --> V2["2. #view-menu\nMenú Principal Operativo\n(4 KPIs + Hero POS + Checklist Apertura 6 Ítems)"]
+    Nav --> V3["3. #view-pos\nPunto de Venta Garita (Sin Scroll 1080p)\n[F2] Ingreso (+LPR IA & Peritaje IA) | [F4] Salida | [F6] Historial"]
+    Nav --> V4["4. #view-map\nInteligencia Operativa & Matriz 30 Plazas\n(RevPAS, Rotación, ALOS, Franjas, Heatmap, Plano A-01..B-30)"]
+    Nav --> V5["5. #view-reports\nReportes, Cortes Z & Bitácora PIN\n(Auditoría Verde/Rojo + Exportación CSV /api/export/sheets)"]
+    Nav --> V6["6. #view-clients\nAbonados & Servicios en Paralelo [F3]\n(Convenios $75.000 y Noche $8.000 sin contaminar caja rotativa)"]
+    Nav --> V7["7. #view-settings\nConfiguración, Cloud Run & Presets IA [F5]\n(Tarifas CLP, Toggle Offline -O, Telemetría GCP, Magnific & Clarity)"]
+    Nav --> V8["8. #view-support\nCentro de Ayuda, Copiloto IA & PRDs\n(/api/ai/assistant + /api/ai/tools + Visor /api/docs)"]
 
-    %% Nivel 0: Entrada Pública
-    Landing["🌐 /landing<br/><b>Landing Page Pública</b><br/>• Vitrina Comercial<br/>• Galería Serrano 447<br/>• FAQ y Tarifas"]:::public
-
-    %% Nivel 1: Autenticación y Acceso
-    Login["🔐 /login<br/><b>Inicio de Sesión</b><br/>• Operador (PIN Rápido)<br/>• Administrador (Password)"]:::auth
-    Recuperar["🔑 /recuperar-password<br/>Recuperación de Clave"]:::auth
-    Registro["📝 /registro<br/>Alta de Personal"]:::auth
-
-    Landing -->|Botón Iniciar Sesión| Login
-    Landing -->|Tutoriales Protegidos| Login
-    Login --> Recuperar
-    Login --> Registro
-
-    %% Nivel 2A: Portal Operativo de Garita (Rol: OPERADOR)
-    subgraph Garita["📍 PORTAL OPERATIVO DE GARITA (Uso Diario sin Scroll)"]
-        Home["🖥️ /<br/><b>Cockpit de Garita & POS</b>"]:::operator
-        
-        %% Modales Operativos Flotantes
-        ModalOpen["Modal: Apertura de Turno<br/>(Fondo Inicial Sencillo)"]:::operator
-        ModalCheckin["Modal: Verificación Check-in<br/>(Patente, Conductor, Daños)"]:::operator
-        ModalCheckout["Modal: Cobro y Salida<br/>(Vuelto Gigante, POS/Efectivo)"]:::operator
-        ModalSpecial["Modal: Servicios Especiales<br/>(Noche y Convenios)"]:::operator
-        ModalClose["Modal: Arqueo Ciego<br/>(Billetes, Monedas y Reporte Z)"]:::operator
-        
-        Home --> ModalOpen
-        Home --> ModalCheckin
-        Home --> ModalCheckout
-        Home --> ModalSpecial
-        Home --> ModalClose
-    end
-
-    %% Nivel 2B: Portal Administrativo y Gerencial (Rol: ADMINISTRADOR)
-    subgraph AdminPortal["🏢 PORTAL ADMINISTRATIVO & GERENCIAL"]
-        AdminDashboard["📊 /admin<br/><b>Panel de Control Gerencial</b><br/>• Ocupación y Supervisión en Vivo<br/>• Trazabilidad de Cajas y Turnos<br/>• Gestión de Operadores y PINs"]:::admin
-        Reportes["📈 /reportes<br/><b>Suite de Reportes Financieros</b><br/>• Consolidado Diario / Mensual P&L<br/>• Exportación Excel (XLSX) y PDF<br/>• Horas Punta y Tiempos de Estadía"]:::admin
-        Configuracion["⚙️ /configuracion<br/><b>Motor de Tarifas y Parámetros</b><br/>• Precios por Minuto (Auto/Camioneta/Moto)<br/>• Minutos de Gracia y Multa Ticket Perdido<br/>• Contratos de Convenios y Planes Noche"]:::admin
-        AuditView["🛡️ /admin/auditoria<br/><b>Audit Trail Inmutable</b><br/>• Descuentos con PIN de Operador<br/>• Anulaciones autorizadas por Admin<br/>• Historial de Descuadres de Caja"]:::admin
-        CCTV["📹 /cctv<br/><b>Visualizador de Cámaras CCTV</b><br/>• Cámaras de Acceso y Garita"]:::admin
-        Docs["📚 /documentacion<br/><b>Manuales Operativos y Guías</b><br/>• Protocolos de Contingencia"]:::admin
-        FAQPage["❓ /faq<br/><b>Base de Conocimiento</b>"]:::admin
-        
-        AdminDashboard --> Reportes
-        AdminDashboard --> Configuracion
-        AdminDashboard --> AuditView
-        AdminDashboard --> CCTV
-        AdminDashboard --> Docs
-        AdminDashboard --> FAQPage
-    end
-
-    %% Redirección post-login
-    Login -->|Rol: OPERADOR| Home
-    Login -->|Rol: ADMINISTRADOR| AdminDashboard
-
-    %% Nivel 3: Capa de Microservicios y Endpoints API (Cloud Run)
-    subgraph BackendAPI["⚡ MICROSERVICIOS Y APIS REST (Google Cloud Run)"]
-        ApiCheckin["POST /api/checkin<br/>Ingreso y Ticket Dual"]:::api
-        ApiCheckout["POST /api/checkout<br/>Salida, Vuelto y Cobro"]:::api
-        ApiSlots["GET /api/slots<br/>Estado de 30 Plazas"]:::api
-        ApiShifts["GET/POST /api/shifts<br/>Apertura y Arqueo Ciego"]:::api
-        ApiSpecial["POST /api/special-services<br/>Noche y Convenios"]:::api
-        ApiAudit["GET/POST /api/audit<br/>Registro Inmutable"]:::api
-        ApiCloudRun["GET /api/cloudrun<br/>Telemetría y Sincronización"]:::api
-        ApiHealth["GET /api/health<br/>Healthcheck Uptime"]:::api
-    end
-
-    Home -.->|Fetch / Sync| ApiCheckin
-    Home -.->|Fetch / Sync| ApiCheckout
-    Home -.->|Fetch / Sync| ApiSlots
-    Home -.->|Fetch / Sync| ApiShifts
-    Home -.->|Fetch / Sync| ApiSpecial
-    AdminDashboard -.->|Query| ApiAudit
-    AdminDashboard -.->|Query| ApiShifts
-    AdminDashboard -.->|Query| ApiCloudRun
+    V3 --> M1["#modal-ticket\nTicket Térmico 80mm Dual\n(QR + Code 128 + Leyenda $8.000)"]
+    V3 --> M2["#modal-pin-auth\nAutorización Antifraude PIN\n(Verde: Operador 1234 | Rojo: Admin 9999)"]
+    V3 --> M3["#modal-manual-tx\nIngreso / Egreso Manual de Caja\n(Inyección Sencillo o Retiro Custodia)"]
+    V1 --> M4["#modal-close-shift\nArqueo de Caja Ciega (3 Pasos)\n(Efectivo Físico -> Dictamen IA /api/ai/shift-audit + SHA-256 -> Corte Z)"]
 ```
 
 ---
 
-## 2. Desglose Estructurado de Vistas y Módulos
+## 2. Mapa de Teclado Ergonómico de Garita (`Keyboard-First`)
 
-### MÓDULO 1: CAPA PÚBLICA E INFORMATIVA
-
-| Ruta | Nombre de la Vista | Audiencia / Acceso | Propósito y Contenido Principal |
-| :--- | :--- | :--- | :--- |
-| **`/landing`** | **Landing Page Comercial & Acceso** | Público general y Personal | Vitrina del software, tarifas transparentes, galería fotográfica del recinto en Serrano 447, preguntas frecuentes (FAQ) y botón de acceso a login. |
-| **`/login`** | **Portal de Inicio de Sesión** | Personal de la empresa | Pantalla dedicada con selector de rol: **Operador de Garita** (autenticación por PIN de 4 dígitos) o **Administrador** (credenciales corporativas). |
-| **`/recuperar-password`** | **Recuperación de Acceso** | Usuarios registrados | Flujo de restablecimiento seguro de claves administrativas. |
-| **`/registro`** | **Alta de Usuarios** | Solo invitación/Admin | Formulario para enrolamiento de nuevos cajeros u operadores. |
-| **`/faq`** | **Centro de Ayuda / FAQ** | Público y Personal | Preguntas frecuentes sobre tiempo de gracia, medios de pago y políticas de tickets extraviados. |
+| Tecla / Atajo | Acción Operativa Directa | Vista / Contexto |
+| :--- | :--- | :--- |
+| **`F1`** | Ir al Menú Principal Operativo (`#view-menu`) | Global |
+| **`F2`** | Abrir POS en Sub-pestaña **Ingreso Vehicular** + Autofoco en Patente | Global / POS |
+| **`F3`** | Abrir Submódulo en Paralelo: **Abonados & Servicio Noche** (`#view-clients`) | Global |
+| **`F4`** | Abrir POS en Sub-pestaña **Liquidar Salida** + Autofoco en Buscador | Global / POS |
+| **`F5`** | Abrir **Configuración, Tarifas & Contingencia Offline (`-O`)** (`#view-settings`) | Global |
+| **`F6`** | Abrir POS en Sub-pestaña **Historial de Tickets del Turno** | Global / POS |
+| **`F8`** | Disparar **Pulso de Apertura Manual de Barrera** (`GPIO`) con registro en bitácora | Global / POS |
+| **`F9`** | Iniciar **Protocolo de Cierre de Caja Ciega en 3 Pasos** (`#modal-close-shift`) | Global |
+| **`Enter`** | Confirmar emisión de Ticket de Ingreso o procesar Liquidación de Salida | Formularios POS |
+| **`Esc`** | Cerrar cualquier ventana modal activa (`Ticket`, `PIN`, `Cierre`, ` Caja Manual`) | Global |
 
 ---
 
-### MÓDULO 2: PORTAL OPERATIVO DE GARITA (ROL: OPERADOR)
+## 3. Contratos de los 13 Endpoints de API (`src/app/api/*`)
 
-> [!IMPORTANT]
-> **Diseño 1080p sin scroll**: Todo este portal está diseñado en una distribución **Bi-Panel Asimétrica (40% / 60%)** para que el cajero opere a máxima velocidad mediante teclado (`F1`–`F9`, `Enter`, `Esc`) sin necesidad de desplazarse verticalmente.
+### 3.1 Core Transaccional PMS
+1. **`GET /api/slots`**: Retorna las 30 plazas (`A-01..A-15`, `B-16..B-30`) + 5 sobrecupos, contadores de ocupación y estado `offlineMode`.
+2. **`POST /api/checkin`**: Valida formato de patente, previene doble ingreso (*Anti-Passback*), asigna plaza y genera correlativo `TKT-AAAAMMDD-T0X-XXXX` (o sufijo `O`).
+3. **`POST /api/checkout`**: Calcula estadía exacta con **0 minutos de gracia**, aplica descuentos (con PIN Operador) o recargo por extravío de `$8.000 CLP` (con PIN Admin), registra medio de pago y libera la plaza.
+4. **`GET / POST /api/shifts`**: Gestiona apertura de turno con fondo inicial de `$50.000 CLP` y cierre de caja ciega sellado con `SHA-256`.
+5. **`GET / POST /api/audit`**: Almacena y consulta eventos de auditoría antifraude clasificados por `color_tag` (`VERDE`, `ROJO`, `AZUL`, `GRIS`).
 
-| Componente / Modal en `/` | Tipo de Interfaz | Función Operativa |
-| :--- | :--- | :--- |
-| **Menubar Superior Fija** | Barra fija superior | Traffic lights macOS, tabs de navegación, reloj oficial de Chile en vivo (`CLT`), indicador Cloud Run (`En Línea` / `Modo Offline O`), y botón de cierre de turno. |
-| **Panel Izquierdo (40%)** | Formulario Check-in | Autofoco en Patente, selector de vehículo (Auto `$25`, Camioneta `$30`, Moto `$15`), nombre de conductor, teléfono, observación de daños preexistentes y botón `Registrar Ingreso [Enter]`. |
-| **Panel Derecho (60%)** | Monitor y Cobro Rápido | Buscador universal (QR, código lineal o patente), mini-resumen de ocupación (plazas libres/ocupadas) y lista activa de vehículos estacionados con cronómetro en tiempo real. |
-| **Modal: Verificación Check-in** | Pop-up `backdrop-blur` | Previsualiza los datos del vehículo y confirma la emisión del **ticket térmico de 80mm con Código QR dual y Código 128**. |
-| **Modal: Cobro y Salida** | Pop-up `backdrop-blur` | Desglose de minutos y tarifas, revisión de daños de entrada, botones de pago (`Efectivo`, `Tarjeta POS`, `Transferencia`), **Calculadora de Vuelto Gigante** y excepciones con PIN. |
-| **Modal: Servicios Especiales** | Pop-up en paralelo | Registro de vehículos por Noche o Convenios mensuales; bloquea la plaza física en el mapa sin alterar la cola de vehículos rotativos del día. |
-| **Modal: Arqueo Ciego** | Pop-up de fin de turno | Ingreso físico de billetes ($20k, $10k, $5k, $2k, $1k) y monedas; descuenta el fondo inicial y emite el **Reporte Z térmico duplicado**. |
+### 3.2 Inteligencia Artificial Operativa (Gemini 2.5 Flash)
+6. **`POST /api/ai/lpr-ocr`**: Conectado al botón `[LPR IA]` en `#pos-subtab-entry`. Extrae matrícula, categoría (`auto`, `camioneta`, `moto`) y nivel de confianza.
+7. **`POST /api/ai/damage-inspection`**: Conectado al botón `[Peritaje IA]` en `#pos-subtab-entry`. Redacta acta preventiva de daños preexistentes para proteger a la empresa ante reclamos (SOP-03).
+8. **`POST /api/ai/shift-audit`**: Conectado al Paso 2 de `#modal-close-shift`. Emite dictamen financiero automatizado (`nivelRiesgo`: `BAJO | MEDIO | ALTO`) evaluando diferencias de caja, extravíos y descuentos.
+9. **`POST /api/ai/assistant`**: Conectado al Centro de Ayuda (`#view-support`). Responde consultas del operador sobre reglas de negocio y SOPs de Serrano 447.
+10. **`POST /api/ai/tools`**: Conectado a los botones rápidos de *Function Calling* en `#view-support` (`getParkingStatus`, `calculateParkingFee`, `triggerBarrierPulse`).
 
----
-
-### MÓDULO 3: PORTAL ADMINISTRATIVO Y GERENCIAL (ROL: ADMINISTRADOR)
-
-| Ruta | Nombre del Módulo | Funcionalidades Principales |
-| :--- | :--- | :--- |
-| **`/admin`** | **Dashboard Ejecutivo** | Supervisión remota de Serrano 447 en tiempo real: ocupación porcentual, recaudación acumulada del día, turnos abiertos/cerrados y gestión de operadores. |
-| **`/reportes`** | **Suite de Reportes Financieros** | • **Reporte Diario Consolidado**: Cierres de todos los turnos.<br/>• **Reporte Histórico Mensual P&L**: Exportable a **Excel (XLSX)** y **PDF**.<br/>• **Reporte de Ocupación**: Horas punta y permanencia promedio. |
-| **`/configuracion`** | **Configuración de Tarifas** | Ajuste de precio por minuto por tipo de vehículo, definición de minutos de gracia (10 min), valor de recargo por ticket extraviado y tarifas planas de noche/convenios. |
-| **`/cctv`** | **Monitoreo de Cámaras** | Enlaces y visualización de las cámaras IP del recinto (garita de acceso y patio de estacionamiento). |
-| **`/documentacion`** | **Manual de Operaciones** | Manuales técnicos de procedimientos, contingencia offline y normativas de garita. |
-
----
-
-### MÓDULO 4: CAPA DE MICROSERVICIOS Y APIS (`/api/*`)
-
-| Endpoint | Método | Descripción del Servicio |
-| :--- | :--- | :--- |
-| **`/api/checkin`** | `POST` | Valida anti-passback, asigna slot, calcula tarifa base y genera ID de ticket (sufijo `O` en offline). |
-| **`/api/checkout`** | `POST` | Búsqueda por QR/código/patente, cálculo de estadía, aplicación de descuentos con PIN y liberación de plaza. |
-| **`/api/slots`** | `GET` | Retorna el estado en tiempo real de las 30 plazas canónicas de Serrano 447 (Sectores A y B). |
-| **`/api/shifts`** | `GET` / `POST` | Gestión del ciclo de vida del turno: apertura con fondo inicial y cierre ciego con conciliación matemática. |
-| **`/api/special-services`**| `POST` | Bloqueo de plazas y registro contable segregado para Convenios y Pernoctas Nocturnas. |
-| **`/api/audit`** | `GET` / `POST` | Registro inmutable de eventos sensibles (descuentos con PIN, anulaciones, descuadres). |
-| **`/api/cloudrun`** | `GET` / `POST` | Telemetría del microservicio en Google Cloud Run (`cordano-pms-v1`, región `us-west1`). |
-| **`/api/health`** | `GET` | Healthcheck para monitoreo de uptime y disponibilidad del servicio. |
+### 3.3 Infraestructura Cloud Run, Documentación y Exportación ERP
+11. **`GET /api/cloudrun`**: Conectado a `#view-settings`. Expone metadatos del servicio `cordano-pms-v1` en GCP `us-west1`.
+12. **`GET /api/health`**: Conectado a `#view-landing` y `#view-settings`. Verifica estado operativo y latencia RTT del contenedor.
+13. **`GET /api/docs` & `GET /api/export/sheets`**: Conectados a `#view-support` (lectura en vivo de los 3 PRDs de `docs/`) y `#view-reports` (descarga directa de planilla CSV dinámica con tickets reales del turno).

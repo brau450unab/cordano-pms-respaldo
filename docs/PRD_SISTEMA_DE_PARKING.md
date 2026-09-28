@@ -1,218 +1,89 @@
-# Documento de Requerimientos de Producto (PRD) — ParkOps
-## Sistema Integral de Gestión de Estacionamiento y ERP Operativo
-**Empresa**: Cordano Inversiones Inmobiliarias Ltda.  
-**Ubicación Física**: Serrano 447, Iquique, Chile (Junto al Consulado Italiano)  
-**Capacidad**: ~700 m² | 30 plazas estandarizadas (Sector A 01–15, Sector B 16–30)  
-**Versión**: 2.0 (Consolidada tras Interrogatorio de Arquitectura y Operaciones)  
+# PRD Canónico v4.5: Sistema de Gestión de Estacionamiento y ERP (ParkOps PMS — Cordano Inversiones Inmobiliarias Ltda.)
+
+> **Estado del Documento**: Aprobado e Implementado en Producción Local & Google AI Studio (v4.5 Enterprise)  
+> **Instalación Física**: Serrano 447, Iquique, Chile (~700 m², 30 Plazas Físicas: Sector A `01–15`, Sector B `16–30` + 5 Plazas Sobrecupo `SC-01..05`)  
+> **Infraestructura Cloud**: Google Cloud Run `cordano-pms-v1` | Proyecto GCP `gen-lang-client-0862587160` (`349577440002`) | Región `us-west1`  
+> **Arquitectura UI**: Core Funcional Puro & Wireframe Estructural (Estilo Linear App / Vercel Dashboard) con Integración Integral de 13 Endpoints API y Gemini 2.5 Flash.
 
 ---
 
-## 1. Propósito y Objetivos Estratégicos
+## 1. Resumen Ejecutivo y Propósito del Producto (`/product-manager` & `/idea-os`)
 
-El software **ParkOps** es la plataforma central de punto de venta (POS), control de acceso vehicular, administración de espacios y auditoría financiera diseñada a medida para el estacionamiento de Serrano 447 en Iquique.
+**ParkOps PMS & ERP v4.5** es la plataforma integral de control de acceso vehicular, recaudación presencial en garita, auditoría antifraude por PIN y conciliación ciega de caja desarrollada para **Cordano Inversiones Inmobiliarias Ltda.** en su recinto de **Serrano 447, Iquique**.
 
-### Objetivos Clave a Cumplir:
-1. **Control de Recaudación y Cero Fugas**: Erradicar el cobro informal y las omisiones de registro mediante la emisión obligatoria de tickets térmicos con código QR y código de barras lineal, combinada con arqueos de caja ciega inmutables.
-2. **Operación de Alta Velocidad sin Fricción**: Permitir al operador en garita ejecutar el check-in y check-out en una interfaz de baja densidad, con botones grandes estilo macOS (48px–52px), tipografía tabular y modales emergentes con `backdrop-blur` para verificación instantánea sin scroll.
-3. **Segregación Estricta de Servicios**: Separar contable y operativamente las ventas transitorias del día (cobro por minuto con tiempo de gracia) de los servicios especiales en paralelo (vehículos que pernoctan por Noche o empresas bajo Convenio mensual), asegurando que ambos bloqueen plazas en el recinto pero no mezclen sus finanzas ni listas operativas.
-4. **Resiliencia Operacional Híbrida**: Capacidad de operar 100% de forma local y offline ante caídas de internet (IndexedDB local), con sincronización transparente hacia Google Cloud Run.
-5. **Separación de Responsabilidades por Rol**: El operador se enfoca exclusivamente en la operativa diaria con información restringida (caja ciega); el administrador tiene control gerencial y auditoría total, con la prohibición expresa de abrir turnos de caja en rol administrativo para no vulnerar la trazabilidad.
-
----
-
-## 2. Flujo Operacional del Día a Día
-
-El ciclo operativo diario se estructura en 5 fases secuenciales:
-
-```mermaid
-flowchart TD
-    subgraph F0["Fase 0: Apertura de Turno"]
-        A0["Inicio de Sesión del Operador"] --> B0["Declaración Obligatoria de Fondo Inicial de Sencillo (ej: $30.000 CLP)"]
-        B0 --> C0["Apertura Confirmada: Caja Lista para Operar"]
-    end
-
-    subgraph F1["Fase 1: Ingreso de Vehículo (Check-in)"]
-        C0 --> A1["Llegada de Vehículo & Solicitud de Patente"]
-        A1 --> B1{"¿Tipo de Servicio?"}
-        
-        B1 -- "Transitorio por Minuto" --> C1["Registro de: Nombre Conductor + Teléfono + Daño Opcional"]
-        C1 --> D1["Asignación de Tarifa Diaria (con 10 min de gracia)"]
-        D1 --> E1["Pop-up Modal de Verificación Previa"]
-        E1 --> F1["Imprimir Ticket Térmico 80mm (QR + Código Lineal + Advertencia Legal)"]
-        
-        B1 -- "Noche / Convenio" --> G1["Apertura de Pop-up Submódulo Paralelo"]
-        G1 --> H1["Registro de Empresa/Noche & Bloqueo de Plaza en Matriz (Sin entrar a transitorios)"]
-    end
-
-    subgraph F2["Fase 2: Monitoreo en Tiempo Real"]
-        F1 --> A2["Plaza marcada en Matriz 30 Slots (Sector A / B) & Tarjeta en Kanban"]
-        H1 --> A2
-        A2 --> B2["Tooltips al pasar el cursor (Patente y Tiempo)"]
-        A2 --> C2["Clic en Plaza: Pop-up Flotante Central con Ficha Técnica"]
-    end
-
-    subgraph F3["Fase 3: Salida y Cobro (Check-out)"]
-        A2 --> A3["Búsqueda: Escaneo de QR / Escaneo de Código / Digitación de Patente"]
-        A3 --> B3["Pop-up de Cobro: Estadía exacta, Tarifa, Verificación de Daños registrados"]
-        B3 --> C3{"¿Excepción o Descuento?"}
-        C3 -- "Descuento Menor" --> D3["PIN de Operador + Justificación Escrita Obligatoria"]
-        C3 -- "Ticket Perdido / Anulación" --> E3["Autorización Obligatoria con PIN de Administrador"]
-        C3 -- "Cobro Regular" --> F3["Selección de Medio de Pago"]
-        D3 --> F3
-        E3 --> F3
-        F3 --> G3["Efectivo (Vuelto Gigante) / Tarjeta POS Externa / Transferencia"]
-        G3 --> H3["Emisión de Comprobante Térmico & Liberación Inmediata de Plaza"]
-    end
-
-    subgraph F4["Fase 4: Cierre de Turno y Conciliación"]
-        H3 --> A4["Operador Solicita Cierre de Turno"]
-        A4 --> B4["Arqueo Ciego: Conteo de Billetes ($20k, $10k, $5k, $2k, $1k) y Monedas"]
-        B4 --> C4["Sistema descuenta Fondo Inicial de Sencillo"]
-        C4 --> D4["Comparativa Automática: Declarado vs. Sistema = Cuadre o Diferencia"]
-        D4 --> E4["Impresión de Reporte Z Térmico Duplicado (Operador + Archivo Admin)"]
-    end
-```
+### 1.1 Problemas Operativos Resueltos (Framework PAS)
+1. **Fugas de Caja y Arqueos Subjetivos**: Se elimina la visualización previa del efectivo esperado durante el cierre de turno mediante un **Arqueo de Caja Ciega en 3 Pasos**, auditado automáticamente por IA (`POST /api/ai/shift-audit`) y sellado criptográficamente con hash `SHA-256`.
+2. **Cuellos de Botella en Hora Punta (12:00 a 15:30 hrs)**: Flujo *Keyboard-First* (`F1–F9`, `Enter`, `Esc`) sin scroll en monitores 1080p/4K, asistido por reconocimiento óptico LPR (`POST /api/ai/lpr-ocr`) y peritaje visual de daños (`POST /api/ai/damage-inspection`), logrando tiempos de ingreso `< 4 segundos`.
+3. **Contaminación Contable entre Clientes Rotativos y Mensuales**: Segregación estricta mediante el **Submódulo en Paralelo (`[F3]`)** para Convenios Corporativos (`$75.000/mes`) y Pernocta Noche (`$8.000`), bloqueando plazas en la matriz sin alterar el flujo de caja por minuto.
+4. **Vulnerabilidad ante Cortes de Internet**: Arquitectura *Offline-First* con persistencia en `IndexedDB` y emisión de tickets de contingencia con sufijo obligatorio **`-O`** (`TKT-AAAAMMDD-T0X-XXXXO`).
 
 ---
 
-## 3. Especificaciones Detalladas por Módulo
+## 2. Reglas Oficiales de Dominio y Tarifario Unificado (v4.5)
 
-### Módulo 1: Garita / Punto de Venta Diario (POS)
-- **Apertura de Turno**:
-  - Exige ingresar el monto de efectivo base para dar vuelto (`initialCashFloat`, ej: `$30.000 CLP`).
-  - No permite registrar vehículos hasta haber declarado el fondo inicial.
-- **Check-in Transitorio**:
-  - **Patente**: Formato chileno (`ABCD-12` o `AB-1234`) con botón de patente extranjera.
-  - **Nombre del Conductor**: Texto obligatorio para atención personalizada.
-  - **Teléfono Móvil**: Número de contacto (predeterminado `+569`) para soporte o ticket digital.
-  - **Observación de Daños Preexistentes (Opcional)**: Campo de texto para registrar abolladuras, rayones o roturas visibles al ingresar (ej: *"Abolladura tapabarro izquierdo"*), protegiendo legalmente al estacionamiento.
-  - **Tarifa**: Aplica por defecto la tarifa activa del día/horario por minuto, permitiendo al operador cambiar a tarifa de Camioneta o Moto.
-  - **Pop-up de Verificación**: Ventana emergente con `backdrop-blur` que muestra el resumen antes de imprimir para evitar tickets emitidos por error.
-- **Check-out y Cobro**:
-  - Triple método de búsqueda rápida:
-    1. Escaneo del **Código QR** con lector 2D o cámara.
-    2. Escaneo del **Código lineal** (Code 128) con pistola láser USB estándar.
-    3. Digitación manual de la **Patente**.
-  - Pop-up de cobro que desglosa: hora de ingreso, hora de salida, minutos totales, minutos de gracia descontados, tarifa aplicada y monto final redondeado en CLP.
-  - Muestra las observaciones de daño registradas al ingresar para validar que el auto se retire en el mismo estado.
-  - **Calculadora de Vuelto Gigante**: Muestra con cuánto dinero paga el cliente (ej: `$10.000`) y despliega en verde esmeralda Apple: **`VUELTO: $ 5.500 CLP`**.
-  - Medios de pago: `Efectivo`, `Tarjeta POS Externa` (se cobra en el terminal físico Transbank/Getnet y se marca el botón en pantalla) y `Transferencia`.
-
-### Módulo 2: Submódulo de Servicios Especiales en Paralelo (Noche y Convenios)
-- **Propósito**: Mantener un orden estricto evitando mezclar las ventas rotativas por minuto con contratos mensuales o estadías nocturnas.
-- **Detección**: Al ingresar una patente registrada en convenio o seleccionar la opción "Servicio Noche", se abre un pop-up modal que depende de este submódulo paralelo.
-- **Efecto en la Matriz**: Bloquea el slot seleccionado (Sector A o B) marcándolo con color semántico (Azul para Convenio / Púrpura para Noche), pero **NO suma el vehículo a la lista de vehículos transitorios del POS diario**.
-- **Contabilidad Segregada**: La recaudación de estos servicios se reporta en una partida independiente en el cierre de caja, sin distorsionar el promedio de minutos ni la recaudación rotativa.
-
-### Módulo 3: Matriz de Plazas y Monitoreo en Vivo (Serrano 447)
-- **Capacidad Física**: 30 plazas estandarizadas divididas en:
-  - **Sector A**: 15 plazas (Slots 01 al 15).
-  - **Sector B**: 15 plazas (Slots 16 al 30).
-- **Estética Minimalista estilo macOS**:
-  - Tarjetas redondeadas (`rounded-2xl`) con bordes translúcidos de 1px.
-  - Selector superior segmentado: `Sector A (01-15)`, `Sector B (16-30)` o `Ambos Sectores (30 Slots)`.
-  - Códigos de color semánticos de alta visibilidad:
-    - **Disponible**: Verde Esmeralda (`#30D158`)
-    - **Ocupada**: Gris Pizarra (`#64748B`)
-    - **Reservada**: Naranja (`#FF9F0A`)
-    - **Abonado / Convenio**: Azul (`#0A84FF`)
-    - **PMR (Movilidad Reducida)**: Cian (`#64D2FF`)
-    - **Sobrestadía (>2h / Alerta)**: Rojo pulsante (`#FF453A`)
-- **Divulgación Progresiva**:
-  - **Tooltips flotantes**: Al posar el cursor, revela de inmediato `Patente: FL-4421 · 1h 12m`.
-  - **Modal Pop-up Flotante Central**: Al hacer clic en cualquier plaza ocupada, despliega la ficha completa del vehículo (patente, conductor, tiempo, monto acumulado, observación de daño) con botones grandes de acción rápida: *Cobrar y Salida*, *Reubicar Plaza* y *Cerrar [Esc]*.
-- **Tablero Kanban de Permanencia**:
-  - Agrupación automática de vehículos activos en 4 columnas: `< 1h`, `1 – 2h`, `2 – 4h`, y `> 4h (Sobrestadía)`.
-
-### Módulo 4: Auditoría y Seguridad Antifraude (*Audit Trail*)
-- **Descuentos Menores**: El operador puede aplicar descuentos con su propio **PIN individual de Operador**, siendo obligatorio ingresar la justificación por escrito (ej: *"Convenio verbal autorizado por gerencia"*).
-- **Acciones Críticas con PIN de Administrador**:
-  - Anulación de tickets emitidos o cobrados.
-  - Cobro o liberación de vehículo por **Ticket Perdido**.
-  - Reaperturas de caja o modificaciones de fondo.
-- **Log Inmutable de Auditoría**: Cada evento sensible registra timestamp exacto, usuario responsable, monto ajustado, justificación y estación de trabajo. Resaltado visual: **Verde** para descuentos autorizados y **Rojo** para pérdidas/fugas.
-
-### Módulo 5: Configuración de Tarifas y Servicios (Solo Administrador)
-- Configuración de valor por minuto base según tipo de vehículo:
-  - Auto: `$ 25 CLP / min`
-  - Camioneta / SUV: `$ 30 CLP / min`
-  - Moto: `$ 15 CLP / min`
-- Definición de tiempo de gracia inicial (ej: `10 minutos` sin cobro si el cliente sale antes).
-- Valor de recargo por Ticket Extraviado (ej: `$ 10.000 CLP`).
-- Tarifas fijas para servicios especiales: Tarifa Plana Noche (20:00 a 08:00 hrs) y planes mensuales de convenio.
-
-### Módulo 6: Suite de Reportes y Analítica
-- **Portal del Operador (Visión Estrictamente Operativa)**:
-  - Solo tiene acceso a su turno activo, punto de ventas, matriz de plazas, lista de clientes y vehículos activos.
-  - **Reporte Z Térmico (80mm)**: Al cerrar turno tras el arqueo ciego, el sistema imprime el reporte en duplicado (copia cajero y copia admin) detallando: fecha/hora, número de turno, cajero, fondo inicial, total recaudado en efectivo, total vouchers POS tarjeta, total transferencias, y cuadre/diferencia final.
-- **Portal del Administrador (Suite Gerencial Completa)**:
-  - **Reporte Diario Consolidado**: Resumen acumulado de todos los turnos del día con desglose por medio de pago.
-  - **Reporte Histórico Mensual / Rango de Fechas**: Exportable a **Excel (XLSX/CSV)** y **PDF** con métricas de facturación bruta, neta e impuestos.
-  - **Reporte de Ocupación y Horas Punta**: Gráficos de afluencia por hora del día y día de la semana para optimizar turnos de personal.
-  - **Reporte de Auditoría de Discrepancias**: Historial de sobrantes/faltantes por cajero y detalle de todos los descuentos aplicados con sus justificaciones.
+| Parámetro de Dominio | Valor Oficial Canónico v4.5 | Regla de Negocio / Validación |
+| :--- | :--- | :--- |
+| **Capacidad del Recinto** | `30 Plazas` (`A-01..A-15`, `B-16..B-30`) + `5 Sobrecupo` | Asignación automática por orden de llegada o selección manual |
+| **Tarifa Auto / Sedán** | `$25 CLP / minuto` | Cobro mínimo base de 30 minutos (`$750 CLP`) |
+| **Tarifa Camioneta / SUV** | `$30 CLP / minuto` | Cobro mínimo base de 30 minutos (`$900 CLP`) |
+| **Tarifa Motocicleta** | `$15 CLP / minuto` | Cobro mínimo base de 30 minutos (`$450 CLP`) |
+| **Tiempo de Gracia** | **`0 minutos`** | Todo ingreso genera cobro efectivo (sin ventana gratuita) |
+| **Recargo Ticket Extraviado** | **`$8.000 CLP`** | Leyenda legal obligatoria en ticket 80mm; exige **PIN Administrador** (`9999`) |
+| **Fondo Inicial de Sencillo** | **`$50.000 CLP`** | Declaración obligatoria en apertura de turno para dar vuelto |
+| **Descuento Comercial** | `15%` o monto autorizado | Exige **PIN Operador** (`1234`) + justificación escrita `> 10 caracteres` |
+| **Segregación RBAC (Regla #7)** | `OPERADOR` vs `ADMIN` | El Administrador audita y configura, pero **no puede abrir turnos de caja** |
 
 ---
 
-## 4. Matriz de Roles y Separación de Responsabilidades
+## 3. Código Semántico de Colores para la Matriz de 30 Plazas
 
-```
-+----------------------------------------------------------------------------------------------------+
-|                                    MATRIZ DE ROLES Y PRIVILEGIOS                                   |
-+------------------------------------+----------------------------------+----------------------------+
-| CAPACIDAD / ACCIÓN                 | OPERADOR / CAJERO DE GARITA      | ADMINISTRADOR / DUEÑO      |
-+------------------------------------+----------------------------------+----------------------------+
-| Inicio de Turno con Fondo Inicial  | ✅ SÍ (Obligatorio en cada turno)| ❌ NO (Regla de integridad)|
-| Registro de Check-in Transitorio   | ✅ SÍ (Con pop-up de verificación| ❌ NO                      |
-| Check-out y Cobro de Salida        | ✅ SÍ (Efectivo/Tarjeta/Transf.)  | ❌ NO                      |
-| Aplicación de Descuento Menor      | ✅ SÍ (Con PIN propio + motivo)   | ✅ SÍ (Con PIN Admin)      |
-| Anulación de Ticket o Pérdida      | ❌ NO (Exige PIN Administrador)  | ✅ SÍ                      |
-| Ingreso de Noche / Convenio        | ✅ SÍ (Vía pop-up paralelo)       | ✅ SÍ                      |
-| Visualización de Matriz y Kanban   | ✅ SÍ (Operativo en vivo)         | ✅ SÍ (Supervisión remota) |
-| Visualización de Total Recaudado   | ❌ NO (Blindado para caja ciega)  | ✅ SÍ (En vivo)            |
-| Cierre de Turno y Arqueo Ciego     | ✅ SÍ (Su propio turno)           | ❌ NO                      |
-| Impresión de Reporte Z de Turno    | ✅ SÍ (Su propia copia)           | ✅ SÍ                      |
-| Acceso a Reportes Históricos P&L   | ❌ NO                             | ✅ SÍ (Excel / PDF)        |
-| Configuración de Tarifas y Precios | ❌ NO                             | ✅ SÍ                      |
-| Creación de Operadores y PINs      | ❌ NO                             | ✅ SÍ                      |
-+------------------------------------+----------------------------------+----------------------------+
-```
-
-> [!IMPORTANT]
-> **Regla de Integridad de Caja**: Los usuarios con rol de Administrador no pueden abrir turnos de caja ni cobrar tickets directamente bajo su sesión administrativa. Si un administrador debe atender la garita, el sistema exige que inicie sesión con su usuario de Operador para garantizar un arqueo ciego limpio y auditable.
+| Estado / Tipo de Plaza | Color Semántico | Código Hexadecimal | Uso en Interfaz (`#view-map` & POS) |
+| :--- | :--- | :--- | :--- |
+| **Disponible (Libre)** | Verde Esmeralda | `#10B981` | Cupo habilitado para asignación inmediata |
+| **Ocupada (Rotativo)** | Gris Pizarra | `#64748B` | Vehículo transitorio activo en patio |
+| **Reservada** | Ámbar | `#F59E0B` | Reserva temporal o bloqueo operativo |
+| **Abonado / VIP / Convenio** | Azul | `#3B82F6` | Plaza bloqueada por convenio mensual en paralelo (`B-29`, `B-30`, etc.) |
+| **PMR (Movilidad Reducida)** | Cian | `#06B6D4` | Plazas preferenciales `A-01` y `A-02` |
+| **Punto de Carga EV** | Violeta | `#8B5CF6` | Plaza electromovilidad `A-03` |
+| **Sobrestadía / Alerta** | Rojo | `#EF4444` | Estadía prolongada (`>= 120 min`) o alerta de seguridad |
 
 ---
 
-## 5. Especificaciones del Ticket Térmico Físico (80mm)
+## 4. Especificación del Ticket Térmico de 80mm e Identificación Dual
 
-El ticket emitido al ingresar debe contener:
-1. **Encabezado**:
-   - Razón Social: *Cordano Inversiones Inmobiliarias Ltda.*
-   - Nombre Comercial: *ParkOps — Estacionamiento Serrano 447, Iquique*
-   - Contacto / Teléfono de Garita
-2. **Cuerpo del Vehículo**:
-   - Patente destacada en fuente gigante: **`ABCD-12`**
-   - Conductor: *Juan Pérez*
-   - Teléfono: *+56 9 8765 4321*
-   - Fecha y Hora de Entrada: *24/09/2026 - 14:15:32 hrs*
-   - Tarifa Aplicada: *$25 CLP / min (10 min de gracia)*
-   - Daño Observado (si existe): *"Rayón puerta derecha"*
-3. **Identificación Dual**:
-   - **Código QR**: Impreso en alta definición en la parte inferior para lectura rápida mediante cámara o escáner 2D.
-   - **Código Lineal (Code 128)**: Barra lineal estándar con correlativo alfanumérico legible a simple vista (`TKT-20260924-T01-0042`).
-4. **Leyenda Legal y Advertencia Obligatoria**:
-   - *"IMPORTANTE: No pierda este ticket. Es el único comprobante válido para retirar su vehículo. El extravío tiene un recargo de $10.000 CLP previa acreditación de dominio del móvil."*
+1. **Correlativo Estándar Online**: `TKT-AAAAMMDD-T0X-XXXX` (ej. `TKT-20260928-T01-0142`).
+2. **Correlativo Contingencia Offline**: Añade sufijo **`O`** (`TKT-AAAAMMDD-T0X-XXXXO`).
+3. **Identificación Dual Impresa**:
+   - **Código QR (2D)**: Validación rápida con cámara o lector óptico 2D.
+   - **Código de Barras Lineal (Code 128)**: Escaneo láser de alta velocidad en garita + correlativo en tipografía monoespaciada (`JetBrains Mono`).
+4. **Leyenda Legal Obligatoria**: Advertencia impresa al pie del comprobante informando el recargo reglamentario de **`$8.000 CLP`** por extravío de ticket.
 
 ---
 
-## 6. Requerimientos No Funcionales y Contingencias
+## 5. Ecosistema de 13 Endpoints Backend Conectados al Frontend
 
-- **Tiempo de Respuesta Operativa**: Check-in completado en `< 15 segundos`; Check-out y cálculo de vuelto en `< 10 segundos`.
-- **Diseño sin Scroll**: Las pantallas operativas de garita operan al 100% en viewport 1080p sin barras de desplazamiento vertical ni horizontal.
-- **Tipografía**: Textos en **Geist** y números monetarios/patentes en **Geist Mono** (`tabular-nums`) para evitar oscilaciones visuales.
-- **Contingencia Offline**:
-  - En caso de pérdida de conexión con Cloud Run, el sistema conmuta automáticamente a almacenamiento local (IndexedDB).
-  - Los tickets emitidos en modo contingencia añaden el sufijo **`O`** (`TKT-20260924-T01-0042O`).
-  - Al restablecerse el enlace, la cola de sincronización sube los datos a Cloud Run sin colisiones.
-- **Auditoría de Descuadre de Caja**:
-  - Cuadre perfecto: `Diferencia = $0 CLP`.
-  - Tolerancia de auditoría: Discrepancias superiores a `$1.000 CLP` generan una alerta automática en el panel del Administrador.
+| # | Endpoint | Método | Módulo Frontend Conectado | Función Operativa |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | `/api/slots` | `GET` | `#view-pos`, `#view-map` | Estado en tiempo real de las 30 plazas + 5 sobrecupos |
+| 2 | `/api/checkin` | `POST` | `#pos-subtab-entry` | Registro de ingreso, validación anti-passback y emisión de ticket |
+| 3 | `/api/checkout` | `POST` | `#pos-subtab-exit` | Liquidación por minuto, descuentos/multas con PIN y liberación de plaza |
+| 4 | `/api/shifts` | `GET/POST` | `#view-landing`, `#modal-close-shift` | Apertura con `$50.000` sencillo y cierre de caja ciega con hash `SHA-256` |
+| 5 | `/api/audit` | `GET/POST` | `#view-reports`, `#modal-pin-auth` | Bitácora inmutable antifraude (etiquetas `VERDE` y `ROJO`) |
+| 6 | `/api/ai/lpr-ocr` | `POST` | `#pos-subtab-entry` (`[LPR IA]`) | Reconocimiento de patente chilena/Mercosur y categoría con Gemini Vision |
+| 7 | `/api/ai/damage-inspection` | `POST` | `#pos-subtab-entry` (`[Peritaje IA]`) | Detección preventiva de abolladuras/rayones preexistentes al ingreso |
+| 8 | `/api/ai/shift-audit` | `POST` | `#modal-close-shift` (Paso 2) | Dictamen del Auditor Financiero IA sobre cuadratura de caja ciega |
+| 9 | `/api/ai/assistant` | `POST` | `#view-support` | Copiloto Operativo IA para consultas de protocolos SOP en garita |
+| 10 | `/api/ai/tools` | `POST` | `#view-support` | Function Calling (`getParkingStatus`, `calculateParkingFee`, `triggerBarrierPulse`) |
+| 11 | `/api/cloudrun` | `GET` | `#view-settings` | Telemetría del contenedor `cordano-pms-v1` en GCP `us-west1` |
+| 12 | `/api/health` | `GET` | `#view-landing`, `#view-settings` | Healthcheck de disponibilidad y latencia RTT |
+| 13 | `/api/docs` & `/api/export/sheets` | `GET` | `#view-support`, `#view-reports` | Visor de PRDs canónicos en vivo y exportación CSV dinámica |
+
+---
+
+## 6. Métricas SaaS / PMS y Criterios de Éxito (`/product-manager`)
+
+- **RevPAS (Revenue Per Available Space)**: Meta `>= $11.000 CLP / plaza / día` en Serrano 447.
+- **Turnover Rate (Rotación Diaria)**: Meta `>= 1.60x` vehículos por plaza al día.
+- **ALOS (Average Length of Stay)**: Estadía media monitoreada (`~51 min` en horario comercial).
+- **Tiempo de Check-In en Garita**: `< 4 segundos` mediante atajos `F1–F9` o botón `[LPR IA]`.
+- **Exactitud de Cuadratura Ciega**: Discrepancia `0 CLP` validada con sello `SHA-256` y dictamen IA.

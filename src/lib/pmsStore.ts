@@ -63,19 +63,92 @@ class PmsDataStore {
   private auditLogs: AuditLog[] = [];
   private ticketSequence: number = 100;
   private isOfflineMode: boolean = false;
-  private defaultGraceMinutes: number = 30; // 30 minutos de gracia según acuerdo de julio
+  private defaultGraceMinutes: number = 0;
 
   constructor() {
-    // Inicializar un turno por defecto para pruebas operativas inmediatas
-    this.openShift('OP-01', 'Carlos Soto (Operador)', 50000);
+    // Inicializar turno activo en GARITA 01 con fondo inicial validado de $50.000
+    this.openShift('OP-01', 'Juan Pérez', 50000);
+    this.seedInitialPatioState();
     this.addAudit(
       'SISTEMA_INICIALIZADO',
       'SISTEMA',
       'GRIS',
       'SYSTEM',
       'Sistema PMS',
-      'Servidor Cordano PMS V3.0 Canónico iniciado en Cloud Run'
+      'Servidor ParkOps PMS & ERP (Serrano 447, Iquique) iniciado en Cloud Run'
     );
+  }
+
+  private seedInitialPatioState() {
+    const initialVehicles: Array<{
+      slot: number;
+      plate: string;
+      tipo: VehicleType;
+      rate: number;
+      durationMin: number;
+      client: string;
+      phone: string;
+      obs?: string;
+    }> = [
+      { slot: 1, plate: 'BBCL84', tipo: 'auto', rate: 25, durationMin: 75, client: 'Carlos Mena', phone: '+56 9 8412 9011', obs: 'Sin daños visibles' },
+      { slot: 2, plate: 'KLPW29', tipo: 'camioneta', rate: 30, durationMin: 60, client: 'María Soto', phone: '+56 9 9123 4455' },
+      { slot: 3, plate: 'HTRJ12', tipo: 'moto', rate: 15, durationMin: 50, client: 'Pedro Rojas', phone: '+56 9 7654 3210' },
+      { slot: 4, plate: 'GHYU90', tipo: 'auto', rate: 25, durationMin: 45, client: 'Particular', phone: '' },
+      { slot: 5, plate: 'LKJH44', tipo: 'camioneta', rate: 30, durationMin: 40, client: 'Gonzalo Silva', phone: '+56 9 8877 6655' },
+      { slot: 6, plate: 'MNBV33', tipo: 'auto', rate: 25, durationMin: 35, client: 'Particular', phone: '' },
+      { slot: 7, plate: 'POIU22', tipo: 'auto', rate: 25, durationMin: 30, client: 'Andrea Toro', phone: '+56 9 9988 7766' },
+      { slot: 8, plate: 'ZXCV11', tipo: 'moto', rate: 15, durationMin: 25, client: 'Rodrigo Paz', phone: '' },
+      { slot: 9, plate: 'QAZW99', tipo: 'auto', rate: 25, durationMin: 20, client: 'Particular', phone: '' },
+      { slot: 10, plate: 'WSXE88', tipo: 'camioneta', rate: 30, durationMin: 18, client: 'Fernanda Leal', phone: '+56 9 6655 4433' },
+      { slot: 11, plate: 'EDCR77', tipo: 'auto', rate: 25, durationMin: 15, client: 'Particular', phone: '' },
+      { slot: 12, plate: 'RFVT66', tipo: 'auto', rate: 25, durationMin: 12, client: 'Cristián Mora', phone: '' },
+      { slot: 13, plate: 'TGBY55', tipo: 'moto', rate: 15, durationMin: 10, client: 'Juan Vargas', phone: '' },
+      { slot: 14, plate: 'YHN444', tipo: 'camioneta', rate: 30, durationMin: 8, client: 'Patricia Vera', phone: '' },
+      { slot: 15, plate: 'UJM333', tipo: 'auto', rate: 25, durationMin: 6, client: 'Particular', phone: '' },
+      { slot: 16, plate: 'IKM222', tipo: 'auto', rate: 25, durationMin: 4, client: 'Luis Arancibia', phone: '' },
+      { slot: 17, plate: 'OLP111', tipo: 'camioneta', rate: 30, durationMin: 2, client: 'Particular', phone: '' },
+      { slot: 18, plate: 'PLM999', tipo: 'auto', rate: 25, durationMin: 1, client: 'Mario Gómez', phone: '' },
+    ];
+
+    const now = Date.now();
+    const dateStr = new Date(now).toISOString().slice(0, 10).replace(/-/g, '');
+
+    for (const v of initialVehicles) {
+      this.ticketSequence += 1;
+      const seqStr = this.ticketSequence.toString().padStart(4, '0');
+      const ticketId = `TKT-${dateStr}-T01-${seqStr}`;
+      const entryDate = new Date(now - v.durationMin * 60000);
+
+      const ticket: Ticket = {
+        id_ticket: ticketId,
+        patente: v.plate,
+        vehiculo_tipo: v.tipo,
+        slot_numero: v.slot,
+        slot_codigo: v.slot <= 15 ? `A-${v.slot.toString().padStart(2, '0')}` : `B-${v.slot.toString().padStart(2, '0')}`,
+        fecha_hora_ingreso: entryDate.toISOString(),
+        estado_ticket: 'IN_PARKING',
+        driver_name: v.client,
+        driver_phone: v.phone,
+        service_type: 'TRANSITORIO',
+        tarifa_por_minuto: v.rate,
+        tiempo_gracia_minutos: 0,
+        reprint_count: 0,
+        observaciones: v.obs,
+      };
+
+      const targetSlot = this.slots.find((s) => s.id === v.slot);
+      if (targetSlot) {
+        targetSlot.estado = 'OCUPADO';
+        targetSlot.ticket_actual = ticket;
+      }
+      this.tickets.push(ticket);
+    }
+
+    // 2 plazas bloqueadas por Convenios Corporativos / Abonados en Paralelo (Slots 29 y 30)
+    const slot29 = this.slots.find((s) => s.id === 29);
+    const slot30 = this.slots.find((s) => s.id === 30);
+    if (slot29) slot29.estado = 'RESERVADO';
+    if (slot30) slot30.estado = 'RESERVADO';
   }
 
   // --- GESTIÓN DE MODO OFFLINE ---

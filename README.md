@@ -61,7 +61,7 @@ Consulta la **[Guía Oficial de Integración con Google AI Studio](GOOGLE_AI_STU
 
 - **30 Plazas Físicas**: Sector A (01 al 15) y Sector B (16 al 30) en Serrano 447, Iquique.
 - **Ergonomía de Garita (Keyboard-First)**: Atajos directos `F1` a `F9`, `Enter` y `Esc`. Flujo operativo 100% sin scroll.
-- **Estética macOS Liquid Glass**: Titanium Obsidian (`#06080E`), acento Borgoña Cordano (`#80093A`), números tabulares monoespaciados (`Geist Mono`).
+- **Arquitectura Desacoplada & Core Funcional Puro**: Wireframe estructural de alto contraste, contratos de datos explícitos y tipografía monoespaciada con números tabulares (`tabular-nums`).
 - **Offline-First Resilience**: Persistencia local en IndexedDB con emisión de tickets canónicos `TKT-AAAAMMDD-T0X-XXXXO`.
 - **Auditoría Antifraude y Caja Ciega**: Arqueo sin montos a la vista, validación de PIN para descuentos (>10 caracteres) y supervisión obligatoria para tickets extraviados.
 - **Servicios Paralelos**: Gestión independiente de Pernocta ($8.000/noche) y Abonados VIP ($75.000/mes) sin distorsionar la rotación por minuto.

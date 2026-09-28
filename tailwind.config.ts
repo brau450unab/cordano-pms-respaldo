@@ -28,6 +28,10 @@ const config: Config = {
           800: "#80093A",
           900: "#4c0522",
         },
+        slate: {
+          850: "#151f32",
+          950: "#0b1120",
+        },
         slot: {
           available: "#10B981",
           occupied: "#64748B",
@@ -39,9 +43,19 @@ const config: Config = {
         }
       },
       fontFamily: {
-        sans: ["Manrope", "system-ui", "sans-serif"],
-        mono: ["IBM Plex Mono", "Geist Mono", "monospace"],
-      }
+        sans: ['"Plus Jakarta Sans"', "system-ui", "-apple-system", "sans-serif"],
+        mono: ['"JetBrains Mono"', "IBM Plex Mono", "Geist Mono", "monospace"],
+      },
+      boxShadow: {
+        xs:      "0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03)",
+        subtle:  "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+        card:    "0 4px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+        floating:"0 16px 48px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06)",
+        modal:   "0 24px 64px rgba(0,0,0,0.16), 0 8px 16px rgba(0,0,0,0.08)",
+      },
+      height: {
+        '13': '3.25rem',
+      },
     },
   },
   plugins: [],
