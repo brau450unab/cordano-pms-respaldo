@@ -4,6 +4,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { OfficialModals, ActiveVehicle } from '@/components/official/OfficialModals';
 import { OfficialAuxViews } from '@/components/official/OfficialAuxViews';
 import { OfficialLandingAndMenu } from '@/components/official/OfficialLandingAndMenu';
+import { OfficialEngineView } from '@/components/official/OfficialEngineView';
+import {
+  CordanoLogo,
+  printThermalTicketIsolated,
+  CommandPaletteModal,
+  TableroKanbanEstadiaView,
+  ModalFugaVehiculo,
+  ModalRevisionVehiculosCierre,
+} from '@/components/official/PublishedLogicSuite';
 import { AuditLog, ParkingSlot } from '@/types';
 
 interface ShiftHistoryItem {
@@ -17,29 +26,34 @@ interface ShiftHistoryItem {
 }
 
 const initialSeedVehicles: ActiveVehicle[] = [
-  { slot: 1, slotCode: 'A-01', ticketId: 'TKT-20260927-T01-0101', plate: 'BBCL84', cat: 'Sedán', rate: 25, entry: '21:15', durationMin: 75, client: 'Carlos Mena', phone: '+56 9 8412 9011', obs: 'Sin daños visibles' },
-  { slot: 2, slotCode: 'A-02', ticketId: 'TKT-20260927-T01-0102', plate: 'KLPW29', cat: 'SUV', rate: 30, entry: '21:30', durationMin: 60, client: 'María Soto', phone: '+56 9 9123 4455' },
-  { slot: 3, slotCode: 'A-03', ticketId: 'TKT-20260927-T01-0103', plate: 'HTRJ12', cat: 'Moto', rate: 15, entry: '21:40', durationMin: 50, client: 'Pedro Rojas', phone: '+56 9 7654 3210' },
-  { slot: 4, slotCode: 'A-04', ticketId: 'TKT-20260927-T01-0104', plate: 'GHYU90', cat: 'Sedán', rate: 25, entry: '21:45', durationMin: 45, client: 'Particular', phone: '' },
-  { slot: 5, slotCode: 'A-05', ticketId: 'TKT-20260927-T01-0105', plate: 'LKJH44', cat: 'SUV', rate: 30, entry: '21:50', durationMin: 40, client: 'Gonzalo Silva', phone: '+56 9 8877 6655' },
-  { slot: 6, slotCode: 'A-06', ticketId: 'TKT-20260927-T01-0106', plate: 'MNBV33', cat: 'Sedán', rate: 25, entry: '21:55', durationMin: 35, client: 'Particular', phone: '' },
-  { slot: 7, slotCode: 'A-07', ticketId: 'TKT-20260927-T01-0107', plate: 'POIU22', cat: 'Sedán', rate: 25, entry: '22:00', durationMin: 30, client: 'Andrea Toro', phone: '+56 9 9988 7766' },
-  { slot: 8, slotCode: 'A-08', ticketId: 'TKT-20260927-T01-0108', plate: 'ZXCV11', cat: 'Moto', rate: 15, entry: '22:05', durationMin: 25, client: 'Rodrigo Paz', phone: '' },
-  { slot: 9, slotCode: 'A-09', ticketId: 'TKT-20260927-T01-0109', plate: 'QAZW99', cat: 'Sedán', rate: 25, entry: '22:10', durationMin: 20, client: 'Particular', phone: '' },
-  { slot: 10, slotCode: 'A-10', ticketId: 'TKT-20260927-T01-0110', plate: 'WSXE88', cat: 'SUV', rate: 30, entry: '22:12', durationMin: 18, client: 'Fernanda Leal', phone: '+56 9 6655 4433' },
-  { slot: 11, slotCode: 'A-11', ticketId: 'TKT-20260927-T01-0111', plate: 'EDCR77', cat: 'Sedán', rate: 25, entry: '22:15', durationMin: 15, client: 'Particular', phone: '' },
-  { slot: 12, slotCode: 'A-12', ticketId: 'TKT-20260927-T01-0112', plate: 'RFVT66', cat: 'Sedán', rate: 25, entry: '22:18', durationMin: 12, client: 'Cristián Mora', phone: '' },
-  { slot: 13, slotCode: 'A-13', ticketId: 'TKT-20260927-T01-0113', plate: 'TGBY55', cat: 'Moto', rate: 15, entry: '22:20', durationMin: 10, client: 'Juan Vargas', phone: '' },
-  { slot: 14, slotCode: 'A-14', ticketId: 'TKT-20260927-T01-0114', plate: 'YHN444', cat: 'SUV', rate: 30, entry: '22:22', durationMin: 8, client: 'Patricia Vera', phone: '' },
-  { slot: 15, slotCode: 'A-15', ticketId: 'TKT-20260927-T01-0115', plate: 'UJM333', cat: 'Sedán', rate: 25, entry: '22:24', durationMin: 6, client: 'Particular', phone: '' },
-  { slot: 16, slotCode: 'B-16', ticketId: 'TKT-20260927-T01-0116', plate: 'IKM222', cat: 'Sedán', rate: 25, entry: '22:26', durationMin: 4, client: 'Luis Arancibia', phone: '' },
-  { slot: 17, slotCode: 'B-17', ticketId: 'TKT-20260927-T01-0117', plate: 'OLP111', cat: 'SUV', rate: 30, entry: '22:28', durationMin: 2, client: 'Particular', phone: '' },
-  { slot: 18, slotCode: 'B-18', ticketId: 'TKT-20260927-T01-0118', plate: 'PLM999', cat: 'Sedán', rate: 25, entry: '22:29', durationMin: 1, client: 'Mario Gómez', phone: '' },
+  { slot: 1, slotCode: 'A-01', ticketId: 'TKT-20260927-T01-0101', plate: 'BBCL84', cat: 'Sedán', rate: 25, entry: '18:05', durationMin: 265, client: 'Carlos Mena', phone: '+56 9 8412 9011', obs: 'Sobrestadía > 4h - Sin daños visibles', isOffline: false },
+  { slot: 2, slotCode: 'A-02', ticketId: 'TKT-20260927-T01-0102', plate: 'KLPW29', cat: 'SUV', rate: 30, entry: '19:55', durationMin: 155, client: 'María Soto', phone: '+56 9 9123 4455', obs: '', isOffline: false },
+  { slot: 3, slotCode: 'A-03', ticketId: 'TKT-20260927-T01-0103', plate: 'HTRJ12', cat: 'Moto', rate: 15, entry: '20:15', durationMin: 135, client: 'Pedro Rojas', phone: '+56 9 7654 3210', obs: '', isOffline: false },
+  { slot: 4, slotCode: 'A-04', ticketId: 'TKT-20260927-T01-0104', plate: 'GHYU90', cat: 'Sedán', rate: 25, entry: '21:05', durationMin: 85, client: 'Particular', phone: '', obs: '', isOffline: false },
+  { slot: 5, slotCode: 'A-05', ticketId: 'TKT-20260927-T01-0105', plate: 'LKJH44', cat: 'SUV', rate: 30, entry: '21:30', durationMin: 60, client: 'Gonzalo Silva', phone: '+56 9 8877 6655', obs: '', isOffline: false },
+  { slot: 6, slotCode: 'A-06', ticketId: 'TKT-20260927-T01-0106', plate: 'MNBV33', cat: 'Sedán', rate: 25, entry: '21:45', durationMin: 45, client: 'Particular', phone: '', obs: '', isOffline: false },
+  { slot: 7, slotCode: 'A-07', ticketId: 'TKT-20260927-T01-0107', plate: 'POIU22', cat: 'Sedán', rate: 25, entry: '22:00', durationMin: 30, client: 'Andrea Toro', phone: '+56 9 9988 7766', obs: '', isOffline: false },
+  { slot: 8, slotCode: 'A-08', ticketId: 'TKT-20260927-T01-0108', plate: 'ZXCV11', cat: 'Moto', rate: 15, entry: '22:05', durationMin: 25, client: 'Rodrigo Paz', phone: '', obs: '', isOffline: false },
+  { slot: 9, slotCode: 'A-09', ticketId: 'TKT-20260927-T01-0109', plate: 'QAZW99', cat: 'Sedán', rate: 25, entry: '22:10', durationMin: 20, client: 'Particular', phone: '', obs: '', isOffline: false },
+  { slot: 10, slotCode: 'A-10', ticketId: 'TKT-20260927-T01-0110', plate: 'WSXE88', cat: 'SUV', rate: 30, entry: '22:12', durationMin: 18, client: 'Fernanda Leal', phone: '+56 9 6655 4433', obs: '', isOffline: false },
+  { slot: 11, slotCode: 'A-11', ticketId: 'TKT-20260927-T01-0111', plate: 'EDCR77', cat: 'Sedán', rate: 25, entry: '22:15', durationMin: 15, client: 'Particular', phone: '', obs: '', isOffline: false },
+  { slot: 12, slotCode: 'A-12', ticketId: 'TKT-20260927-T01-0112', plate: 'RFVT66', cat: 'Sedán', rate: 25, entry: '22:18', durationMin: 12, client: 'Cristián Mora', phone: '', obs: '', isOffline: false },
+  { slot: 13, slotCode: 'A-13', ticketId: 'TKT-20260927-T01-0113', plate: 'TGBY55', cat: 'Moto', rate: 15, entry: '22:20', durationMin: 10, client: 'Juan Vargas', phone: '', obs: '', isOffline: false },
+  { slot: 14, slotCode: 'A-14', ticketId: 'TKT-20260927-T01-0114', plate: 'YHN444', cat: 'SUV', rate: 30, entry: '22:22', durationMin: 8, client: 'Patricia Vera', phone: '', obs: '', isOffline: false },
+  { slot: 15, slotCode: 'A-15', ticketId: 'TKT-20260927-T01-0115', plate: 'UJM333', cat: 'Sedán', rate: 25, entry: '22:24', durationMin: 6, client: 'Particular', phone: '', obs: '', isOffline: false },
+  { slot: 16, slotCode: 'B-16', ticketId: 'TKT-20260927-T01-0116', plate: 'IKM222', cat: 'Sedán', rate: 25, entry: '22:26', durationMin: 4, client: 'Luis Arancibia', phone: '', obs: '', isOffline: false },
+  { slot: 17, slotCode: 'B-17', ticketId: 'TKT-20260927-T01-0117', plate: 'OLP111', cat: 'SUV', rate: 30, entry: '22:28', durationMin: 2, client: 'Particular', phone: '', obs: '', isOffline: false },
+  { slot: 18, slotCode: 'B-18', ticketId: 'TKT-20260927-T01-0118', plate: 'PLM999', cat: 'Sedán', rate: 25, entry: '22:29', durationMin: 1, client: 'Mario Gómez', phone: '', obs: '', isOffline: false },
 ];
 
 export default function OfficialParkOpsApp() {
   const [activeView, setActiveView] = useState<string>('landing');
   const [posSubtab, setPosSubtab] = useState<'entry' | 'exit' | 'history'>('entry');
+  const [posPatioViewMode, setPosPatioViewMode] = useState<'cards' | 'matrix' | 'kanban'>('cards');
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState<boolean>(false);
+  const [fugaTargetVehicle, setFugaTargetVehicle] = useState<ActiveVehicle | null>(null);
+  const [vehicleHandoverOpen, setVehicleHandoverOpen] = useState<boolean>(false);
+  const [handoverConfirmedCount, setHandoverConfirmedCount] = useState<number>(0);
   const [isShiftActive, setIsShiftActive] = useState<boolean>(true);
   const [operatorName, setOperatorName] = useState<string>('Juan Pérez');
   const [initialFloat, setInitialFloat] = useState<number>(50000);
@@ -257,6 +271,9 @@ export default function OfficialParkOpsApp() {
         e.preventDefault();
         setActiveView('pos');
         setPosSubtab('exit');
+      } else if (e.key === 'F5') {
+        e.preventDefault();
+        setActiveView('settings');
       } else if (e.key === 'F6') {
         e.preventDefault();
         setActiveView('pos');
@@ -273,11 +290,20 @@ export default function OfficialParkOpsApp() {
       } else if (e.key === 'F9') {
         e.preventDefault();
         showToast('Pulso de apertura de acceso enviado en Garita 01.', 'success');
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      } else if (e.key === 'F10') {
+        e.preventDefault();
+        setActiveView('engine');
       } else if (e.key === 'Escape') {
         setTicketModalOpen(false);
         setCloseShiftModalOpen(false);
         setManualTxModalOpen(false);
         setPinModalType(null);
+        setCommandPaletteOpen(false);
+        setFugaTargetVehicle(null);
+        setVehicleHandoverOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -750,21 +776,35 @@ export default function OfficialParkOpsApp() {
     support: 'CENTRO DE AYUDA & SOPs',
     clients: 'ABONADOS & SERVICIOS PARALELOS',
     settings: 'AJUSTES & CONTINGENCIA OFFLINE',
+    engine: 'CONSOLA DEL MOTOR HÍBRIDO BD & ARCHIFY [F10]',
   };
 
   return (
     <div id="app-container" className="flex flex-col h-screen w-screen bg-[#f4f6f9] overflow-hidden relative text-slate-800">
-      {/* ENCABEZADO DE LA PLATAFORMA INTERNA */}
+      {/* ENCABEZADO DE LA PLATAFORMA INTERNA (PlatformNavbar Aesthetic + Shortcut Tooltips) */}
       {activeView !== 'landing' && (
         <header
           id="platform-app-navbar"
           className="h-14 bg-white/95 backdrop-blur-sm border-b border-[#e8ecf0] px-5 flex items-center justify-between shrink-0 z-20"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 pr-1">
+              <CordanoLogo size={30} />
+              <div className="hidden lg:block leading-none">
+                <span className="text-xs font-extrabold tracking-tight text-slate-900 block">
+                  ParkOps PMS
+                </span>
+                <span className="text-[9px] font-mono text-slate-400">
+                  Serrano 447 · v4.5
+                </span>
+              </div>
+            </div>
+            <span className="w-px h-5 bg-[#e8ecf0] hidden lg:block" />
             <button
               id="app-nav-main-menu-btn"
               onClick={() => navigateTo('menu')}
-              className={`px-3 h-8 rounded-lg flex items-center gap-1.5 text-[12px] font-bold transition-all ${
+              data-shortcut="Atajo: F1"
+              className={`shortcut-tooltip shortcut-tooltip-bottom px-3 h-8 rounded-lg flex items-center gap-1.5 text-[12px] font-bold transition-all ${
                 activeView === 'menu'
                   ? 'bg-slate-900 text-white shadow-sm'
                   : 'text-slate-600 hover:bg-[#f1f5f9] hover:text-slate-900'
@@ -779,18 +819,69 @@ export default function OfficialParkOpsApp() {
               <span>Menú [F1]</span>
             </button>
             <button
+              onClick={() => navigateTo('pos')}
+              data-shortcut="Atajo: F2"
+              className={`shortcut-tooltip shortcut-tooltip-bottom px-3 h-8 rounded-lg flex items-center gap-1.5 text-[12px] font-bold transition-all ${
+                activeView === 'pos'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:bg-[#f1f5f9] hover:text-slate-900'
+              }`}
+            >
+              <span>Garita POS [F2]</span>
+            </button>
+            <button
+              id="app-nav-engine-btn"
+              onClick={() => navigateTo('engine')}
+              data-shortcut="Atajo: F10"
+              className={`shortcut-tooltip shortcut-tooltip-bottom px-3 h-8 rounded-lg flex items-center gap-1.5 text-[11px] font-mono font-bold transition-all border ${
+                activeView === 'engine'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                  : 'bg-[#f8fafc] text-slate-700 border-[#e8ecf0] hover:bg-slate-900 hover:text-white hover:border-slate-900'
+              }`}
+            >
+              <span>⚙ Motor BD [F10]</span>
+            </button>
+            <a
+              href="/hub"
+              className="hidden xl:inline-flex items-center px-2.5 h-7 rounded-md border border-[#e8ecf0] text-[11px] font-mono text-slate-600 hover:text-slate-900 hover:bg-[#f8fafc] transition-colors font-semibold"
+              title="Abrir Launchpad de Módulos ERP"
+            >
+              Launchpad ERP
+            </a>
+            <button
               onClick={() => navigateTo('landing')}
               className="px-2.5 h-7 rounded-md border border-[#e8ecf0] text-[11px] font-mono text-slate-500 hover:text-slate-900 hover:bg-[#f8fafc] transition-colors"
             >
               Portal
             </button>
-            <span className="text-slate-200 text-sm">/</span>
-            <div id="app-current-breadcrumb" className="text-[11px] font-mono font-bold text-slate-400 uppercase tracking-[0.08em]">
+            <span className="text-slate-200 text-sm hidden md:inline">/</span>
+            <div id="app-current-breadcrumb" className="hidden md:block text-[11px] font-mono font-bold text-slate-400 uppercase tracking-[0.08em] truncate max-w-[200px]">
               {breadcrumbTitles[activeView] || activeView.toUpperCase()}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {/* Command Palette ⌘K Trigger (Ported from PlatformNavbar) */}
+            <button
+              type="button"
+              onClick={() => setCommandPaletteOpen(true)}
+              data-shortcut="Atajo: Ctrl+K / ⌘K"
+              className="shortcut-tooltip shortcut-tooltip-bottom flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#f8fafc] hover:bg-slate-100 border border-[#dde2e8] text-slate-700 text-xs font-mono font-bold transition"
+            >
+              <span>🔍 Buscar Patente</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-[10px] font-mono font-extrabold text-slate-600">
+                ⌘K
+              </kbd>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => showToast('Pulso de apertura enviado a Barrera Principal (GARITA-01).', 'success')}
+              data-shortcut="Atajo: F9"
+              className="shortcut-tooltip shortcut-tooltip-bottom hidden md:flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-colors"
+            >
+              <span>🚧 Barrera [F9]</span>
+            </button>
             <button
               onClick={() => setIsOfflineMode((v) => !v)}
               className={`flex items-center gap-1.5 text-[11px] font-mono px-3 py-1.5 rounded-lg border transition-all ${
@@ -801,19 +892,19 @@ export default function OfficialParkOpsApp() {
               title="Conmutar contingencia Offline-First (Sufijo -O)"
             >
               <span className={`w-1.5 h-1.5 rounded-full live-pulse ${isOfflineMode ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-              <span>{isOfflineMode ? 'OFFLINE (-O)' : 'GARITA 01 • SERRANO 447'}</span>
+              <span>{isOfflineMode ? 'OFFLINE (-O)' : 'GARITA 01'}</span>
             </button>
-            <div className="flex items-center gap-2.5 tabular-nums">
+            <div className="flex items-center gap-2 tabular-nums">
               <span id="app-header-shift-timer" className="text-[13px] font-black font-mono text-slate-900">
                 {shiftTimerStr}
               </span>
               <span className="w-px h-4 bg-[#e8ecf0]" />
-              <span className="text-[13px] font-semibold text-slate-700">{operatorName}</span>
+              <span className="text-[12px] font-semibold text-slate-700 hidden sm:inline">{operatorName}</span>
             </div>
             <button
               onClick={initiateCashClose}
               className="w-8 h-8 rounded-lg bg-[#f8fafc] hover:bg-rose-50 border border-[#e8ecf0] hover:border-rose-200 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-all"
-              title="Cerrar Turno (Arqueo Ciego)"
+              title="Cerrar Turno (Arqueo Ciego SHA-256)"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -857,16 +948,16 @@ export default function OfficialParkOpsApp() {
           scrollToTopOfViews={() => viewportRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
         />
 
-        {/* VIEW 3: PUNTO DE VENTA (POS GARITA) */}
+        {/* VIEW 3: PUNTO DE VENTA (POS GARITA — REGLA #1 SIN SCROLL EN 1080P) */}
         {activeView === 'pos' && (
-          <div id="view-pos" className="p-6 md:p-8 max-w-6xl mx-auto space-y-5 animate-fade-in-up">
+          <div id="view-pos" className="p-4 md:px-6 md:py-4 max-w-6xl mx-auto space-y-3.5 animate-fade-in-up">
             {/* BARRA SUPERIOR DE SUBPESTAÑAS POS */}
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-[#e8ecf0] pb-4 gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-[#e8ecf0] pb-3 gap-3">
               <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
                 <button
                   id="btn-subtab-entry"
                   onClick={() => setPosSubtab('entry')}
-                  className={`px-4 h-10 shrink-0 rounded-xl text-[13px] font-bold transition-all ${
+                  className={`px-4 h-9 shrink-0 rounded-xl text-[13px] font-bold transition-all ${
                     posSubtab === 'entry'
                       ? 'bg-slate-900 text-white shadow-sm'
                       : 'bg-white text-slate-600 border border-[#e8ecf0] hover:bg-[#f8fafc] hover:border-[#dde2e8]'
@@ -877,7 +968,7 @@ export default function OfficialParkOpsApp() {
                 <button
                   id="btn-subtab-exit"
                   onClick={() => setPosSubtab('exit')}
-                  className={`px-4 h-10 shrink-0 rounded-xl text-[13px] font-bold transition-all ${
+                  className={`px-4 h-9 shrink-0 rounded-xl text-[13px] font-bold transition-all ${
                     posSubtab === 'exit'
                       ? 'bg-slate-900 text-white shadow-sm'
                       : 'bg-white text-slate-600 border border-[#e8ecf0] hover:bg-[#f8fafc] hover:border-[#dde2e8]'
@@ -888,7 +979,7 @@ export default function OfficialParkOpsApp() {
                 <button
                   id="btn-subtab-history"
                   onClick={() => setPosSubtab('history')}
-                  className={`px-4 h-10 shrink-0 rounded-xl text-[13px] font-bold transition-all ${
+                  className={`px-4 h-9 shrink-0 rounded-xl text-[13px] font-bold transition-all ${
                     posSubtab === 'history'
                       ? 'bg-slate-900 text-white shadow-sm'
                       : 'bg-white text-slate-600 border border-[#e8ecf0] hover:bg-[#f8fafc] hover:border-[#dde2e8]'
@@ -898,8 +989,8 @@ export default function OfficialParkOpsApp() {
                 </button>
               </div>
               <div className="flex items-center gap-2 text-[12px] font-mono shrink-0 tabular-nums">
-                <span className="text-slate-400">Tarifa Activa:</span>
-                <span className="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+                <span className="text-slate-400">Tarifa Activa (0m Gracia):</span>
+                <span className="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
                   ${selectedRate} / min
                 </span>
               </div>
@@ -907,9 +998,9 @@ export default function OfficialParkOpsApp() {
 
             {/* SUBPESTAÑA 1: INGRESO DE VEHÍCULO */}
             {posSubtab === 'entry' && (
-              <div id="pos-subtab-entry" className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-                <div className="md:col-span-7 bg-white border border-[#e8ecf0] rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.06)] space-y-5">
-                  <div className="border-b border-[#f1f5f9] pb-4 flex items-center justify-between">
+              <div id="pos-subtab-entry" className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                <div className="md:col-span-7 bg-white border border-[#e8ecf0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] space-y-4">
+                  <div className="border-b border-[#f1f5f9] pb-3 flex items-center justify-between">
                     <div>
                       <h3 className="text-[15px] font-bold tracking-tight text-slate-900">
                         Registro de Nuevo Vehículo
@@ -1098,93 +1189,257 @@ export default function OfficialParkOpsApp() {
                   </button>
                 </div>
 
-                {/* PANEL DERECHO: PLANO DEL PATIO / VEHÍCULOS */}
-                <div className="md:col-span-5 bg-white border border-[#e8ecf0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col h-[700px]">
-                  <div className="flex items-center justify-between border-b border-[#f1f5f9] pb-3 shrink-0">
+                {/* PANEL DERECHO: PLANO DEL PATIO / MATRIZ 30 PLAZAS + 5 SC */}
+                <div className="md:col-span-5 bg-white border border-[#e8ecf0] rounded-2xl p-4 shadow-[0_1px_3px_rgba(0,0,0,0.06)] flex flex-col h-[calc(100vh-11.5rem)] min-h-[470px] max-h-[590px]">
+                  <div className="flex items-center justify-between border-b border-[#f1f5f9] pb-2.5 shrink-0 gap-2">
                     <div>
                       <h3 className="text-[13px] font-bold tracking-tight text-slate-900">
                         Plano del Patio (Serrano 447)
                       </h3>
-                      <p className="text-[11px] text-slate-400 mt-0.5">30 cupos físicos. Clic en vehículo para liquidar salida.</p>
+                      <div className="flex items-center gap-1 mt-1 bg-[#f4f6f9] p-0.5 rounded-lg w-fit">
+                        <button
+                          type="button"
+                          onClick={() => setPosPatioViewMode('cards')}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold transition-colors ${
+                            posPatioViewMode === 'cards'
+                              ? 'bg-white text-slate-900 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          Tarjetas ({activeVehicles.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPosPatioViewMode('matrix')}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold transition-colors ${
+                            posPatioViewMode === 'matrix'
+                              ? 'bg-white text-slate-900 shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          Matriz 30 + 5 SC
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPosPatioViewMode('kanban')}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold transition-colors ${
+                            posPatioViewMode === 'kanban'
+                              ? 'bg-slate-900 text-white shadow-2xs'
+                              : 'text-slate-500 hover:text-slate-800'
+                          }`}
+                        >
+                          Kanban 4T
+                        </button>
+                      </div>
                     </div>
                     <div className="flex flex-col items-end gap-1 font-mono text-[10px] tabular-nums">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#f1f5f9] text-slate-800 font-bold border border-[#dde2e8]">
+                      <span className="px-2 py-0.5 rounded-full bg-[#f1f5f9] text-slate-800 font-bold border border-[#dde2e8]">
                         <span id="patio-count-badge">{activeVehicles.length}</span> Ocupados
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
                         <span id="patio-free-badge">{Math.max(0, 28 - activeVehicles.length)}</span> Libres
                       </span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">
+                      <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">
                         {parallelRecords.length} Abonados
                       </span>
                     </div>
                   </div>
 
-                  {/* Leyenda Cromática Semántica */}
-                  <div className="flex flex-wrap items-center gap-3 py-2.5 shrink-0 border-b border-[#f1f5f9] text-[10px] font-mono uppercase text-slate-500 font-bold justify-center">
+                  {/* Leyenda Cromática Semántica (Regla #3) */}
+                  <div className="flex flex-wrap items-center gap-2.5 py-2 shrink-0 border-b border-[#f1f5f9] text-[9px] font-mono uppercase text-slate-500 font-bold justify-center">
                     <span className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded bg-[#10B981]" /> Libre
+                      <span className="w-2 h-2 rounded bg-[#10B981]" /> Libre
                     </span>
                     <span className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded bg-[#64748B]" /> Ocupado
+                      <span className="w-2 h-2 rounded bg-[#64748B]" /> Ocupado
                     </span>
                     <span className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded bg-[#3B82F6]" /> Abonado
+                      <span className="w-2 h-2 rounded bg-[#3B82F6]" /> Abonado
                     </span>
                     <span className="flex items-center gap-1">
-                      <span className="w-2.5 h-2.5 rounded bg-[#EF4444]" /> Sobrestadía
+                      <span className="w-2 h-2 rounded bg-[#06B6D4]" /> PMR
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded bg-[#8B5CF6]" /> EV
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded bg-[#EF4444]" /> Alerta
                     </span>
                   </div>
 
-                  <div
-                    id="pos-patio-active-list"
-                    className="flex-1 overflow-y-auto pt-3 pr-2 grid grid-cols-2 gap-2.5 overscroll-contain content-start"
-                  >
-                    {activeVehicles.map((v) => {
-                      const accumulated = v.durationMin * (v.rate || 25);
-                      let colorCls = 'border-[#dde2e8] bg-white hover:border-slate-300';
-                      let dotCls = 'bg-sky-500';
-                      if (v.cat === 'SUV') {
-                        colorCls = 'border-purple-200 bg-purple-50/30 hover:border-purple-300';
-                        dotCls = 'bg-purple-500';
-                      } else if (v.cat === 'Moto') {
-                        colorCls = 'border-amber-200 bg-amber-50/30 hover:border-amber-300';
-                        dotCls = 'bg-amber-500';
-                      }
+                  {posPatioViewMode === 'kanban' ? (
+                    <TableroKanbanEstadiaView
+                      vehicles={activeVehicles}
+                      onSelectVehicleForCheckout={(v) => {
+                        loadVehicleIntoExit(v);
+                        setPosSubtab('exit');
+                      }}
+                      onReportFuga={(v) => setFugaTargetVehicle(v)}
+                    />
+                  ) : posPatioViewMode === 'cards' ? (
+                    <div
+                      id="pos-patio-active-list"
+                      className="flex-1 overflow-y-auto pt-2.5 pr-1.5 grid grid-cols-2 gap-2 overscroll-contain content-start"
+                    >
+                      {activeVehicles.map((v) => {
+                        const accumulated = v.durationMin * (v.rate || 25);
+                        const isOverstay = v.durationMin >= 240;
+                        let colorCls = 'border-[#dde2e8] bg-white hover:border-slate-300';
+                        let dotCls = 'bg-sky-500';
+                        if (isOverstay) {
+                          colorCls = 'border-red-300 bg-red-50/40 hover:border-red-400';
+                          dotCls = 'bg-red-500';
+                        } else if (v.cat === 'SUV') {
+                          colorCls = 'border-purple-200 bg-purple-50/30 hover:border-purple-300';
+                          dotCls = 'bg-purple-500';
+                        } else if (v.cat === 'Moto') {
+                          colorCls = 'border-amber-200 bg-amber-50/30 hover:border-amber-300';
+                          dotCls = 'bg-amber-500';
+                        }
 
-                      return (
-                        <div
-                          key={`${v.slot}-${v.plate}`}
-                          onClick={() => {
-                            loadVehicleIntoExit(v);
-                            setPosSubtab('exit');
-                          }}
-                          className={`p-3 rounded-xl border ${colorCls} transition-all duration-150 cursor-pointer hover:shadow-[0_2px_6px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 tabular-nums`}
-                        >
-                          <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] font-mono font-bold text-slate-400">{v.slotCode}</span>
-                              <span className={`w-2 h-2 rounded-full ${dotCls}`} />
-                              <span className="text-[11px] font-bold text-slate-700">{v.cat}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="license-plate-chip px-2.5 py-0.5 text-sm shadow-xs bg-white">{v.plate}</div>
-                            <div className="text-right font-mono">
-                              <div className="text-sm font-bold text-emerald-600">
-                                ${accumulated.toLocaleString('es-CL')}
+                        return (
+                          <div
+                            key={`${v.slot}-${v.plate}`}
+                            onClick={() => {
+                              loadVehicleIntoExit(v);
+                              setPosSubtab('exit');
+                            }}
+                            className={`p-2.5 rounded-xl border ${colorCls} transition-all duration-150 cursor-pointer hover:shadow-[0_2px_6px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 tabular-nums`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-mono font-bold text-slate-400">{v.slotCode}</span>
+                                <span className={`w-2 h-2 rounded-full ${dotCls}`} />
+                                <span className="text-[11px] font-bold text-slate-700">{v.cat}</span>
                               </div>
-                              <div className="text-[10px] text-slate-400 font-semibold">{v.durationMin} min</div>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    printThermalTicketIsolated({
+                                      ticketCode: v.ticketId,
+                                      plate: v.plate,
+                                      slotCode: v.slotCode,
+                                      vehicleType: v.cat,
+                                      entryTime: v.entry,
+                                      ratePerMin: v.rate || 25,
+                                      clientName: v.client,
+                                      isOffline: v.isOffline,
+                                    });
+                                  }}
+                                  title="Imprimir Ticket Térmico 80mm Aislado"
+                                  className="px-1.5 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[9px] font-mono font-bold text-slate-700"
+                                >
+                                  80mm
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setFugaTargetVehicle(v);
+                                  }}
+                                  title="Reportar Fuga de Vehículo (PIN Supervisor)"
+                                  className="px-1.5 py-0.5 rounded bg-red-50 hover:bg-red-100 text-[9px] font-mono font-bold text-red-600 border border-red-200"
+                                >
+                                  Fuga
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="license-plate-chip px-2 py-0.5 text-xs shadow-xs bg-white">{v.plate}</div>
+                              <div className="text-right font-mono">
+                                <div className="text-xs font-bold text-emerald-600">
+                                  ${accumulated.toLocaleString('es-CL')}
+                                </div>
+                                <div className="text-[9px] text-slate-400 font-semibold">{v.durationMin} min</div>
+                              </div>
+                            </div>
+                            <div className="mt-1.5 pt-1 border-t border-[#f1f5f9] flex justify-between text-[9px] text-slate-400 font-medium">
+                              <span className="truncate max-w-[90px]">{v.client || 'Particular'}</span>
+                              <span className="font-mono">Arr: {v.entry}</span>
                             </div>
                           </div>
-                          <div className="mt-2 pt-1.5 border-t border-[#f1f5f9] flex justify-between text-[9px] text-slate-400 font-medium">
-                            <span className="truncate max-w-[90px]">{v.client || 'Particular'}</span>
-                            <span className="font-mono">Arr: {v.entry}</span>
-                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex-1 overflow-y-auto pt-2.5 pr-1 space-y-2.5 font-mono tabular-nums">
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {Array.from({ length: 30 }, (_, idx) => {
+                          const slotNum = idx + 1;
+                          const slotCode =
+                            slotNum <= 15
+                              ? `A-${slotNum.toString().padStart(2, '0')}`
+                              : `B-${slotNum.toString().padStart(2, '0')}`;
+                          const veh = activeVehicles.find((v) => v.slot === slotNum || v.slotCode === slotCode);
+                          const isConvenio =
+                            slotNum >= 29 || parallelRecords.some((p) => p.slotCode === slotCode);
+                          const isPMR = slotNum === 1 || slotNum === 2;
+                          const isEV = slotNum === 3;
+                          const isOverstay = veh && veh.durationMin >= 120;
+
+                          let bgStyle = 'bg-[#10B981]/10 border-[#10B981] text-emerald-950';
+                          let label = 'LIBRE';
+                          if (isOverstay) {
+                            bgStyle = 'bg-[#EF4444]/15 border-[#EF4444] text-rose-950';
+                            label = veh?.plate || 'ALERTA';
+                          } else if (veh) {
+                            bgStyle = 'bg-[#64748B]/15 border-[#64748B] text-slate-900';
+                            label = veh.plate;
+                          } else if (isConvenio) {
+                            bgStyle = 'bg-[#3B82F6]/15 border-[#3B82F6] text-blue-950';
+                            label = 'VIP';
+                          } else if (isPMR) {
+                            bgStyle = 'bg-[#06B6D4]/15 border-[#06B6D4] text-cyan-950';
+                            label = 'PMR';
+                          } else if (isEV) {
+                            bgStyle = 'bg-[#8B5CF6]/15 border-[#8B5CF6] text-purple-950';
+                            label = 'EV';
+                          }
+
+                          return (
+                            <button
+                              key={slotCode}
+                              type="button"
+                              onClick={() => {
+                                if (veh) {
+                                  loadVehicleIntoExit(veh);
+                                  setPosSubtab('exit');
+                                } else {
+                                  setNextArrivalSeq(slotNum);
+                                  showToast(`Plaza ${slotCode} seleccionada para próximo ingreso`, 'info');
+                                }
+                              }}
+                              className={`p-1.5 rounded-lg border ${bgStyle} text-left transition-transform hover:-translate-y-0.5 flex flex-col justify-between h-12`}
+                            >
+                              <div className="flex justify-between items-center text-[9px] font-bold opacity-75">
+                                <span>{slotCode}</span>
+                                {veh && <span>{veh.durationMin}m</span>}
+                              </div>
+                              <div className="text-[10px] font-black truncate">{label}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="pt-1.5 border-t border-[#f1f5f9]">
+                        <div className="text-[9px] font-bold uppercase text-amber-700 mb-1">
+                          Fila de Sobrecupo (SC-01 a SC-05 • Pasillo Central)
                         </div>
-                      );
-                    })}
-                  </div>
+                        <div className="grid grid-cols-5 gap-1.5">
+                          {['SC-01', 'SC-02', 'SC-03', 'SC-04', 'SC-05'].map((sc) => (
+                            <div
+                              key={sc}
+                              className="p-1.5 rounded-lg border border-[#F59E0B] bg-[#F59E0B]/10 text-amber-900 text-center text-[9px] font-bold"
+                            >
+                              <div>{sc}</div>
+                              <div className="text-[8px] opacity-75">AUX</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -1585,6 +1840,17 @@ export default function OfficialParkOpsApp() {
             );
           }}
         />
+
+        {/* VIEW ENGINE: CONSOLA DEL MOTOR HÍBRIDO (REDIS + CLOUD DATASTORE + ARCHIFY + RENDERS 8K) */}
+        {activeView === 'engine' && (
+          <OfficialEngineView
+            activeVehicles={activeVehicles}
+            isOfflineMode={isOfflineMode}
+            onToggleOfflineMode={() => setIsOfflineMode((v) => !v)}
+            showToast={showToast}
+            onNavigateToPos={() => openPosInSubtab('entry')}
+          />
+        )}
       </main>
 
       {/* WIDGET DE TURNO PERSISTENTE */}
@@ -1634,7 +1900,17 @@ export default function OfficialParkOpsApp() {
         ticketPreviewData={ticketPreviewData}
         confirmVehicleEntry={confirmVehicleEntry}
         printPhysicalTicket={() => {
-          showToast('Comando enviado a Impresora Térmica (80mm ESC/POS).', 'success');
+          printThermalTicketIsolated({
+            ticketCode: ticketPreviewData.ticketId,
+            plate: ticketPreviewData.plate,
+            slotCode: ticketPreviewData.slot,
+            vehicleType: selectedCategory,
+            entryTime: ticketPreviewData.time.replace(' hrs', ''),
+            ratePerMin: ticketPreviewData.rate,
+            clientName: ticketPreviewData.client,
+            isOffline: ticketPreviewData.isOffline,
+          });
+          showToast('Impresión Térmica Aislada 80mm ejecutada (QR + Code 128).', 'success');
           setTimeout(() => setTicketModalOpen(false), 500);
         }}
         sendTicketViaWhatsApp={() => {
@@ -1689,8 +1965,84 @@ export default function OfficialParkOpsApp() {
         discountAmountInput={discountAmountInput}
         setDiscountAmountInput={setDiscountAmountInput}
         confirmPinException={confirmPinException}
-        shiftAuditResult={shiftAuditResult}
-        isAuditingShift={isAuditingShift}
+      />
+
+      {/* SUITE UNIFICADA DE LA VERSIÓN PUBLICADA: COMMAND PALETTE (⌘K), FUGA DE VEHÍCULO Y REVISIÓN 1 A 1 */}
+      <CommandPaletteModal
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        vehicles={activeVehicles}
+        onSelectVehicleForCheckout={(v) => {
+          loadVehicleIntoExit(v);
+          setActiveView('pos');
+          setPosSubtab('exit');
+          showToast(`Patente ${v.plate} cargada en módulo de Liquidación y Cobro.`, 'info');
+        }}
+        onNavigateView={(view) => navigateTo(view)}
+        onTriggerBarrier={() =>
+          showToast('Pulso de apertura enviado a Barrera Principal (GARITA-01).', 'success')
+        }
+        onOpenArqueoCiego={initiateCashClose}
+      />
+
+      <ModalFugaVehiculo
+        vehicle={fugaTargetVehicle}
+        onClose={() => setFugaTargetVehicle(null)}
+        onConfirmFuga={async (veh, notes, pin) => {
+          try {
+            await fetch('/api/checkout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: veh.plate,
+                accion: 'FUGA',
+                pin,
+                motivo: notes,
+              }),
+            });
+          } catch {
+            // Offline fallback
+          }
+          setActiveVehicles((prev) => prev.filter((item) => item.plate !== veh.plate));
+          setAuditLogs((prev) => [
+            {
+              id_auditoria: `AUD-FUGA-${Date.now()}`,
+              accion: `FUGA_VEHICULO (${veh.plate} - ${veh.slotCode})`,
+              tipo_evento: 'FUGA',
+              color_tag: 'ROJO',
+              id_usuario: 'OP-01',
+              nombre_usuario: operatorName,
+              fecha_hora: new Date().toISOString(),
+              motivo: notes,
+              autorizador_pin: pin,
+            },
+            ...prev,
+          ]);
+          showToast(
+            `Fuga de ${veh.plate} registrada con PIN Supervisor [Auditoría Roja]. Plaza ${veh.slotCode} liberada.`,
+            'error'
+          );
+        }}
+      />
+
+      <ModalRevisionVehiculosCierre
+        isOpen={vehicleHandoverOpen}
+        onClose={() => setVehicleHandoverOpen(false)}
+        vehicles={activeVehicles}
+        onForceCheckoutVehicle={(v) => {
+          setCloseShiftModalOpen(false);
+          loadVehicleIntoExit(v);
+          setActiveView('pos');
+          setPosSubtab('exit');
+          showToast(`Vehículo ${v.plate} seleccionado para cobro inmediato previo al cierre.`, 'info');
+        }}
+        onConfirmAllHandover={(plates) => {
+          setHandoverConfirmedCount(plates.length);
+          showToast(
+            `Arrastre físico validado: ${plates.length} vehículos traspasados al siguiente turno.`,
+            'success'
+          );
+        }}
       />
 
       {/* CONTENEDOR FLOTANTE DE NOTIFICACIONES TOAST */}

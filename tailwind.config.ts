@@ -1,57 +1,38 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        cordano: {
-          burgundy: "#80093A",
-          hover: "#A52C55",
-          subtle: "rgba(128, 9, 58, 0.12)",
-          surface: "#F9F9FB",
-          dark: "#1A1C1D",
-          50: "#fff1f4",
-          100: "#ffe4ea",
-          200: "#fecdd7",
-          300: "#fea3b6",
-          400: "#fb6f8e",
-          500: "#f43f68",
-          600: "#e11d48",
-          700: "#be123c",
-          800: "#80093A",
-          900: "#4c0522",
-        },
         slate: {
-          850: "#151f32",
-          950: "#0b1120",
+          850: '#151f32',
+          950: '#0b1120',
         },
         slot: {
-          available: "#10B981",
-          occupied: "#64748B",
-          reserved: "#F59E0B",
-          subscriber: "#3B82F6",
-          pmr: "#06B6D4",
-          ev: "#8B5CF6",
-          overstay: "#EF4444",
-        }
+          available: '#10B981',
+          occupied: '#64748B',
+          reserved: '#F59E0B',
+          subscriber: '#3B82F6',
+          pmr: '#06B6D4',
+          ev: '#8B5CF6',
+          overstay: '#EF4444',
+        },
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', "system-ui", "-apple-system", "sans-serif"],
-        mono: ['"JetBrains Mono"', "IBM Plex Mono", "Geist Mono", "monospace"],
+        sans: ['var(--font-plus-jakarta)', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['var(--font-jetbrains-mono)', 'IBM Plex Mono', 'Geist Mono', 'monospace'],
       },
       boxShadow: {
-        xs:      "0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03)",
-        subtle:  "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
-        card:    "0 4px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
-        floating:"0 16px 48px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06)",
-        modal:   "0 24px 64px rgba(0,0,0,0.16), 0 8px 16px rgba(0,0,0,0.08)",
+        xs: '0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03)',
+        subtle: '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+        card: '0 4px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+        floating: '0 16px 48px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06)',
+        modal: '0 24px 64px rgba(0,0,0,0.16), 0 8px 16px rgba(0,0,0,0.08)',
       },
       height: {
         '13': '3.25rem',
