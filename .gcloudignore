@@ -1,0 +1,14 @@
+.gcloudignore
+.git/
+.gitignore
+node_modules/
+.next/
+cordano-pms-version-publicada/
+legacy_published_version/
+ai_studio_logic.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.vscode/
+.idea/
+*.log
