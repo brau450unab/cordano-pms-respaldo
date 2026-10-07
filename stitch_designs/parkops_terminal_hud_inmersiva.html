@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="web_standard" name="shell-type"/>
+<title>Terminal ParkOps POS · Estacionamiento Serrano 447</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          surface: "#0e1117",
+          "surface-container-lowest": "#06080c",
+          "surface-container-low": "#11151e",
+          "surface-container": "#171c26",
+          "surface-container-high": "#1f2634",
+          "surface-container-highest": "#283142",
+          primary: "#38bdf8",
+          "primary-bright": "#00f0ff",
+          amber: {
+            400: "#fbbf24",
+            500: "#f59e0b",
+            glow: "#f59e0b"
+          }
+        },
+        fontFamily: {
+          sans: ["Geist", "sans-serif"],
+          mono: ["JetBrains Mono", "monospace"]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  @layer base {
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #07090e;
+      color: #e2e8f0;
+      font-family: 'Geist', sans-serif;
+    }
+    ::-webkit-scrollbar { display: none; }
+  }
+
+  /* HUD Radar Grid & Technical Scanlines */
+  .hud-grid {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+  }
+
+  .hud-console {
+    background: linear-gradient(170deg, rgba(23, 28, 38, 0.85) 0%, rgba(11, 15, 22, 0.95) 100%);
+    box-shadow: 
+      0 0 0 1px rgba(148, 163, 184, 0.15),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -2px 4px 0 rgba(0, 0, 0, 0.8),
+      0 24px 60px -10px rgba(0, 0, 0, 0.85),
+      0 0 40px -10px rgba(56, 189, 248, 0.12);
+    backdrop-filter: blur(20px);
+  }
+
+  .ignition-switch {
+    background: linear-gradient(180deg, #38bdf8 0%, #0284c7 50%, #0369a1 100%);
+    box-shadow: 
+      0 0 25px rgba(56, 189, 248, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.6),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+  .ignition-switch:hover {
+    background: linear-gradient(180deg, #67e8f9 0%, #0ea5e9 50%, #0284c7 100%);
+    box-shadow: 
+      0 0 35px rgba(56, 189, 248, 0.7),
+      inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  }
+
+  .pin-vault-box {
+    background: #080c13;
+    box-shadow: 
+      inset 0 2px 6px rgba(0,0,0,0.9),
+      0 0 0 1px rgba(56, 189, 248, 0.2);
+  }
+
+  .tech-card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .tech-card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.7), 0 0 24px -2px rgba(56, 189, 248, 0.18);
+    border-color: rgba(56, 189, 248, 0.4);
+  }
+</style>
+</head>
+<body class="bg-[#07090e] text-slate-100 antialiased min-h-screen relative selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden">
+<!-- Ambient Control Room Radial Lighting -->
+<div class="fixed inset-0 pointer-events-none hud-grid z-0"></div>
+<div class="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-to-b from-cyan-500/10 via-sky-600/5 to-transparent blur-[120px] pointer-events-none z-0"></div>
+<div class="fixed -bottom-20 left-1/4 w-[600px] h-[350px] bg-amber-500/5 blur-[100px] pointer-events-none z-0"></div>
+<!-- 1. ULTRA-MINIMAL HUD BAR -->
+<header class="sticky top-0 w-full z-50 bg-[#070b12]/90 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-8 py-2.5">
+<div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+<!-- Left: Recinto & Identidad Garita -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5 px-2 py-1 rounded bg-slate-900 border border-slate-800 text-slate-400">
+<span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#38bdf8] animate-pulse"></span>
+<span class="font-mono text-xs font-bold text-white tracking-wider">PARKOPS <span class="text-cyan-400">PRO HUD</span></span>
+</div>
+<div class="hidden sm:flex items-center gap-2 text-xs font-mono text-slate-400">
+<span class="text-slate-600">/</span>
+<span class="material-symbols-outlined text-[15px] text-cyan-400">domain</span>
+<span>CORDANO INMOBILIARIA · RECINTO SERRANO 447, IQUIQUE</span>
+</div>
+</div>
+<!-- Center: Clock & Official Timezone CLT -->
+<div class="flex items-center gap-2 bg-[#0b1018] px-3 py-1 rounded-md border border-slate-800/90 font-mono text-xs shadow-inner">
+<span class="text-slate-400 text-[11px]">CLT (UTC-3)</span>
+<span class="text-cyan-300 font-bold tracking-widest text-sm" id="hud-clock">14:32:08</span>
+</div>
+<!-- Right: Telemetría Enlace Cloud Run en vivo -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 font-mono text-[11px]">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span class="hidden md:inline">Cloud Run us-west1</span>
+<span class="text-emerald-400 font-bold">24ms EN LÍNEA</span>
+</div>
+<div class="w-8 h-8 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</div>
+</div>
+</div>
+</header>
+<!-- MAIN HERO SPOTLIGHT: DOCK CENTRAL DE ACCESO RÁPIDO (CONTROL ROOM TERMINAL) -->
+<main class="relative z-10 w-full flex flex-col items-center pt-8 pb-16 px-4 sm:px-6">
+<!-- HUD Upper Ribbon Header -->
+<div class="flex flex-col items-center text-center space-y-2 mb-6">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 font-mono text-[11px] tracking-widest uppercase shadow-[0_0_15px_rgba(56,189,248,0.2)]">
+<span class="material-symbols-outlined text-[14px]">sensors</span>
+<span>Garita Principal Operativa · Matriz 30 Plazas Conectada</span>
+</div>
+<h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight font-sans">
+      Terminal de Control <span class="bg-gradient-to-r from-cyan-400 via-sky-200 to-white bg-clip-text text-transparent">Operacional Garita</span>
+</h1>
+<p class="text-xs sm:text-sm text-slate-400 font-mono max-w-xl">
+      Inicio de sesión inmediato con fondo de caja, token criptográfico y asignación de hardware HID.
+    </p>
+</div>
+<!-- CONSOLA CENTRAL AEROSPACE HUD -->
+<div class="w-full max-w-2xl hud-console rounded-2xl border border-slate-700/60 p-6 sm:p-8 relative overflow-hidden">
+<!-- Top Glowing Accent -->
+<div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
+<!-- Terminal Header Info Bar -->
+<div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+<div class="flex items-center gap-2">
+<div class="flex gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+</div>
+<span class="font-mono text-xs text-slate-400 ml-2">NODE_ID: <span class="text-slate-200">SRR-447-POS01</span></span>
+</div>
+<div class="flex items-center gap-1.5 font-mono text-[11px] text-cyan-400 bg-cyan-950/40 px-2.5 py-1 rounded border border-cyan-800/40">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+<span>SHA-256 ENCRYPTED</span>
+</div>
+</div>
+<!-- FORMULARIO DE ACCESO TÁCTIL / RÁPIDO -->
+<form class="space-y-6" onsubmit="handleIgnition(event)">
+<!-- 1. SELECTOR DE ROL TÁCTIL DE ALTO CONTRASTE -->
+<div class="space-y-2">
+<div class="flex justify-between items-center text-xs font-mono text-slate-400 uppercase tracking-wider">
+<span>1. Nivel de Acceso</span>
+<span class="text-slate-500">Selección táctil obligatoria</span>
+</div>
+<div class="grid grid-cols-2 gap-3 p-1.5 bg-[#090d14] rounded-xl border border-slate-800">
+<button class="flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg bg-gradient-to-b from-slate-700 to-slate-800 text-cyan-300 font-mono font-bold text-xs tracking-wider border border-cyan-500/40 shadow-lg shadow-cyan-950/50 transition-all" id="role-op" onclick="setRole('operator')" type="button">
+<span class="material-symbols-outlined text-[18px] text-cyan-400">badge</span>
+<span>OPERADOR GARITA</span>
+</button>
+<button class="flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg text-slate-400 hover:text-slate-200 font-mono font-bold text-xs tracking-wider transition-all" id="role-admin" onclick="setRole('admin')" type="button">
+<span class="material-symbols-outlined text-[18px]">security</span>
+<span>ADMINISTRADOR</span>
+</button>
+</div>
+</div>
+<!-- 2. IDENTIFICADOR & SELECTOR DE GARITA -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Identificador -->
+<div class="space-y-1.5">
+<label class="block text-xs font-mono text-slate-300 uppercase tracking-wider" id="label-user">Identificador Operador</label>
+<div class="relative">
+<span class="absolute left-3.5 top-3 material-symbols-outlined text-slate-500 text-[18px]">fingerprint</span>
+<input class="w-full bg-[#080d15] border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 font-mono text-white text-sm focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none transition-all placeholder:text-slate-600" id="input-operator" required="" type="text" value="OP-7421"/>
+</div>
+</div>
+<!-- Selector Garita / Terminal Hardware -->
+<div class="space-y-1.5">
+<label class="block text-xs font-mono text-slate-300 uppercase tracking-wider">Estación de Trabajo</label>
+<div class="relative">
+<span class="absolute left-3.5 top-3 material-symbols-outlined text-slate-500 text-[18px]">desktop_windows</span>
+<select class="w-full bg-[#080d15] border border-slate-700/80 rounded-xl pl-10 pr-8 py-2.5 font-mono text-white text-xs font-medium focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none transition-all appearance-none cursor-pointer" id="station-picker">
+<option value="pos1">GARITA #01 · Acceso Serrano Principal</option>
+<option value="pos2">GARITA #02 · Respaldo Salida Vehicular</option>
+<option value="admin">ADMIN CONSOLA · Inmobiliaria Cordano</option>
+</select>
+<span class="absolute right-3 top-3 material-symbols-outlined text-slate-400 text-[18px] pointer-events-none">unfold_more</span>
+</div>
+</div>
+</div>
+<!-- 3. DISPLAY DE PIN 4 DÍGITOS MONO GIGANTE ESTILO VAULT -->
+<div class="space-y-2">
+<div class="flex items-center justify-between text-xs font-mono">
+<span class="text-slate-300 uppercase tracking-wider" id="label-pin">PIN de Turno Rápido (4 Dígitos)</span>
+<button class="text-cyan-400 hover:text-cyan-300 hover:underline" onclick="clearPin()" type="button">Reiniciar Teclado</button>
+</div>
+<!-- Giant Safe Box Display -->
+<div class="pin-vault-box p-4 rounded-xl border border-slate-700/90 flex flex-col items-center justify-center space-y-3">
+<div class="flex items-center gap-3">
+<div class="w-12 h-14 rounded-lg bg-[#0e1420] border-2 border-cyan-500/50 flex items-center justify-center font-mono text-2xl font-bold text-cyan-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+<span id="digit-1">•</span>
+</div>
+<div class="w-12 h-14 rounded-lg bg-[#0e1420] border-2 border-cyan-500/50 flex items-center justify-center font-mono text-2xl font-bold text-cyan-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+<span id="digit-2">•</span>
+</div>
+<div class="w-12 h-14 rounded-lg bg-[#0e1420] border-2 border-cyan-500/50 flex items-center justify-center font-mono text-2xl font-bold text-cyan-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+<span id="digit-3">•</span>
+</div>
+<div class="w-12 h-14 rounded-lg bg-[#0e1420] border-2 border-cyan-500/50 flex items-center justify-center font-mono text-2xl font-bold text-cyan-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+<span id="digit-4">•</span>
+</div>
+</div>
+<!-- Numeric Quick Keys for Touchscreen Kiosk -->
+<div class="grid grid-cols-5 gap-2 w-full max-w-sm pt-1">
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('1')" type="button">1</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('2')" type="button">2</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('3')" type="button">3</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('4')" type="button">4</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('5')" type="button">5</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('6')" type="button">6</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('7')" type="button">7</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('8')" type="button">8</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('9')" type="button">9</button>
+<button class="py-1.5 rounded bg-slate-800/80 border border-slate-700 font-mono text-sm text-slate-200 hover:bg-slate-700 transition" onclick="pressDigit('0')" type="button">0</button>
+</div>
+</div>
+</div>
+<!-- 4. PROTOCOLO OPERACIONAL & FONDO BASE (BADGE) -->
+<div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30 flex items-start gap-3" id="protocol-banner">
+<span class="material-symbols-outlined text-cyan-400 text-[20px] shrink-0 mt-0.5">account_balance_wallet</span>
+<div class="text-xs text-slate-300 font-sans">
+<strong class="text-cyan-300 font-semibold font-mono">Declaración de Fondo Base:</strong> Al validar el PIN se abrirá automáticamente el modal para registrar efectivo inicial en gaveta (Mínimo recomendado $30.000 CLP para cambio).
+        </div>
+</div>
+<!-- 5. BOTÓN DE IGNICIÓN / INICIAR TURNO LUMINOSO -->
+<button class="ignition-switch w-full py-4 px-6 rounded-xl text-slate-950 font-mono font-extrabold text-sm tracking-widest uppercase transition-all flex items-center justify-center gap-3 cursor-pointer group" id="btn-ignition" type="submit">
+<span class="material-symbols-outlined text-[22px] group-hover:rotate-45 transition-transform">power_settings_new</span>
+<span id="btn-label">INICIAR TURNO / INGRESAR AL POS</span>
+<span class="material-symbols-outlined text-[20px] group-hover:translate-x-1.5 transition-transform">arrow_forward</span>
+</button>
+<!-- Badge de Segregación de Funciones Institucional -->
+<div class="pt-3 border-t border-slate-800/80 flex items-center justify-center gap-2 text-slate-400 font-mono text-[11px]">
+<span class="material-symbols-outlined text-amber-400 text-[15px]">verified_user</span>
+<span>Protocolo de Control Interno Cordano Inversiones Ltda. · Trazabilidad 100% Auditada</span>
+</div>
+</form>
+</div>
+<!-- SECCIÓN VISUAL DE MÓDULOS DEL SISTEMA (LIMPIA, MODERNA, CON IMÁGENES/ILUSTRACIONES) -->
+<div class="w-full max-w-6xl mt-16 pt-10 border-t border-slate-800/70">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8">
+<div>
+<div class="text-cyan-400 font-mono text-xs uppercase tracking-widest font-semibold flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          Arquitectura Operativa Serrano 447
+        </div>
+<h2 class="text-xl sm:text-2xl font-bold text-white mt-1">Módulos Centrales de la Garita POS</h2>
+</div>
+<span class="text-xs font-mono text-slate-400">Versión 2.4-STABLE · Modo Híbrido Iquique</span>
+</div>
+<!-- Grid de 4 Módulos con Capturas / Visuales Claros -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+<!-- MÓDULO 1: Check-in Rápido -->
+<div class="tech-card-hover bg-[#0d121c]/90 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between">
+<div class="relative h-36 bg-[#131b29] overflow-hidden border-b border-slate-800">
+<img alt="Ticket Scanner POS" class="w-full h-full object-cover opacity-50 mix-blend-luminosity hover:opacity-80 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBp3aFsFbvCK6ISfv8y0-Xo2N8pzzYAOKn_WegIyNjIZttW0ILCq-nhQd9hxK3o6FCm-XMQjvAH5ONleIjyidrSReg7cZlbMMk-SWMJ5BywvVKQ2TheUrc49OQbWtc7OAQllDTN3eeYaRkmnoFdIuPVhzwtx3ZowajLpG1tqy-t4YzVUxjw5mGiLibh1oc1eC8e_QZDDR0IH7YZzy0HauYraDPA2Spn6xbz6_MQbZJNo-EPIltdCqo2rA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0d121c] via-transparent to-transparent"></div>
+<span class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-mono text-[10px] font-bold">&lt;15s LATENCIA</span>
+</div>
+<div class="p-4 space-y-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-cyan-400 text-[18px]">qr_code_scanner</span>
+<h3 class="text-sm font-bold text-white">Garita POS &amp; Check-in</h3>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed">
+            Lector óptico Honeywell 2D/1D para patente instantánea y vouchers QR térmicos 80mm redundantes.
+          </p>
+</div>
+<div class="px-4 pb-4 pt-1 font-mono text-[11px] text-cyan-400 flex items-center justify-between border-t border-slate-800/60 mt-2">
+<span>Escaneo Óptico</span>
+<span class="text-slate-300">Honeywell HF680</span>
+</div>
+</div>
+<!-- MÓDULO 2: Matriz 30 Plazas -->
+<div class="tech-card-hover bg-[#0d121c]/90 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between">
+<div class="relative h-36 bg-[#131b29] overflow-hidden border-b border-slate-800">
+<img alt="Matriz Estacionamiento" class="w-full h-full object-cover opacity-50 mix-blend-luminosity hover:opacity-80 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABGVg1FeGIWlT9vfUIM9yEWrRdVu9r7Jw0jIlDMvP6o_GgII5HxXzU5bqOPDj95CmK0kSnsrdYr6CqOIi2SNgGVe7mvEAlddmMLK5jEYvHGJaoATNqFj11FG70mL_trWemG5Jm6vs9_0hduDXx3dcO17L4Kj2_SpkTHm3OcuW_P3i0JVpkaCPy1ZFFiz68hbe2GRP5LvTwOof2Pg9acQ3W7med8Hy4I5IFdLvLRDmohPuI059jSSsh1A"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0d121c] via-transparent to-transparent"></div>
+<span class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-mono text-[10px] font-bold">30 PLAZAS</span>
+</div>
+<div class="p-4 space-y-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-cyan-400 text-[18px]">grid_view</span>
+<h3 class="text-sm font-bold text-white">Matriz Dinámica</h3>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed">
+            Supervisión simultánea de Sector A (16 espacios) y Sector B (14 espacios) con cálculo de fracciones al minuto.
+          </p>
+</div>
+<div class="px-4 pb-4 pt-1 font-mono text-[11px] text-emerald-400 flex items-center justify-between border-t border-slate-800/60 mt-2">
+<span>Ocupación en Vivo</span>
+<span class="text-white">63% (11 Libres)</span>
+</div>
+</div>
+<!-- MÓDULO 3: Arqueo Caja Ciega -->
+<div class="tech-card-hover bg-[#0d121c]/90 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between">
+<div class="relative h-36 bg-[#131b29] overflow-hidden border-b border-slate-800">
+<img alt="Caja y Auditoria" class="w-full h-full object-cover opacity-50 mix-blend-luminosity hover:opacity-80 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuByTfmqiZBExH810VvRWN8xL5LPD5LPwiGGsxr_kOcZYXViAKyGeEkAsjXuSJ7_X9jt7r5dN2UYkv61tPL-OaAKtVTfGt9yOS_2FIWmgKda5CI-cyTVRslubtedLWv2e-oTJoCAGsxhZ3DExB0c0QJypNq8_WQ8EOFkbZ0GllZSW2yUZqVVATT4PejDWbJBPNwQGcaMzh_f9nisY7yjRVHHW_SFIRbk1ths4qThtzDjTWgzSgaNRWLtlg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0d121c] via-transparent to-transparent"></div>
+<span class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-amber-950/80 border border-amber-500/40 text-amber-300 font-mono text-[10px] font-bold">SHA-256</span>
+</div>
+<div class="p-4 space-y-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-400 text-[18px]">lock_clock</span>
+<h3 class="text-sm font-bold text-white">Arqueo de Caja Ciega</h3>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed">
+            Declaración obligatoria de efectivo sin saldo visible previo. Emisión de Reporte Z sellado criptográficamente.
+          </p>
+</div>
+<div class="px-4 pb-4 pt-1 font-mono text-[11px] text-amber-400 flex items-center justify-between border-t border-slate-800/60 mt-2">
+<span>Cierre Antifraude</span>
+<span class="text-slate-300">Inmutable</span>
+</div>
+</div>
+<!-- MÓDULO 4: Modo Híbrido Offline -->
+<div class="tech-card-hover bg-[#0d121c]/90 border border-slate-800 rounded-xl overflow-hidden flex flex-col justify-between">
+<div class="relative h-36 bg-[#131b29] overflow-hidden border-b border-slate-800">
+<img alt="Resiliencia Offline" class="w-full h-full object-cover opacity-50 mix-blend-luminosity hover:opacity-80 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6BAFfoggJwi8k1F4K8hQFEZtHk75wcLxkzcr3_0r7t0Iuw4XwXRV_VjESZsdnSvAJuOGgGoKYf4j57e6V85aq2qsB8n6jHJ84es25zSsN6TH1fyFBVZKorrhLvToPHcUV8lAVvFcHsRK8uGOIdaVRYtrExHT5qeAFvjfjFJiz-J3S6Lw1oFzaBucaOkBxJmngNy2fZ74nF3GpUZC1oHAC1GtqmeHW1MwqLfaXuI_-zl-xL1Rn2LJ9pA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0d121c] via-transparent to-transparent"></div>
+<span class="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-sky-950/80 border border-sky-500/40 text-sky-300 font-mono text-[10px] font-bold">SQLITE / IDB</span>
+</div>
+<div class="p-4 space-y-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-cyan-400 text-[18px]">cloud_sync</span>
+<h3 class="text-sm font-bold text-white">Resiliencia Híbrida</h3>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed">
+            Operatividad continua ante caídas de enlace. Sincronización transparente apenas reanuda la fibra óptica.
+          </p>
+</div>
+<div class="px-4 pb-4 pt-1 font-mono text-[11px] text-cyan-300 flex items-center justify-between border-t border-slate-800/60 mt-2">
+<span>Sincronización</span>
+<span class="text-emerald-400">Zero Data-Loss</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- SIMPLE STATUS FOOTER -->
+<footer class="w-full bg-[#05070b] border-t border-slate-800/80 py-4 px-6 text-center text-xs font-mono text-slate-500">
+<div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+<span>© 2025 Cordano Inversiones Inmobiliarias Ltda. · Edificio Serrano 447, Casco Histórico, Iquique</span>
+<span class="text-slate-400">Soporte Técnico Garita POS: +56 57 241 8900</span>
+</div>
+</footer>
+<!-- SCRIPT: INTERACTIVIDAD TERMINAL POS & RELOJ CLT -->
+<script>
+  // Reloj CLT en vivo
+  function updateClock() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const clockEl = document.getElementById('hud-clock');
+    if (clockEl) {
+      clockEl.innerText = `${hours}:${minutes}:${seconds}`;
+    }
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Control PIN Vault Display
+  let enteredPin = "9842";
+
+  function renderPin() {
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById(`digit-${i}`);
+      if (enteredPin.length >= i) {
+        el.innerText = "•";
+        el.className = "w-12 h-14 rounded-lg bg-[#0e1726] border-2 border-cyan-400 flex items-center justify-center font-mono text-3xl font-extrabold text-cyan-300 shadow-[0_0_12px_rgba(56,189,248,0.4)]";
+      } else {
+        el.innerText = "-";
+        el.className = "w-12 h-14 rounded-lg bg-[#080c14] border-2 border-slate-800 flex items-center justify-center font-mono text-2xl font-bold text-slate-600";
+      }
+    }
+  }
+
+  function pressDigit(num) {
+    if (enteredPin.length < 4) {
+      enteredPin += num;
+      renderPin();
+    }
+  }
+
+  function clearPin() {
+    enteredPin = "";
+    renderPin();
+  }
+
+  // Initial render
+  renderPin();
+
+  // Role Switcher Logic
+  function setRole(role) {
+    const btnOp = document.getElementById('role-op');
+    const btnAdmin = document.getElementById('role-admin');
+    const labelUser = document.getElementById('label-user');
+    const inputUser = document.getElementById('input-operator');
+    const labelPin = document.getElementById('label-pin');
+    const btnLabel = document.getElementById('btn-label');
+    const banner = document.getElementById('protocol-banner');
+    const station = document.getElementById('station-picker');
+
+    if (role === 'admin') {
+      btnOp.className = "flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg text-slate-400 hover:text-slate-200 font-mono font-bold text-xs tracking-wider transition-all";
+      btnAdmin.className = "flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg bg-gradient-to-b from-slate-700 to-slate-800 text-amber-300 font-mono font-bold text-xs tracking-wider border border-amber-500/40 shadow-lg shadow-amber-950/50 transition-all";
+      
+      labelUser.innerText = "Credencial de Administrador";
+      inputUser.value = "admin@cordano.cl";
+      labelPin.innerText = "PIN Supervisor / Token OTP";
+      btnLabel.innerText = "AUTENTICAR AUDITORÍA / ADMIN";
+      station.value = "admin";
+
+      banner.className = "p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30 flex items-start gap-3";
+      banner.innerHTML = `
+        <span class="material-symbols-outlined text-amber-400 text-[20px] shrink-0 mt-0.5">admin_panel_settings</span>
+        <div class="text-xs text-slate-300 font-sans">
+          <strong class="text-amber-300 font-semibold font-mono">Modo Supervisión:</strong> Acceso a auditoría Z, reimpresión fiscal, ajuste de tarifas y parametrización de plazas.
+        </div>
+      `;
+    } else {
+      btnAdmin.className = "flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg text-slate-400 hover:text-slate-200 font-mono font-bold text-xs tracking-wider transition-all";
+      btnOp.className = "flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg bg-gradient-to-b from-slate-700 to-slate-800 text-cyan-300 font-mono font-bold text-xs tracking-wider border border-cyan-500/40 shadow-lg shadow-cyan-950/50 transition-all";
+      
+      labelUser.innerText = "Identificador Operador";
+      inputUser.value = "OP-7421";
+      labelPin.innerText = "PIN de Turno Rápido (4 Dígitos)";
+      btnLabel.innerText = "INICIAR TURNO / INGRESAR AL POS";
+      station.value = "pos1";
+
+      banner.className = "p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-500/30 flex items-start gap-3";
+      banner.innerHTML = `
+        <span class="material-symbols-outlined text-cyan-400 text-[20px] shrink-0 mt-0.5">account_balance_wallet</span>
+        <div class="text-xs text-slate-300 font-sans">
+          <strong class="text-cyan-300 font-semibold font-mono">Declaración de Fondo Base:</strong> Al validar el PIN se abrirá automáticamente el modal para registrar efectivo inicial en gaveta (Mínimo recomendado $30.000 CLP para cambio).
+        </div>
+      `;
+    }
+  }
+
+  // Ignition Submit
+  function handleIgnition(e) {
+    e.preventDefault();
+    if (enteredPin.length < 4) {
+      alert("Por favor ingrese los 4 dígitos del PIN de garita antes de continuar.");
+      return;
+    }
+    const btn = document.getElementById('btn-ignition');
+    const label = document.getElementById('btn-label');
+    const oldText = label.innerText;
+
+    label.innerText = "CONECTANDO A CLOUD RUN & VALIDANDO...";
+    btn.classList.add('opacity-80', 'pointer-events-none');
+
+    setTimeout(() => {
+      alert("✓ Turno Validado Correctamente.\nEstación: " + document.getElementById('station-picker').selectedOptions[0].text + "\nAbriendo consola POS e impresora térmica...");
+      label.innerText = oldText;
+      btn.classList.remove('opacity-80', 'pointer-events-none');
+    }, 700);
+  }
+</script>
+</body></html>

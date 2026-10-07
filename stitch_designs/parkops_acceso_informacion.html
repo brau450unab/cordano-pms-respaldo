@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"tertiary":"#545c62","on-error":"#ffffff","surface-container-lowest":"#ffffff","surface-container-highest":"#e2e2e4","primary-fixed":"#ffd9e0","surface-variant":"#e2e2e4","on-primary":"#ffffff","surface":"#f9f9fb","outline":"#717785","error-container":"#ffdad6","on-secondary-container":"#636264","on-tertiary-fixed-variant":"#40484e","inverse-surface":"#2f3132","on-primary-fixed-variant":"#8a1441","surface-container-low":"#f3f3f5","inverse-on-surface":"#f0f0f2","on-background":"#1a1c1d","on-primary-container":"#fffaf9","surface-container-high":"#e8e8ea","inverse-primary":"#ffb1c2","on-surface":"#1a1c1d","on-error-container":"#93000a","outline-variant":"#c1c6d6","tertiary-fixed-dim":"#c0c7ce","on-secondary-fixed-variant":"#474648","on-secondary-fixed":"#1b1b1d","on-tertiary":"#ffffff","on-primary-fixed":"#3f0018","tertiary-fixed":"#dce3eb","surface-tint":"#aa2f58","primary-container":"#c6456d","on-secondary":"#ffffff","primary-fixed-dim":"#ffb1c2","primary":"#a52c55","on-tertiary-container":"#fafcff","surface-container":"#edeef0","surface-dim":"#d9dadc","tertiary-container":"#6d757b","surface-bright":"#f9f9fb","secondary-fixed-dim":"#c8c6c8","secondary":"#5f5e60","error":"#ba1a1a","background":"#f9f9fb","secondary-fixed":"#e5e2e4","on-surface-variant":"#414753","on-tertiary-fixed":"#151d22","secondary-container":"#e2dfe1"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"hero-padding":"80px","nav-height-local":"52px","section-gap":"64px","nav-height-global":"44px","content-max-width":"1024px"},"fontFamily":{"body-lg":["Manrope"],"label-sm":["Manrope"],"headline-xl":["Manrope"],"body-md":["Manrope"],"headline-lg":["Manrope"]},"fontSize":{"body-lg":["21px",{"lineHeight":"1.5","fontWeight":"400"}],"label-sm":["13px",{"lineHeight":"1.4","fontWeight":"400"}],"headline-xl":["48px",{"lineHeight":"1.2","letterSpacing":"-0.02em","fontWeight":"700"}],"body-md":["16px",{"lineHeight":"1.5","fontWeight":"400"}],"headline-lg":["32px",{"lineHeight":"1.3","letterSpacing":"-0.01em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 max-w-content-max-width mx-auto px-6 flex items-center justify-between gap-4"><div class="flex items-center gap-6"><div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded-full bg-error"></div><div class="w-3 h-3 rounded-full bg-secondary-fixed-dim"></div><div class="w-3 h-3 rounded-full bg-outline-variant"></div></div><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-DEFAULT bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[15px]">local_parking</span></div><div class="flex flex-col"><span class="font-headline-lg text-label-sm font-bold tracking-tight text-on-surface leading-none">ParkOps</span><span class="font-label-sm text-label-sm text-secondary leading-none mt-0.5">Serrano 447 · Iquique</span></div></div></div><nav class="hidden md:flex items-center gap-2 text-label-sm font-label-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-full px-3 py-1"><a aria-current="page" class="transition-all bg-primary-container text-on-primary-container font-semibold rounded-full px-3 py-1" data-path="portal-parkops" href="#">Acceso Portal</a><a class="px-3 py-1 rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="tarifas-y-abonos" href="#">Tarifas y Abonos</a><a class="px-3 py-1 rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="especificaciones-tecnicas" href="#">Infraestructura</a><a class="px-3 py-1 rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="estado-del-servicio" href="#">Estado del Servicio</a></nav><div class="flex items-center gap-4"><div class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-container-low"><div class="w-2 h-2 rounded-full bg-[#1b873f]"></div><span class="font-label-sm text-label-sm text-on-surface-variant">Cloud Run (us-west1) En Línea</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface min-h-[calc(100vh-160px)]"><div class="flex flex-col w-full">
+<!-- Dynamic Atmospheric Glow behind Hero -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-32 left-1/4 w-96 h-96 bg-primary-fixed/20 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-20 right-10 w-80 h-80 bg-secondary-fixed/30 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="max-w-content-max-width mx-auto px-6 py-12 md:py-16">
+<!-- Two-Column Primary Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+<!-- Left Column: Institutional Intro & Live Telemetry -->
+<div class="lg:col-span-7 flex flex-col space-y-6">
+<!-- Institutional Pill Badge -->
+<div class="inline-flex items-center gap-2 self-start px-3.5 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span class="font-label-sm text-label-sm tracking-wide font-semibold">Cordano Inversiones Inmobiliarias Ltda. · Serrano 447, Iquique</span>
+</div>
+<!-- Headline -->
+<div class="space-y-3">
+<h1 class="font-headline-xl text-headline-xl text-on-surface font-extrabold tracking-tight leading-tight">
+              Plataforma de Control Operacional &amp; Acceso Vehicular
+            </h1>
+<p class="font-body-md text-body-md text-secondary leading-relaxed max-w-xl">
+              Sistema unificado de garita POS, matriz de 30 plazas con sincronización milimétrica, emisión dual térmica (QR + Code 128) y arqueos de caja ciega inmutables con trazabilidad criptográfica SHA-256.
+            </p>
+</div>
+<!-- Live Operational Telemetry Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+<!-- Telemetry 1 -->
+<div class="p-3.5 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between space-y-2">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold">Recinto</span>
+<span class="material-symbols-outlined text-[18px] text-primary">apartment</span>
+</div>
+<div>
+<p class="font-headline-lg text-body-md font-bold text-on-surface truncate">Serrano 447</p>
+<p class="font-label-sm text-label-sm text-secondary truncate">Junto a Consulado Italiano</p>
+</div>
+<div class="flex items-center gap-1.5 pt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-[#1b873f]"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Operativo 24/7</span>
+</div>
+</div>
+<!-- Telemetry 2 -->
+<div class="p-3.5 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between space-y-2">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold">Disponibilidad</span>
+<span class="material-symbols-outlined text-[18px] text-primary">local_parking</span>
+</div>
+<div>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface font-mono">11</span>
+<span class="font-label-sm text-label-sm text-secondary font-mono">/ 30 Libres</span>
+</div>
+<p class="font-label-sm text-label-sm text-secondary truncate">Sectores A &amp; B Activos</p>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 63%;"></div>
+</div>
+</div>
+<!-- Telemetry 3 -->
+<div class="p-3.5 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between space-y-2">
+<div class="flex items-center justify-between text-secondary">
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold">Cloud Ping</span>
+<span class="material-symbols-outlined text-[18px] text-primary">cloud_done</span>
+</div>
+<div>
+<p class="font-headline-lg text-body-md font-bold text-on-surface font-mono">28 ms</p>
+<p class="font-label-sm text-label-sm text-secondary truncate">us-west1 · Oregon</p>
+</div>
+<div class="flex items-center gap-1.5 pt-1">
+<span class="material-symbols-outlined text-[14px] text-[#1b873f]">sync_saved_locally</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Sync SHA-256</span>
+</div>
+</div>
+</div>
+<!-- Feature Chips Ribbon -->
+<div class="p-4 rounded-xl bg-surface-container-low flex flex-wrap items-center justify-between gap-3 text-secondary">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">timer</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium">Check-in &lt;15s</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-outline-variant hidden sm:block"></div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">update</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium">10 min de Gracia</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-outline-variant hidden sm:block"></div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">receipt_long</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium">Térmico Dual 80mm</span>
+</div>
+<div class="w-1 h-1 rounded-full bg-outline-variant hidden sm:block"></div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary">verified_user</span>
+<span class="font-label-sm text-label-sm text-on-surface font-medium">Cero Fugas POS</span>
+</div>
+</div>
+<!-- Architectural Preview Snippet -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-sm flex items-center justify-between gap-4">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[20px]">qr_code_scanner</span>
+</div>
+<div class="min-w-0">
+<p class="font-headline-lg text-body-md font-bold text-on-surface truncate">Escaner Óptico Honeywell HF680</p>
+<p class="font-label-sm text-label-sm text-secondary truncate">Entrada vehicular directa · Lectura 0.1s patente / voucher</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-md bg-surface-container-high font-mono text-label-sm font-semibold text-primary">USB HID</span>
+</div>
+</div>
+<!-- Right Column: macOS Inspired Elevated Login Terminal -->
+<div class="lg:col-span-5">
+<div class="bg-surface-container-lowest rounded-xl shadow-xl p-6 sm:p-8 flex flex-col space-y-6">
+<!-- Window Control Header -->
+<div class="flex items-center justify-between pb-2">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="w-3 h-3 rounded-full bg-secondary-fixed-dim"></span>
+<span class="w-3 h-3 rounded-full bg-outline-variant"></span>
+</div>
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="font-label-sm text-label-sm tracking-wide font-semibold">Terminal Seguro SSL</span>
+</div>
+</div>
+<!-- Terminal Title & Switcher -->
+<div class="space-y-4">
+<div>
+<h2 class="font-headline-lg text-headline-lg font-bold text-on-surface">Acceso al Sistema</h2>
+<p class="font-label-sm text-label-sm text-secondary">Identificación de turno y asignación de estación</p>
+</div>
+<!-- Profile Segmented Switch -->
+<div class="p-1 bg-surface-container-high rounded-lg grid grid-cols-2 gap-1 text-center font-label-sm text-label-sm font-semibold">
+<button class="py-2 rounded-md bg-surface-container-lowest text-on-surface shadow-sm transition-all flex items-center justify-center gap-1.5" id="tab-operator" onclick="switchProfile('operator')" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">badge</span>
+<span>Operador Garita</span>
+</button>
+<button class="py-2 rounded-md text-secondary hover:text-on-surface transition-all flex items-center justify-center gap-1.5" id="tab-admin" onclick="switchProfile('admin')" type="button">
+<span class="material-symbols-outlined text-[16px]">admin_panel_settings</span>
+<span>Administrador</span>
+</button>
+</div>
+</div>
+<!-- Profile Alert Banner (Dynamic) -->
+<div class="p-3.5 rounded-lg bg-surface-container-low flex items-start gap-2.5" id="operator-alert">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">account_balance_wallet</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant leading-snug">
+<strong>Apertura de Caja:</strong> El inicio de turno requiere declaración obligatoria de fondo base antes del cobro de tickets.
+              </p>
+</div>
+<div class="p-3.5 rounded-lg bg-surface-container-low hidden flex items-start gap-2.5" id="admin-alert">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">policy</span>
+<p class="font-label-sm text-label-sm text-on-surface-variant leading-snug">
+<strong>Sesión de Auditoría:</strong> Acceso a métricas Z, anulación supervisada y configuración de tarifas.
+              </p>
+</div>
+<!-- Input Fields Form -->
+<form class="space-y-4" onsubmit="handleLogin(event)">
+<!-- Identity Field -->
+<div class="space-y-1.5">
+<label class="font-label-sm text-label-sm font-semibold text-on-surface" for="input-user" id="label-user">Identificador de Operador</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 material-symbols-outlined text-secondary text-[20px] pointer-events-none">fingerprint</span>
+<input class="w-full pl-10 pr-4 py-2.5 rounded-lg bg-surface-container-low text-on-surface font-mono text-label-sm outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all font-medium" id="input-user" placeholder="Ej. OP-7421" required="" type="text" value="OP-7421"/>
+</div>
+</div>
+<!-- Password / PIN Field -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<label class="font-label-sm text-label-sm font-semibold text-on-surface" for="input-pass" id="label-pass">PIN de Acceso (4 dígitos)</label>
+<a class="font-label-sm text-label-sm text-primary hover:underline font-medium" href="#">¿Olvidó su clave?</a>
+</div>
+<div class="relative flex items-center">
+<span class="absolute left-3 material-symbols-outlined text-secondary text-[20px] pointer-events-none">pin</span>
+<input class="w-full pl-10 pr-10 py-2.5 rounded-lg bg-surface-container-low text-on-surface font-mono text-label-sm tracking-widest outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all font-medium" id="input-pass" maxlength="4" placeholder="••••" required="" type="password" value="9842"/>
+<button class="absolute right-3 text-secondary hover:text-on-surface focus:outline-none" onclick="togglePasswordVisibility()" type="button">
+<span class="material-symbols-outlined text-[18px]" id="eye-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Workstation Station Selector -->
+<div class="space-y-1.5">
+<label class="font-label-sm text-label-sm font-semibold text-on-surface" for="input-station">Estación de Trabajo Asignada</label>
+<div class="relative flex items-center">
+<span class="absolute left-3 material-symbols-outlined text-secondary text-[20px] pointer-events-none">desktop_windows</span>
+<select class="w-full pl-10 pr-8 py-2.5 rounded-lg bg-surface-container-low text-on-surface font-label-sm outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer font-medium" id="input-station">
+<option value="garita-principal">Garita Principal · POS #01 (Serrano 447)</option>
+<option value="admin-remota">Administración Remota · Inmobiliaria Cordano</option>
+<option value="garita-reserva">Terminal Contingencia #02 (Localhost)</option>
+</select>
+<span class="absolute right-3 material-symbols-outlined text-secondary text-[18px] pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Submit Action Button (Burgundy Brand Accent) -->
+<button class="w-full py-3.5 px-4 rounded-full bg-primary hover:bg-primary-container text-on-primary font-headline-lg text-label-sm font-bold tracking-wide transition-all shadow-md flex items-center justify-center gap-2 group mt-2" id="btn-submit" type="submit">
+<span id="btn-text">Ingresar a Garita POS [Enter]</span>
+<span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</form>
+<!-- Separation of Duties Protocol Note -->
+<div class="pt-2">
+<div class="flex items-start gap-2 text-secondary">
+<span class="material-symbols-outlined text-[16px] text-tertiary shrink-0 mt-0.5">shield</span>
+<p class="font-label-sm text-label-sm text-secondary leading-normal">
+<strong class="text-on-surface-variant font-semibold">Segregación de Funciones:</strong> Por protocolo antifraude de Cordano Ltda., las cuentas gerenciales tienen inhabilitada la apertura de cajón físico directo en garita.
+                </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Core Operational Capabilities (Bento Grid) -->
+<div class="w-full bg-surface-container-low py-16">
+<div class="max-w-content-max-width mx-auto px-6 space-y-10">
+<!-- Section Title Area -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-1">
+<span class="font-label-sm text-label-sm uppercase tracking-widest text-primary font-bold">Arquitectura Técnica</span>
+<h2 class="font-headline-lg text-headline-lg font-bold text-on-surface">Capacidades Esenciales de Serrano 447</h2>
+</div>
+<p class="font-label-sm text-label-sm text-secondary max-w-sm">
+          Protocolos diseñados para el flujo continuo del centro cívico y comercial de Iquique, protegiendo ingresos e inmutabilidad.
+        </p>
+</div>
+<!-- Bento Mosaic (4 Columns / Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Card 1: Fast Check-in/out -->
+<div class="p-6 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+<div class="space-y-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[26px]">flash_on</span>
+</div>
+<div class="space-y-1.5">
+<h3 class="font-headline-lg text-body-md font-bold text-on-surface">Check-in &amp; Check-out Rápido</h3>
+<p class="font-label-sm text-label-sm text-secondary leading-relaxed">
+                Ingreso de patente nacional o Mercosur con emisión instantánea en papel térmico de 80mm con dualidad QR dinámico y Code 128 redundante.
+              </p>
+</div>
+</div>
+<div class="pt-4 border-t border-surface-container-high flex items-center justify-between text-secondary font-mono text-label-sm">
+<span>Latencia Ticket</span>
+<span class="font-bold text-on-surface">1.2 seg</span>
+</div>
+</div>
+<!-- Card 2: 30-Space Live Matrix -->
+<div class="p-6 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+<div class="space-y-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[26px]">grid_view</span>
+</div>
+<div class="space-y-1.5">
+<h3 class="font-headline-lg text-body-md font-bold text-on-surface">Matriz 30 Plazas en Vivo</h3>
+<p class="font-label-sm text-label-sm text-secondary leading-relaxed">
+                Supervisión espacial inmediata de sectores A y B. Clasificación de estadías por fracción de hora, tarifa noche extendida y convenios comerciales.
+              </p>
+</div>
+</div>
+<div class="pt-4 border-t border-surface-container-high flex items-center justify-between text-secondary font-mono text-label-sm">
+<span>Sectores</span>
+<span class="font-bold text-on-surface">A (16) · B (14)</span>
+</div>
+</div>
+<!-- Card 3: Blind Box Auditing -->
+<div class="p-6 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+<div class="space-y-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[26px]">lock_clock</span>
+</div>
+<div class="space-y-1.5">
+<h3 class="font-headline-lg text-body-md font-bold text-on-surface">Arqueo de Caja Ciega</h3>
+<p class="font-label-sm text-label-sm text-secondary leading-relaxed">
+                Declaración física obligatoria sin revelación previa del total recaudado por el sistema. Emisión de Reporte Z con sello criptográfico inmutable.
+              </p>
+</div>
+</div>
+<div class="pt-4 border-t border-surface-container-high flex items-center justify-between text-secondary font-mono text-label-sm">
+<span>Firma Auditora</span>
+<span class="font-bold text-primary">SHA-256</span>
+</div>
+</div>
+<!-- Card 4: Resilient Offline Mode -->
+<div class="p-6 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between space-y-6 hover:shadow-md transition-shadow">
+<div class="space-y-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[26px]">wifi_off</span>
+</div>
+<div class="space-y-1.5">
+<h3 class="font-headline-lg text-body-md font-bold text-on-surface">Modo Resiliente Offline</h3>
+<p class="font-label-sm text-label-sm text-secondary leading-relaxed">
+                Base de datos SQLite local en garita. Si se interrumpe la fibra óptica, la emisión continúa sin pérdidas y replica al reanudar la conexión.
+              </p>
+</div>
+</div>
+<div class="pt-4 border-t border-surface-container-high flex items-center justify-between text-secondary font-mono text-label-sm">
+<span>Base Local</span>
+<span class="font-bold text-[#1b873f]">SQLite Sync</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Operational Overview & Quick Support Block -->
+<div class="w-full bg-surface py-16">
+<div class="max-w-content-max-width mx-auto px-6">
+<div class="p-8 sm:p-10 rounded-xl bg-surface-container-lowest shadow-sm flex flex-col lg:flex-row items-center justify-between gap-8">
+<!-- Left: Physical Location & Administrative Notes -->
+<div class="space-y-3 max-w-xl text-center lg:text-left">
+<div class="inline-flex items-center gap-2 text-primary font-label-sm text-label-sm font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span>Estacionamiento Serrano 447</span>
+</div>
+<h3 class="font-headline-lg text-headline-lg font-bold text-on-surface">
+            Soporte de Garita &amp; Convenios Comerciales
+          </h3>
+<p class="font-label-sm text-body-md text-secondary leading-relaxed">
+            Atención preferencial a oficinas corporativas, consultas médicas y entidades del Casco Histórico de Iquique. Para activación de pases mensuales o asistencia técnica de garita POS, comuníquese con el centro de control.
+          </p>
+<div class="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2 font-mono text-label-sm text-on-surface-variant">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">call</span>
+              +56 57 241 8900
+            </span>
+<span>·</span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">mail</span>
+              contacto@cordano.cl
+            </span>
+<span>·</span>
+<span class="text-secondary">Casco Histórico, Iquique</span>
+</div>
+</div>
+<!-- Right: Action Buttons -->
+<div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto shrink-0">
+<a class="w-full sm:w-auto px-6 py-3 rounded-full bg-surface-container-high hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-all text-center flex items-center justify-center gap-2" href="#">
+<span class="material-symbols-outlined text-[18px]">description</span>
+<span>Manual Operativo Garita</span>
+</a>
+<a class="w-full sm:w-auto px-6 py-3 rounded-full bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold transition-all text-center flex items-center justify-center gap-2 shadow-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+<span>Contactar Administración</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function switchProfile(profile) {
+    const tabOp = document.getElementById('tab-operator');
+    const tabAdmin = document.getElementById('tab-admin');
+    const alertOp = document.getElementById('operator-alert');
+    const alertAdmin = document.getElementById('admin-alert');
+    const labelUser = document.getElementById('label-user');
+    const inputUser = document.getElementById('input-user');
+    const labelPass = document.getElementById('label-pass');
+    const inputPass = document.getElementById('input-pass');
+    const btnText = document.getElementById('btn-text');
+    const stationSelect = document.getElementById('input-station');
+
+    if (profile === 'admin') {
+      // Toggle Tabs
+      tabOp.className = 'py-2 rounded-md text-secondary hover:text-on-surface transition-all flex items-center justify-center gap-1.5';
+      tabAdmin.className = 'py-2 rounded-md bg-surface-container-lowest text-on-surface shadow-sm transition-all flex items-center justify-center gap-1.5 font-bold';
+      
+      // Toggle Alerts
+      alertOp.classList.add('hidden');
+      alertAdmin.classList.remove('hidden');
+
+      // Update Form Labels & Defaults
+      labelUser.innerText = 'Correo Administrativo / Auditor';
+      inputUser.placeholder = 'admin@cordano.cl';
+      inputUser.value = 'admin@cordano.cl';
+      
+      labelPass.innerText = 'Contraseña Maestra';
+      inputPass.placeholder = '••••••••';
+      inputPass.maxLength = 32;
+      inputPass.value = 'SecurityCordano2025*';
+
+      stationSelect.value = 'admin-remota';
+      btnText.innerText = 'Iniciar Sesión Administrativa';
+    } else {
+      // Toggle Tabs
+      tabAdmin.className = 'py-2 rounded-md text-secondary hover:text-on-surface transition-all flex items-center justify-center gap-1.5';
+      tabOp.className = 'py-2 rounded-md bg-surface-container-lowest text-on-surface shadow-sm transition-all flex items-center justify-center gap-1.5 font-bold';
+      
+      // Toggle Alerts
+      alertAdmin.classList.add('hidden');
+      alertOp.classList.remove('hidden');
+
+      // Update Form Labels & Defaults
+      labelUser.innerText = 'Identificador de Operador';
+      inputUser.placeholder = 'Ej. OP-7421';
+      inputUser.value = 'OP-7421';
+      
+      labelPass.innerText = 'PIN de Acceso (4 dígitos)';
+      inputPass.placeholder = '••••';
+      inputPass.maxLength = 4;
+      inputPass.value = '9842';
+
+      stationSelect.value = 'garita-principal';
+      btnText.innerText = 'Ingresar a Garita POS [Enter]';
+    }
+  }
+
+  function togglePasswordVisibility() {
+    const input = document.getElementById('input-pass');
+    const icon = document.getElementById('eye-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.innerText = 'visibility_off';
+    } else {
+      input.type = 'password';
+      icon.innerText = 'visibility';
+    }
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    const originalText = document.getElementById('btn-text').innerText;
+    document.getElementById('btn-text').innerText = 'Validando credenciales...';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+      alert('Autenticación validada exitosamente con Cloud Run. Iniciando estación...');
+      document.getElementById('btn-text').innerText = originalText;
+      btn.disabled = false;
+    }, 700);
+  }
+</script></main><footer class="w-full bg-surface-container-low py-10 shadow-[0_1px_8px_rgba(0,0,0,0.02)]"><div class="max-w-content-max-width mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6"><div class="flex flex-col items-center md:items-start gap-1"><span class="font-label-sm text-label-sm font-bold text-on-surface">Cordano Inversiones Inmobiliarias Ltda.</span><span class="font-label-sm text-label-sm text-secondary">Serrano 447, Casco Histórico · Iquique, Región de Tarapacá, Chile</span></div><div class="flex items-center gap-6 font-label-sm text-label-sm text-secondary"><a class="hover:text-on-surface transition-colors" data-path="terminos-del-servicio" href="#">Términos y Condiciones</a><a class="hover:text-on-surface transition-colors" data-path="privacidad" href="#">Política de Privacidad</a><a class="hover:text-on-surface transition-colors" data-path="contacto-administracion" href="#">Administración</a></div><div class="font-label-sm text-label-sm text-outline">© 2025 Cordano Inversiones Inmobiliarias Ltda.</div></div></footer></body></html>

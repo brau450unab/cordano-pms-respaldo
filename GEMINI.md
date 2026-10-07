@@ -4,13 +4,18 @@ Este archivo establece las directrices permanentes para el desarrollo del softwa
 
 ---
 
-## 1. Entorno de Ejecución e Infraestructura Cloud Run
+## 1. Entorno de Ejecución, Jerarquía Mayor e Infraestructura Cloud Run
 
+- **Proyecto Jerarquía Mayor**: `CORDANO-PMS-2026`
 - **Proyecto GCP**: `gen-lang-client-0862587160` (N° `349577440002`) | Región: `us-west1`
-- **Microservicio Cloud Run**: `cordano-pms-v1` en puerto 8080 (URL: `https://cordano-pms-v1-349577440002.us-west1.run.app`)
-- **Google Stitch Project**: `projects/12916038623650348087` (*NUEVO PMS CORDANO - ParkOps Iquique*)
+- **Microservicio Cloud Run**: `cordano-pms` en puerto 8080 (URL: `https://cordano-pms-349577440002.us-west1.run.app` / Dominio: `https://cordanopms.ai.studio`)
+- **Imagen Base de Producción**: `gcr.io/gen-lang-client-0862587160/cordano-pms-2026:latest` (y `cordano-pms:ai-studio-latest`)
+- **Google Stitch Project**: `projects/10292600008632163693` (*ParkOps Parking ERP* - `https://stitch.withgoogle.com/projects/10292600008632163693`)
+- **Repositorio Oficial GitHub**: `brau450unab/cordano-pms-oficial` (Sincronizado con Antigravity, AI Studio y Stitch)
+- **Repositorio Respaldo GitHub**: `brau450unab/cordano-pms-respaldo` (Puntos de restauración y checkpoints históricos)
+- **Benchmarking UI/UX Mobbin**: Cuenta `promarketing6@gmail.com` (Patrones de diseño iOS/Web para POS, Turnos y Matriz)
 - **Instalación Física**: Serrano 447, Iquique, Chile (~700 m², 30 plazas: Sector A 01–15, Sector B 16–30 + Sobrecupo SC-01..05)
-- **Persistencia**: Monolito Modular Next.js con soporte Offline-First (IndexedDB local) y sincronización con Cloud Run.
+- **Persistencia**: Monolito Modular Next.js / Vite SPA con soporte Offline-First (IndexedDB local) y sincronización con Cloud Run y Firebase.
 
 ---
 

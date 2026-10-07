@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"outline":"#8b9292","on-error":"#690005","surface-container-low":"#1b1c1c","outline-variant":"#414849","primary-fixed-dim":"#b0cccf","inverse-on-surface":"#303031","inverse-primary":"#496366","primary":"#b0cccf","on-surface-variant":"#c1c8c8","secondary-fixed":"#dae4e5","on-primary-fixed-variant":"#324b4e","on-secondary":"#293233","primary-fixed":"#cce8eb","on-primary-fixed":"#041f22","surface-container":"#1f2020","error-container":"#93000a","surface-bright":"#393939","on-error-container":"#ffdad6","on-primary":"#1b3437","on-primary-container":"#142e30","surface":"#121414","on-secondary-container":"#b0babb","surface-tint":"#b0cccf","error":"#ffb4ab","surface-variant":"#343535","on-tertiary":"#432b1c","tertiary":"#e6bfa9","surface-container-high":"#292a2a","surface-container-lowest":"#0d0e0f","tertiary-fixed":"#ffdbc8","on-background":"#e3e2e2","on-tertiary-container":"#3b2416","on-secondary-fixed":"#141d1e","surface-container-highest":"#343535","inverse-surface":"#e3e2e2","tertiary-fixed-dim":"#e6bfa9","surface-dim":"#121414","background":"#121414","on-tertiary-fixed-variant":"#5c4130","secondary-fixed-dim":"#bec8c9","secondary-container":"#414b4c","on-secondary-fixed-variant":"#3f484a","tertiary-container":"#ac8976","on-tertiary-fixed":"#2b1609","on-surface":"#e3e2e2","secondary":"#bec8c9","primary-container":"#7b9598"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-sm":"0.5rem","space-xs":"0.25rem","gutter":"1.25rem","gutter-lg":"1.75rem","gutter-sm":"0.75rem","margin":"1.5rem","margin-lg":"3rem","margin-sm":"1rem","space-xl":"2.5rem","space-md":"1rem","space-lg":"1.5rem"},"fontFamily":{"headline-xl-mobile":["Geist"],"code-telemetry":["JetBrains Mono"],"headline-md":["Geist"],"headline-sm":["Geist"],"display-lg-mobile":["Geist"],"body-md":["Geist"],"label-lg":["JetBrains Mono"],"label-md":["JetBrains Mono"],"body-sm":["Geist"],"body-lg":["Geist"],"headline-xl":["Geist"],"display-lg":["Geist"],"label-sm":["JetBrains Mono"],"headline-lg":["Geist"]},"fontSize":{"headline-xl-mobile":["26px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"600"}],"code-telemetry":["13px",{"lineHeight":"18px","letterSpacing":"0.02em","fontWeight":"400"}],"headline-md":["22px",{"lineHeight":"30px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"500"}],"display-lg-mobile":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"20px","letterSpacing":"0em","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.04em","fontWeight":"500"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.05em","fontWeight":"500"}],"body-sm":["12px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"400"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.025em","fontWeight":"600"}],"display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.03em","fontWeight":"700"}],"label-sm":["10px",{"lineHeight":"14px","letterSpacing":"0.08em","fontWeight":"600"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"600"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest/95 backdrop-blur-xl z-50 flex flex-col justify-between py-space-md"><div class="flex flex-col gap-space-md"><div class="px-space-md flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="w-2.5 h-2.5 rounded-full bg-[#ff5f56] opacity-90 inline-block"></span><span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] opacity-90 inline-block"></span><span class="w-2.5 h-2.5 rounded-full bg-[#27c93f] opacity-90 inline-block"></span></div><span class="font-label-sm text-label-sm text-outline">SEC-B447</span></div><div class="px-space-md"><div class="font-headline-sm text-headline-sm uppercase text-on-surface tracking-tight">ParkOps</div><div class="font-label-sm text-label-sm text-outline mt-0.5">Serrano 447 Core</div></div><nav class="flex flex-col gap-space-xs px-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-lg"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-2.5 transition-all bg-primary-container text-on-primary-container font-semibold rounded-lg" data-path="live-telemetry" href="#"><span class="material-symbols-outlined text-sm">sensors</span><span class="font-label-md text-label-md">Live Telemetry</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="bay-occupancy" href="#"><span class="material-symbols-outlined text-sm">local_parking</span><span class="font-label-md text-label-md">Bay Occupancy</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="barrier-automation" href="#"><span class="material-symbols-outlined text-sm">door_front</span><span class="font-label-md text-label-md">Barrier Controls</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="audit-ledger" href="#"><span class="material-symbols-outlined text-sm">receipt_long</span><span class="font-label-md text-label-md">Audit Ledger</span></a><a class="flex items-center gap-space-sm px-space-md py-2.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="facility-hardware" href="#"><span class="material-symbols-outlined text-sm">precision_manufacturing</span><span class="font-label-md text-label-md">Hardware Node</span></a></nav></div><div class="px-space-md flex flex-col gap-space-xs"><div class="p-space-sm rounded bg-surface-container-low"><div class="flex items-center justify-between text-outline"><span class="font-label-sm text-label-sm">STATUS</span><span class="font-label-sm text-label-sm text-primary">ONLINE</span></div><div class="font-code-telemetry text-code-telemetry text-on-surface mt-1">CL-IQQ-SR447-N1</div></div><div class="font-label-sm text-label-sm text-outline truncate">Cordano Inversiones</div></div></aside><div class="pl-64"><header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.4)] z-40 flex items-center justify-between px-gutter lg:px-gutter-lg"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Cloud Run us-west1</span></div><span class="font-label-sm text-label-sm text-outline-variant">|</span><div class="flex items-center gap-space-xs"><span class="font-label-sm text-label-sm text-outline">Iquique:</span><span class="font-code-telemetry text-code-telemetry text-primary">CLT (UTC-3)</span></div></div><div class="flex items-center gap-space-md"><span class="font-label-sm text-label-sm px-2.5 py-1 rounded bg-surface-container-high text-on-surface-variant hidden sm:inline">SERRANO 447 TERMINAL</span><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWhvwccX8U8R0O4VeLkm6brp86qHX6e1B7a5LQXjwF3qrC1uwLDo396iE7UgNFHChANnyiWKtWzh_uoAkShcLMFFTLm_PXx32zMVUw2l5OwvkKWdIpszB4lyHLMesHo3nvp3bMnCPU2DkRP4G-QezgSrYsFJ6vIELY6JcfRQ_otHRRpZlhUfahecs5gMcIphe_5aJRnOfQMWByLLJ0ojCNz23_5EcGMddiexU2PmTFMWCKSr_IjHNopw"/></div></header><main class="relative pt-16 bg-background min-h-screen"><div class="flex flex-col w-full">
+<!-- Dynamic Atmospheric Background & Grid Grid Line Ambient Accent -->
+<div class="w-full px-margin sm:px-gutter lg:px-gutter-lg py-space-lg flex flex-col gap-space-xl">
+<!-- Top System Diagnostic Ribbon / Identity Sub-Bar -->
+<section class="flex flex-col md:flex-row md:items-center justify-between gap-space-md pb-space-sm border-b border-outline-variant/30">
+<div class="flex items-center gap-space-md">
+<div class="w-2.5 h-7 bg-primary rounded-xs shadow-[0_0_12px_rgba(176,204,207,0.45)]"></div>
+<div>
+<div class="flex items-center gap-space-xs text-on-surface">
+<span class="font-headline-sm text-headline-sm uppercase tracking-wider">ParkOps Serrano 447</span>
+<span class="font-label-sm text-label-sm text-primary px-2 py-0.5 rounded bg-primary-container/20">V2.0 PRO</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">Terminal Garita · Cordano Inversiones Inmobiliarias Ltda. (Iquique, Tarapacá)</p>
+</div>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm font-label-sm text-label-sm">
+<div class="flex items-center gap-1.5 px-3 py-1 rounded bg-surface-container-high text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span>SR447-POS01: ACTIVO</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded bg-surface-container-high text-outline">
+<span class="material-symbols-outlined text-xs text-primary">cloud_done</span>
+<span>us-west1 (24ms)</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1 rounded bg-surface-container-high text-on-surface">
+<span class="material-symbols-outlined text-xs text-tertiary">local_parking</span>
+<span>30 PLAZAS TOTAL (A:15 | B:15)</span>
+</div>
+</div>
+</section>
+<!-- MAIN TWO-COLUMN COCKPIT (AUTHENTICATION & REVENUE CONSOLE) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-stretch">
+<!-- LEFT COLUMN: Physical Terminal Showcase & Security Telemetry -->
+<div class="lg:col-span-6 flex flex-col justify-between gap-space-lg">
+<!-- Recinto Serrano 447 Visual Frame -->
+<div class="relative rounded-xl overflow-hidden shadow-xl bg-surface-container-lowest flex flex-col justify-between min-h-[380px] lg:min-h-[460px]">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-700" data-alt="Vista exterior en el atardecer del moderno estacionamiento Serrano 447 en Iquique con barrera automática con luces de neón cian activas, tótem de lectura y edificio corporativo iluminado" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWhvwccX8U8R0O4VeLkm6brp86qHX6e1B7a5LQXjwF3qrC1uwLDo396iE7UgNFHChANnyiWKtWzh_uoAkShcLMFFTLm_PXx32zMVUw2l5OwvkKWdIpszB4lyHLMesHo3nvp3bMnCPU2DkRP4G-QezgSrYsFJ6vIELY6JcfRQ_otHRRpZlhUfahecs5gMcIphe_5aJRnOfQMWByLLJ0ojCNz23_5EcGMddiexU2PmTFMWCKSr_IjHNopw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent"></div>
+</div>
+<!-- Top Overlay Badges -->
+<div class="relative z-10 p-space-md flex flex-wrap items-center justify-between gap-space-xs">
+<div class="flex items-center gap-2 bg-surface-container-lowest/85 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wide">ACCESO SERRANO 447 · 24/7</span>
+</div>
+<div class="flex items-center gap-1.5 bg-surface-container-high/90 backdrop-blur-md text-on-surface px-2.5 py-1 rounded text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-xs text-primary">sensor_door</span>
+<span>BARRERA VEHICULAR EN LÍNEA</span>
+</div>
+</div>
+<!-- Bottom Telemetry HUD Overlay inside Photo Card -->
+<div class="relative z-10 p-space-md flex flex-col gap-space-sm bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/90 to-transparent pt-12">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider font-semibold">ARQUITECTURA DE MISIÓN CRÍTICA</span>
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+<span class="font-label-sm text-label-sm text-outline">OFFLINE-FIRST PWA</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-semibold">
+              Sistema Integral de Control de Garita POS, Matriz de Plazas y Arqueo Ciego Inmutable
+            </h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xl">
+              Plataforma operacional para Cordano Inversiones. Diseñada para emisión dual (QR + Code 128) en 80mm, validación de patentes nacionales/extranjeras y segregación de fondos en tiempo real.
+            </p>
+<!-- Micro Quick Telemetry Bar -->
+<div class="grid grid-cols-3 gap-space-xs mt-space-xs pt-space-xs border-t border-outline-variant/30 font-label-sm text-label-sm">
+<div>
+<span class="text-outline block">ESTADO RED:</span>
+<span class="text-primary font-semibold">SINCRONIZADO</span>
+</div>
+<div>
+<span class="text-outline block">BUFFER COLA:</span>
+<span class="text-on-surface font-code-telemetry">0 PENDIENTES</span>
+</div>
+<div>
+<span class="text-outline block">FONDO APERTURA:</span>
+<span class="text-tertiary font-code-telemetry">$30.000 CLP</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Institutional Trust & Fraud Separation Callout -->
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-sm flex items-start gap-space-md">
+<div class="p-2.5 rounded-lg bg-surface-container-high text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">shield</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">SEGREGACIÓN ANTIFRAUDE ACTIVA</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Por protocolo de auditoría contable, las credenciales exclusivas de Administrador no pueden abrir turnos de caja directa. Se requiere un Operador de Turno para iniciar recaudación.
+            </p>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Tactical Keypad & Credential Login Terminal -->
+<div class="lg:col-span-6 flex flex-col justify-between p-space-lg rounded-xl bg-surface-container shadow-xl">
+<div class="flex flex-col gap-space-md">
+<!-- Terminal Header -->
+<div class="flex items-start justify-between pb-space-sm border-b border-outline-variant/30">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">TERMINAL DE ENROLAMIENTO S447</span>
+<h1 class="font-headline-md text-headline-md text-on-surface font-semibold mt-0.5">Acceso a Terminal Operativa</h1>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Autenticación rápida de operador mediante perfil y PIN de 4 dígitos</p>
+</div>
+<div class="p-2 rounded bg-surface-container-lowest text-primary">
+<span class="material-symbols-outlined text-2xl">passkey</span>
+</div>
+</div>
+<!-- Tactile Profile Role Switcher -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Rol de Terminal</label>
+<div class="grid grid-cols-2 p-1 rounded-lg bg-surface-container-lowest gap-1">
+<button class="flex items-center justify-center gap-space-xs py-2 px-3 rounded text-on-primary font-semibold bg-gradient-to-r from-primary to-primary-fixed-dim shadow-sm transition-all text-label-md font-label-md" id="role-op">
+<span class="material-symbols-outlined text-sm">badge</span>
+<span>Operador de Garita</span>
+</button>
+<button class="flex items-center justify-center gap-space-xs py-2 px-3 rounded text-outline hover:text-on-surface transition-all text-label-md font-label-md" id="role-admin">
+<span class="material-symbols-outlined text-sm">admin_panel_settings</span>
+<span>Administrador</span>
+</button>
+</div>
+</div>
+<!-- Operator Identification & Station Choice -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-outline uppercase tracking-wider flex items-center justify-between">
+<span>Operador Activo</span>
+<span class="text-primary font-code-telemetry text-label-sm">OP-7421</span>
+</label>
+<div class="flex items-center gap-2 px-3 py-2.5 rounded bg-surface-container-lowest text-on-surface shadow-inner">
+<span class="material-symbols-outlined text-outline text-lg">person</span>
+<select class="bg-transparent border-0 text-on-surface font-body-md text-body-md w-full focus:outline-none cursor-pointer" id="operator-select">
+<option class="bg-surface-container-lowest text-on-surface" value="OP-7421">OP-7421 - Braulio Abarca</option>
+<option class="bg-surface-container-lowest text-on-surface" value="OP-8812">OP-8812 - Camila Fuentes</option>
+<option class="bg-surface-container-lowest text-on-surface" value="OP-9043">OP-9043 - Rodrigo Silva</option>
+<option class="bg-surface-container-lowest text-on-surface" value="OP-SUP01">ADM-004 - Inés Cordano</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-outline uppercase tracking-wider flex items-center justify-between">
+<span>Estación Garita</span>
+<span class="text-secondary font-code-telemetry text-label-sm">IP: 192.168.1.101</span>
+</label>
+<div class="flex items-center gap-2 px-3 py-2.5 rounded bg-surface-container-lowest text-on-surface shadow-inner">
+<span class="material-symbols-outlined text-outline text-lg">desktop_windows</span>
+<select class="bg-transparent border-0 text-on-surface font-body-md text-body-md w-full focus:outline-none cursor-pointer">
+<option class="bg-surface-container-lowest text-on-surface">Garita Principal #01 (Serrano)</option>
+<option class="bg-surface-container-lowest text-on-surface">Terminal Auxiliar Móvil #02</option>
+</select>
+</div>
+</div>
+</div>
+<!-- 4-Digit Security PIN Section with On-Screen Numpad -->
+<div class="flex flex-col gap-space-sm p-space-md rounded-xl bg-surface-container-lowest shadow-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">PIN de Seguridad (4 Dígitos)</span>
+<span class="font-code-telemetry text-code-telemetry text-primary" id="pin-feedback">INGRESE 4 CIFRAS</span>
+</div>
+<!-- Visual PIN Masked Nodes -->
+<div class="flex items-center justify-center gap-space-md py-space-xs">
+<div class="w-4 h-4 rounded-full bg-surface-container-highest transition-all duration-200" id="pin-node-1"></div>
+<div class="w-4 h-4 rounded-full bg-surface-container-highest transition-all duration-200" id="pin-node-2"></div>
+<div class="w-4 h-4 rounded-full bg-surface-container-highest transition-all duration-200" id="pin-node-3"></div>
+<div class="w-4 h-4 rounded-full bg-surface-container-highest transition-all duration-200" id="pin-node-4"></div>
+</div>
+<!-- Tactical On-Screen Numpad -->
+<div class="grid grid-cols-3 gap-1.5 max-w-xs mx-auto w-full pt-1">
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">1</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">2</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">3</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">4</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">5</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">6</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">7</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">8</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">9</button>
+<button class="h-11 rounded bg-surface-container-high hover:bg-surface-bright text-outline hover:text-error transition-all active:scale-95 flex items-center justify-center font-label-md text-label-md" id="numpad-clear" type="button">CLR</button>
+<button class="numpad-btn h-11 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-headline-sm text-headline-sm transition-all active:scale-95 flex items-center justify-center font-code-telemetry" type="button">0</button>
+<button class="h-11 rounded bg-surface-container-high hover:bg-surface-bright text-outline hover:text-on-surface transition-all active:scale-95 flex items-center justify-center" id="numpad-backspace" type="button">
+<span class="material-symbols-outlined text-base">backspace</span>
+</button>
+</div>
+</div>
+<!-- Shift Cash Float Notice -->
+<div class="flex items-center gap-space-sm p-3 rounded-lg bg-surface-container-low text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-lg">info</span>
+<div class="font-body-sm text-body-sm leading-snug">
+<span class="text-on-surface font-semibold">Aviso de Integridad:</span> El inicio de turno en garita requiere registrar el fondo inicial de sencillo para dar vuelto (<strong class="text-primary font-code-telemetry">$30.000 CLP</strong>).
+            </div>
+</div>
+</div>
+<!-- Primary Action Trigger & Footnote -->
+<div class="flex flex-col gap-space-xs mt-space-md">
+<button class="w-full h-13 py-3 px-6 rounded-lg bg-gradient-to-r from-primary via-primary-fixed to-primary-fixed-dim hover:opacity-95 text-on-primary font-semibold font-label-lg text-label-lg uppercase tracking-wider flex items-center justify-center gap-space-sm shadow-[0_4px_24px_rgba(176,204,207,0.3)] transition-all active:scale-[0.99] cursor-pointer" id="unlock-btn">
+<span class="material-symbols-outlined text-lg">lock_open</span>
+<span>Desbloquear Terminal e Iniciar Turno</span>
+<span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+<div class="flex items-center justify-between text-outline font-label-sm text-label-sm px-1 pt-1">
+<span>Serrano 447 Core v2.0</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">verified</span>
+<span>SHA-256 Ledger Lock</span>
+</span>
+</div>
+</div>
+</div>
+</div>
+<!-- LOWER SECTION: OPERATIONAL MODULES & CAPABILITIES -->
+<section class="flex flex-col gap-space-md pt-space-md border-t border-outline-variant/30">
+<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-xs">
+<div>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold">INFRAESTRUCTURA Y SERVICIOS</span>
+<h2 class="font-headline-md text-headline-md text-on-surface font-semibold">Módulos Operativos y Capacidades de Serrano 447</h2>
+</div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-outline">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Arquitectura unificada Cloud Run & Edge POS</span>
+</div>
+</div>
+<!-- Bento Cards with Real Photographic Integration -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Module 1: POS Cockpit & Thermal Printing -->
+<div class="rounded-xl overflow-hidden bg-surface-container shadow-md flex flex-col group hover:shadow-xl transition-all">
+<div class="relative h-44 overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Cajera operadora de estacionamiento imprimiendo ticket con código QR en impresora térmica de 80mm en mostrador de garita con pantallas de sistema y lector de código de barras" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIoSUHWe2TnXIgPe5k9gHJ5QogXKVx3wa1jYeF94_cs8UvijRCDrUmDXC-PvkaQZC-XX8_fRyPs5UIY42BfysGk1IbBvu3djXllUT8hlSgEnZVsPLljfQkCM18_xapA3LT5Yv9CjJY6LzHQbN7sXar7T_4EKdtu8LAOQt1OAtIeovWKe0TsYoSSMyn6ey7tWrD-Gj9N55pefEgo4l6OKr2tru-eAYCzsyRLzpjs4E0dVQpbNVXXCu9Ig"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent"></div>
+<div class="absolute top-3 left-3 bg-surface-container-lowest/85 backdrop-blur-md px-2.5 py-1 rounded text-primary font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="material-symbols-outlined text-xs">receipt_long</span>
+<span>80MM THERMAL + QR</span>
+</div>
+<div class="absolute bottom-2 right-3 font-code-telemetry text-label-sm text-on-surface bg-surface-container-lowest/80 px-2 py-0.5 rounded">
+              < 15s CHECK-IN
+            </div>
+</div>
+<div class="p-space-md flex flex-col justify-between flex-1 gap-space-sm">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Cockpit POS & Impresión Térmica</h3>
+<span class="font-label-sm text-label-sm text-tertiary">MÓDULO 01</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1.5">
+                Check-in veloz en menos de 15 segundos. Emisión dual de ticket 80mm con código QR y Code 128 redundante, validación óptica Honeywell y regla de 10 min de gracia.
+              </p>
+</div>
+<div class="pt-space-xs border-t border-outline-variant/30 flex items-center justify-between text-outline font-label-sm text-label-sm">
+<span>Soporte Patentes Mercosur/CL</span>
+<span class="text-primary font-semibold">TAR-MINUTO-AUTO</span>
+</div>
+</div>
+</div>
+<!-- Module 2: LPR & Barrier Automation -->
+<div class="rounded-xl overflow-hidden bg-surface-container shadow-md flex flex-col group hover:shadow-xl transition-all">
+<div class="relative h-44 overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Centro de control de monitoreo con múltiples pantallas que muestran transmisiones de video en vivo de estacionamiento y reconocimiento óptico de placas vehiculares con recuadros verdes de detección" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDageBmElFm5zKIPFiLsOrzdQKgPVHKkBcT1ZU14RZYmoyxWqUTt4JggLmC8ePoD_6PSWS_ejOp5KHTvJh_kfyp09U7mBKl2ivioV7aIFNiA-U117agt8zBcGdmbLUgNcu-ezolLlnx3m94HregD4EMDCHZljRgDn3G3U44niZtoIfx6X3ZnRMQSHDnUdMzrLOFvynxLBu10wOyRnp1nR3XN6tx7SfpqOF1tWN13vphkUs9dEBdxzFDWA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent"></div>
+<div class="absolute top-3 left-3 bg-surface-container-lowest/85 backdrop-blur-md px-2.5 py-1 rounded text-primary font-label-sm text-label-sm flex items-center gap-1.5">
+<span class="material-symbols-outlined text-xs">videocam</span>
+<span>LPR + CCTV TELEMETRY</span>
+</div>
+<div class="absolute bottom-2 right-3 font-code-telemetry text-label-sm text-on-surface bg-surface-container-lowest/80 px-2 py-0.5 rounded">
+              30 PLAZAS VISIBLES
+            </div>
+</div>
+<div class="p-space-md flex flex-col justify-between flex-1 gap-space-sm">
+<div>
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Monitoreo LPR & Control de Recinto</h3>
+<span class="font-label-sm text-label-sm text-tertiary">MÓDULO 02</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1.5">
+                Reconocimiento de patentes en tiempo real, supervisión de las 30 plazas divididas en Sectores A y B, y automatización de relé de barreras para entrada de residentes y autorizados.
+              </p>
+</div>
+<div class="pt-space-xs border-t border-outline-variant/30 flex items-center justify-between text-outline font-label-sm text-label-sm">
+<span>Sectores A (1-15) y B (16-30)</span>
+<span class="text-primary font-semibold">RELÉ AUTOMÁTICO</span>
+</div>
+</div>
+</div>
+<!-- Module 3: Blind Cash Shift Closing & Resilience -->
+<div class="rounded-xl overflow-hidden bg-surface-container shadow-md flex flex-col justify-between p-space-md hover:shadow-xl transition-all">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="p-2.5 rounded-lg bg-surface-container-lowest text-tertiary inline-flex">
+<span class="material-symbols-outlined text-2xl">point_of_sale</span>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary">MÓDULO 03</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Arqueo de Caja Ciega & Resiliencia</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1.5">
+                Declaración física de efectivo sin visualización previa, sellado criptográfico SHA-256 de Reportes Z y operación offline continua con IndexedDB local.
+              </p>
+</div>
+<!-- Technical Spec List -->
+<div class="flex flex-col gap-2 p-3 rounded-lg bg-surface-container-lowest font-code-telemetry text-code-telemetry">
+<div class="flex justify-between items-center text-outline">
+<span>DENOMINACIONES:</span>
+<span class="text-on-surface">$20K, $10K, $5K, $2K, $1K</span>
+</div>
+<div class="flex justify-between items-center text-outline">
+<span>CONCILIACIÓN:</span>
+<span class="text-primary">PERFECT_MATCH AUDIT</span>
+</div>
+<div class="flex justify-between items-center text-outline">
+<span>SEGREGACIÓN:</span>
+<span class="text-tertiary">TURNO NOCHE / CONVENIO</span>
+</div>
+</div>
+</div>
+<div class="pt-space-xs border-t border-outline-variant/30 flex items-center justify-between text-outline font-label-sm text-label-sm mt-space-sm">
+<span>Blindaje Legal Preexistente</span>
+<span class="text-primary font-semibold">SQLite / IndexedDB</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Footer Meta Credentials -->
+<footer class="flex flex-col sm:flex-row items-center justify-between gap-space-sm py-space-sm text-outline font-label-sm text-label-sm border-t border-outline-variant/20">
+<div class="flex items-center gap-space-sm">
+<span>CORDANO INVERSIONES INMOBILIARIAS LTDA.</span>
+<span>•</span>
+<span>Serrano 447, Iquique, Región de Tarapacá</span>
+</div>
+<div class="flex items-center gap-space-md">
+<span>Cloud Run: cordano-pms-v1</span>
+<span>•</span>
+<span class="text-primary">UTC-3 Chile Continental</span>
+</div>
+</footer>
+</div>
+</div>
+<script>
+  (function() {
+    let pinInput = '';
+    const maxDigits = 4;
+    const pinNodes = [
+      document.getElementById('pin-node-1'),
+      document.getElementById('pin-node-2'),
+      document.getElementById('pin-node-3'),
+      document.getElementById('pin-node-4')
+    ];
+    const feedbackText = document.getElementById('pin-feedback');
+    const unlockBtn = document.getElementById('unlock-btn');
+    const roleOp = document.getElementById('role-op');
+    const roleAdmin = document.getElementById('role-admin');
+    const operatorSelect = document.getElementById('operator-select');
+
+    function updatePinDisplay() {
+      pinNodes.forEach((node, index) => {
+        if (index < pinInput.length) {
+          node.classList.remove('bg-surface-container-highest');
+          node.classList.add('bg-primary', 'shadow-[0_0_8px_rgba(176,204,207,0.7)]');
+        } else {
+          node.classList.remove('bg-primary', 'shadow-[0_0_8px_rgba(176,204,207,0.7)]');
+          node.classList.add('bg-surface-container-highest');
+        }
+      });
+
+      if (pinInput.length === 4) {
+        feedbackText.textContent = 'PIN COMPLETO · LISTO';
+        feedbackText.className = 'font-code-telemetry text-code-telemetry text-primary font-bold';
+      } else {
+        feedbackText.textContent = `${pinInput.length} / 4 DÍGITOS`;
+        feedbackText.className = 'font-code-telemetry text-code-telemetry text-outline';
+      }
+    }
+
+    // Role switcher logic
+    roleOp.addEventListener('click', () => {
+      roleOp.className = 'flex items-center justify-center gap-space-xs py-2 px-3 rounded text-on-primary font-semibold bg-gradient-to-r from-primary to-primary-fixed-dim shadow-sm transition-all text-label-md font-label-md';
+      roleAdmin.className = 'flex items-center justify-center gap-space-xs py-2 px-3 rounded text-outline hover:text-on-surface transition-all text-label-md font-label-md';
+      operatorSelect.value = 'OP-7421';
+    });
+
+    roleAdmin.addEventListener('click', () => {
+      roleAdmin.className = 'flex items-center justify-center gap-space-xs py-2 px-3 rounded text-on-primary font-semibold bg-gradient-to-r from-tertiary to-tertiary-fixed-dim shadow-sm transition-all text-label-md font-label-md';
+      roleOp.className = 'flex items-center justify-center gap-space-xs py-2 px-3 rounded text-outline hover:text-on-surface transition-all text-label-md font-label-md';
+      operatorSelect.value = 'OP-SUP01';
+    });
+
+    // Numpad key handlers
+    document.querySelectorAll('.numpad-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (pinInput.length < maxDigits) {
+          pinInput += btn.textContent.trim();
+          updatePinDisplay();
+        }
+      });
+    });
+
+    document.getElementById('numpad-clear').addEventListener('click', () => {
+      pinInput = '';
+      updatePinDisplay();
+    });
+
+    document.getElementById('numpad-backspace').addEventListener('click', () => {
+      pinInput = pinInput.slice(0, -1);
+      updatePinDisplay();
+    });
+
+    // Keyboard physical support
+    window.addEventListener('keydown', (e) => {
+      if (/^[0-9]$/.test(e.key)) {
+        if (pinInput.length < maxDigits) {
+          pinInput += e.key;
+          updatePinDisplay();
+        }
+      } else if (e.key === 'Backspace') {
+        pinInput = pinInput.slice(0, -1);
+        updatePinDisplay();
+      } else if (e.key === 'Escape') {
+        pinInput = '';
+        updatePinDisplay();
+      } else if (e.key === 'Enter') {
+        triggerLogin();
+      }
+    });
+
+    function triggerLogin() {
+      if (pinInput.length < 4) {
+        feedbackText.textContent = 'ERROR: INGRESE 4 DÍGITOS';
+        feedbackText.className = 'font-code-telemetry text-code-telemetry text-error font-semibold';
+        return;
+      }
+      unlockBtn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">refresh</span><span>SINCRONIZANDO TURNO...</span>';
+      unlockBtn.classList.add('opacity-80', 'pointer-events-none');
+      setTimeout(() => {
+        unlockBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span><span>SESIÓN INICIADA · $30.000 FONDO OK</span>';
+        feedbackText.textContent = 'ACCESO CONCEDIDO A GARITA';
+        feedbackText.className = 'font-code-telemetry text-code-telemetry text-primary font-bold';
+      }, 900);
+    }
+
+    unlockBtn.addEventListener('click', triggerLogin);
+  })();
+</script></main></div></body></html>

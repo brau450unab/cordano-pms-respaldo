@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>ParkOps Serrano 447 · Terminal Operativo</title><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-error-container":"#ffdad6","tertiary-fixed-dim":"#e6bfa9","background":"#121414","secondary-fixed-dim":"#bec8c9","surface-tint":"#b0cccf","on-secondary-fixed":"#141d1e","surface-dim":"#121414","primary":"#b0cccf","surface-bright":"#393939","inverse-primary":"#496366","error-container":"#93000a","on-secondary":"#293233","surface-container-highest":"#343535","inverse-surface":"#e3e2e2","secondary-container":"#414b4c","surface-variant":"#343535","on-surface":"#e3e2e2","on-tertiary":"#432b1c","tertiary-container":"#ac8976","tertiary-fixed":"#ffdbc8","secondary":"#bec8c9","on-tertiary-container":"#3b2416","on-tertiary-fixed-variant":"#5c4130","on-secondary-fixed-variant":"#3f484a","error":"#ffb4ab","on-surface-variant":"#c1c8c8","surface-container-low":"#1b1c1c","on-background":"#e3e2e2","on-primary-container":"#142e30","surface-container":"#1f2020","primary-container":"#7b9598","secondary-fixed":"#dae4e5","surface-container-lowest":"#0d0e0f","primary-fixed-dim":"#b0cccf","on-primary-fixed":"#041f22","on-error":"#690005","tertiary":"#e6bfa9","on-secondary-container":"#b0babb","on-tertiary-fixed":"#2b1609","inverse-on-surface":"#303031","primary-fixed":"#cce8eb","on-primary":"#1b3437","on-primary-fixed-variant":"#324b4e","outline-variant":"#414849","outline":"#8b9292","surface-container-high":"#292a2a","surface":"#121414"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"margin-lg":"3rem","gutter":"1.25rem","space-sm":"0.5rem","margin-sm":"1rem","space-md":"1rem","space-xl":"2.5rem","gutter-lg":"1.75rem","margin":"1.5rem","gutter-sm":"0.75rem","space-xs":"0.25rem","space-lg":"1.5rem"},"fontFamily":{"body-lg":["Geist"],"headline-xl-mobile":["Geist"],"body-md":["Geist"],"headline-sm":["Geist"],"display-lg":["Geist"],"headline-xl":["Geist"],"label-sm":["JetBrains Mono"],"display-lg-mobile":["Geist"],"code-telemetry":["JetBrains Mono"],"label-lg":["JetBrains Mono"],"label-md":["JetBrains Mono"],"headline-md":["Geist"],"headline-lg":["Geist"],"body-sm":["Geist"]},"fontSize":{"body-lg":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"400"}],"headline-xl-mobile":["26px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"20px","letterSpacing":"0em","fontWeight":"400"}],"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"500"}],"display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.03em","fontWeight":"700"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.025em","fontWeight":"600"}],"label-sm":["10px",{"lineHeight":"14px","letterSpacing":"0.08em","fontWeight":"600"}],"display-lg-mobile":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"code-telemetry":["13px",{"lineHeight":"18px","letterSpacing":"0.02em","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.04em","fontWeight":"500"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.05em","fontWeight":"500"}],"headline-md":["22px",{"lineHeight":"30px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"400"}]}}}};</script></head><body class="bg-surface text-on-surface font-body-md text-body-md selection:bg-primary-container selection:text-on-primary-container min-h-screen"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/90 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_12px_32px_-8px_rgba(0,0,0,0.65)]"><div class="h-20 w-full px-margin-lg flex items-center justify-between gap-gutter"><div class="flex items-center gap-space-lg shrink-0"><div class="flex items-center gap-space-xs"><span class="w-3 h-3 rounded-full bg-[#ff5f56] inline-block opacity-90 shadow-[0_0_6px_rgba(255,95,86,0.6)]"></span><span class="w-3 h-3 rounded-full bg-[#ffbd2e] inline-block opacity-90 shadow-[0_0_6px_rgba(255,189,46,0.6)]"></span><span class="w-3 h-3 rounded-full bg-[#27c93f] inline-block opacity-90 shadow-[0_0_6px_rgba(39,201,63,0.6)]"></span></div><div class="h-6 w-[1px] bg-outline-variant/40"></div><div class="flex flex-col"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-primary font-bold tracking-tight uppercase">PARKOPS SERRANO 447</span><span class="font-label-sm text-label-sm text-on-surface-variant/80 tracking-widest">· CASCO HISTÓRICO</span></div><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Cordano Inversiones Inmobiliarias Ltda. · Iquique, CL</span></div></div><nav class="hidden xl:flex items-center gap-space-xs h-full" data-active-classes="bg-surface-container-high text-primary font-label-md border-b-2 border-primary"><a class="h-full flex items-center px-space-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md uppercase tracking-wider" data-path="pos-terminal" href="#">Garita POS</a><a class="h-full flex items-center px-space-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md uppercase tracking-wider" data-path="matriz-30-plazas-kanban" href="#">Matriz 30 Plazas &amp; Kanban</a><a class="h-full flex items-center px-space-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md uppercase tracking-wider" data-path="servicios-especiales-noche-convenios" href="#">Servicios Especiales</a><a class="h-full flex items-center px-space-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md uppercase tracking-wider" data-path="arqueos-auditoria-z" href="#">Arqueos &amp; Auditoría Z</a><a class="h-full flex items-center px-space-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md uppercase tracking-wider" data-path="panel-ejecutivo-cctv" href="#">Panel Ejecutivo &amp; CCTV</a></nav><div class="flex items-center gap-gutter shrink-0"><div class="hidden 2xl:flex items-center gap-space-sm bg-surface-container-low px-space-sm py-space-xs rounded border border-outline-variant/30 font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(176,204,207,0.7)]"></span><span class="text-on-surface-variant font-code-telemetry text-code-telemetry">Cloud Run us-west1</span><span class="text-primary font-bold font-code-telemetry text-code-telemetry">24ms</span><span class="text-on-surface-variant">(En Línea)</span></div><div class="hidden lg:flex flex-col text-right font-code-telemetry text-code-telemetry"><span class="font-label-sm text-label-sm text-primary uppercase font-bold">14:28:19 CLT</span><span class="text-outline text-[11px]">IQQ UTC-3</span></div><div class="h-8 w-[1px] bg-outline-variant/40 hidden lg:block"></div><div class="hidden md:flex flex-col text-right font-label-sm text-label-sm"><span class="text-on-surface font-semibold">Turno #01</span><span class="text-on-surface-variant">Braulio Abarca <span class="text-outline">(OP-7421)</span></span></div><div class="flex items-center gap-space-xs"><div class="bg-surface-container px-space-sm py-space-xs rounded border border-outline-variant/40 font-code-telemetry text-code-telemetry text-primary font-semibold hidden sm:block">Fondo: $30.000 CLP</div><button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface px-space-sm py-space-xs rounded font-label-sm text-label-sm uppercase transition-colors border border-outline-variant/40" type="button">Cerrar Turno</button><button class="bg-error-container hover:bg-error-container/80 text-on-error-container px-space-sm py-space-xs rounded font-label-sm text-label-sm uppercase transition-colors border border-error/20" type="button">Salir</button></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-20 bg-surface min-h-[calc(100vh-80px)]"><div class="flex flex-col w-full">
+<!-- BANNER TELEMÉTRICO Y PANEL DE CONTROL OPERACIONAL SERRANO 447 -->
+<section class="px-margin-lg py-space-md bg-surface-container-lowest">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+<!-- Info Contextual del Recinto -->
+<div class="flex items-center gap-space-lg">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-primary tracking-widest uppercase">TERRENO 700 m² · CASCO HISTÓRICO IQQ</span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight font-bold">MATRIZ 30 PLAZAS &amp; TABLERO KANBAN</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Topología de rodado bidireccional y clasificación de permanencia en tiempo real.</p>
+</div>
+</div>
+<!-- Métricas Clave y Switch de Modos -->
+<div class="flex flex-wrap items-center gap-space-md">
+<!-- Switch Modo Espacial vs Kanban -->
+<div class="flex items-center bg-surface-container-high p-1 rounded-lg">
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded font-label-md text-label-md text-on-primary bg-primary shadow-md transition-all" id="btn-view-matrix" onclick="switchView('matrix')" type="button">
+<span class="material-symbols-outlined text-[16px]">grid_view</span>
+<span>Matriz Topológica 700 m²</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all" id="btn-view-kanban" onclick="switchView('kanban')" type="button">
+<span class="material-symbols-outlined text-[16px]">view_kanban</span>
+<span>Tablero Kanban de Estadía</span>
+</button>
+</div>
+<!-- Quick Search Bar (Patente F1) -->
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-space-sm top-1/2 -translate-y-1/2 text-[18px] text-on-surface-variant">search</span>
+<input class="w-full pl-9 pr-8 py-space-xs bg-surface-container-high text-on-surface font-label-md text-label-md rounded focus:outline-none focus:bg-surface-container-highest uppercase placeholder:text-outline tracking-wider" id="quick-plate-input" maxlength="8" placeholder="BUSCAR PATENTE [F1]" type="text"/>
+<span class="absolute right-space-xs top-1/2 -translate-y-1/2 text-[10px] font-code-telemetry text-outline bg-surface-container-low px-1 py-0.5 rounded">↵</span>
+</div>
+</div>
+</div>
+<!-- KPI HUD TABS: 4 Tarjetas de Telemetría Operacional -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter mt-space-md">
+<!-- Tarjeta 1: Ocupación General -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col justify-between shadow-md">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm uppercase">
+<span class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[16px]">local_parking</span>
+            Ocupación Recinto
+          </span>
+<span class="font-code-telemetry text-primary font-bold">63.3%</span>
+</div>
+<div class="flex items-baseline gap-space-xs my-space-xs">
+<span class="font-display-lg text-display-lg font-bold text-on-surface tracking-tight">19</span>
+<span class="font-headline-sm text-headline-sm text-outline">/ 30 Plazas</span>
+</div>
+<!-- Progress Bar con Gradiente -->
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(176,204,207,0.8)]" style="width: 63.3%;"></div>
+</div>
+</div>
+<!-- Tarjeta 2: Rotativos Activos -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col justify-between shadow-md">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm uppercase">
+<span class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[16px]">timelapse</span>
+            Rotativos Activos
+          </span>
+<span class="font-code-telemetry text-tertiary font-bold">$30/MIN</span>
+</div>
+<div class="flex items-baseline gap-space-xs my-space-xs">
+<span class="font-display-lg text-display-lg font-bold text-on-surface tracking-tight">13</span>
+<span class="font-headline-sm text-headline-sm text-outline">Vehículos</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Promedio actual:</span>
+<span class="font-code-telemetry text-on-surface font-semibold">1h 24m</span>
+</div>
+</div>
+<!-- Tarjeta 3: Servicios Especiales -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col justify-between shadow-md">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm uppercase">
+<span class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-surface-tint text-[16px]">verified</span>
+            Especiales &amp; Noche
+          </span>
+<span class="font-code-telemetry text-primary-fixed-dim font-bold">6 PLAZAS</span>
+</div>
+<div class="flex items-baseline gap-space-xs my-space-xs">
+<span class="font-display-lg text-display-lg font-bold text-on-surface tracking-tight">06</span>
+<span class="font-headline-sm text-headline-sm text-outline">Reservas</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>4 Mensuales · 2 Noche</span>
+<span class="font-code-telemetry text-primary font-semibold">100% Validado</span>
+</div>
+</div>
+<!-- Tarjeta 4: Disponibilidad Inmediata -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col justify-between shadow-md">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm uppercase">
+<span class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[16px]">check_circle</span>
+            Libres Inmediatas
+          </span>
+<span class="font-code-telemetry text-primary font-bold">DESPEJADO</span>
+</div>
+<div class="flex items-baseline gap-space-xs my-space-xs">
+<span class="font-display-lg text-display-lg font-bold text-primary tracking-tight">11</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">Plazas Libres</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span>Sector A: <strong class="text-on-surface">6</strong></span>
+<span>Sector B: <strong class="text-on-surface">5</strong></span>
+</div>
+</div>
+</div>
+<!-- Leyenda Semántica & Filtros Rápidos -->
+<div class="flex flex-wrap items-center justify-between gap-space-md mt-space-md pt-space-xs">
+<!-- Filtros -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase mr- space-xs">Filtrar:</span>
+<button class="px-space-sm py-1 rounded bg-surface-container-high text-primary font-label-sm text-label-sm uppercase hover:bg-surface-container-highest transition-colors" type="button">Todos (30)</button>
+<button class="px-space-sm py-1 rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors" type="button">Sector A (15)</button>
+<button class="px-space-sm py-1 rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors" type="button">Sector B (15)</button>
+<button class="px-space-sm py-1 rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors" type="button">Solo Libres (11)</button>
+<button class="px-space-sm py-1 rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors" type="button">Convenios / Noche (6)</button>
+<button class="px-space-sm py-1 rounded bg-surface-container-low text-tertiary-fixed-dim font-label-sm text-label-sm uppercase hover:bg-surface-container-high transition-colors" type="button">Sobreestadía &gt;3h (2)</button>
+</div>
+<!-- Leyenda Semántica de Estados -->
+<div class="flex flex-wrap items-center gap-space-md font-label-sm text-label-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(176,204,207,0.8)]"></span>
+<span>Libre</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(230,191,169,0.8)]"></span>
+<span>Rotativo ($30/m)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-surface-tint shadow-[0_0_8px_rgba(176,204,207,0.5)]"></span>
+<span>Convenio Mensual</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container shadow-[0_0_8px_rgba(123,149,152,0.8)]"></span>
+<span>Tarifa Noche</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-error-container shadow-[0_0_8px_rgba(147,0,10,0.8)]"></span>
+<span>Alerta / Mantenimiento</span>
+</div>
+</div>
+</div>
+</section>
+<!-- CONTENIDO PRINCIPAL DINÁMICO: MATRIZ ESPACIAL TOPOLÓGICA (DEFAULT) -->
+<div class="px-margin-lg py-space-lg flex flex-col xl:flex-row gap-gutter" id="view-matrix">
+<!-- Pista del Patio Topológico Serrano 447 (700 m²) -->
+<div class="flex-1 flex flex-col gap-space-lg bg-surface-container-lowest p-space-md rounded-xl shadow-xl">
+<!-- Encabezado del Layout Arquitectónico -->
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">architecture</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface">DISTRIBUCIÓN DE PLANTA · PATIO 700 m²</span>
+</div>
+<div class="flex items-center gap-space-md font-code-telemetry text-code-telemetry text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary"></span> ACCESO: SERRANO 447</span>
+<span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-secondary"></span> GARITA AUTOMATIZADA</span>
+</div>
+</div>
+<!-- SECTOR A (15 Plazas: A-01 al A-15 - Frontal y Acceso Garita) -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between bg-surface-container-high px-space-md py-1.5 rounded">
+<div class="flex items-center gap-space-xs font-label-md text-label-md font-bold text-primary">
+<span class="material-symbols-outlined text-[18px]">near_me</span>
+<span>SECTOR A: ACCESO PRINCIPAL Y GARITA (PLAZAS A-01 A A-15)</span>
+</div>
+<span class="font-code-telemetry text-label-sm text-on-surface-variant">9 OCUPADAS / 6 LIBRES</span>
+</div>
+<!-- Grid de 15 Plazas Sector A (Responsive Grid) -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-space-sm">
+<!-- A-01 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-01', 'ABCD-12', 'Rotativo', '1h 24m', '$2.520', 'Toyota Yaris Gris', 'Carlos Silva')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">A-01</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">ABCD-12</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Toyota Yaris</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>84 min</span>
+<span class="text-tertiary font-bold">$2.520</span>
+</div>
+</div>
+<!-- A-02 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">A-02</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- A-03 (Rotativo Seleccionado por defecto para Drawer) -->
+<div class="slot-card cursor-pointer bg-surface-container-high p-space-sm rounded-lg shadow-md transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-03', 'KW-9428', 'Rotativo', '1h 15m', '$2.250', 'Toyota Rav4 Blanco', 'Juan Pérez')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">A-03</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/40 text-tertiary-fixed font-bold">ACTIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">KW-9428</div>
+<div class="font-body-sm text-body-sm text-primary truncate">Toyota Rav4</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] pt-1">
+<span class="text-on-surface-variant">75 min</span>
+<span class="text-tertiary font-bold">$2.250</span>
+</div>
+</div>
+<!-- A-04 (Convenio Notaría) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-04', 'PL-8811', 'Convenio Mensual', '04h 10m', 'T. Plana', 'Subaru Forester Azul', 'Notaría Tarapacá')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-surface-tint">A-04</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-secondary-container text-on-secondary-container font-bold">CONVENIO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">PL-8811</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Notaría Tarapacá</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>Abonado</span>
+<span class="text-surface-tint font-bold">$0 CLP</span>
+</div>
+</div>
+<!-- A-05 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">A-05</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- A-06 (Rotativo Reciente) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-06', 'CL-CW-84', 'Rotativo', '6 min', '$0', 'Nissan Navara Roja', 'Gonzalo Barra')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">A-06</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">GRACIA</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">CL-CW-84</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Nissan Navara</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>06 min</span>
+<span class="text-primary font-bold">$0 CLP</span>
+</div>
+</div>
+<!-- A-07 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-07', 'TR-5021', 'Rotativo', '48 min', '$1.440', 'Hyundai Tucson', 'Marcela Díaz')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">A-07</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">TR-5021</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Hyundai Tucson</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>48 min</span>
+<span class="text-tertiary font-bold">$1.440</span>
+</div>
+</div>
+<!-- A-08 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">A-08</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- A-09 (Convenio Aduana Iquique) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-09', 'KJ-9872', 'Convenio Mensual', '02h 45m', 'T. Plana', 'Chevrolet D-Max Blanca', 'Aduana Nacional')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-surface-tint">A-09</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-secondary-container text-on-secondary-container font-bold">CONVENIO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">KJ-9872</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Aduana de Iquique</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>Convenio #04</span>
+<span class="text-surface-tint font-bold">$0 CLP</span>
+</div>
+</div>
+<!-- A-10 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">A-10</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- A-11 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-11', 'BB-FF-19', 'Rotativo', '32 min', '$960', 'Kia Sportage Negra', 'Rodrigo Valenzuela')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">A-11</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">BB-FF-19</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Kia Sportage</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>32 min</span>
+<span class="text-tertiary font-bold">$960</span>
+</div>
+</div>
+<!-- A-12 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">A-12</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- A-13 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-13', 'LL-JJ-09', 'Rotativo', '55 min', '$1.650', 'Ford Ranger Gris', 'Alejandro Morales')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">A-13</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">LL-JJ-09</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Ford Ranger</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>55 min</span>
+<span class="text-tertiary font-bold">$1.650</span>
+</div>
+</div>
+<!-- A-14 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('A-14', 'CX-4122', 'Rotativo', '1h 50m', '$3.300', 'Mazda CX-5 Rojo', 'Felipe Soto')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">A-14</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">CX-4122</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Mazda CX-5</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>110 min</span>
+<span class="text-tertiary font-bold">$3.300</span>
+</div>
+</div>
+<!-- A-15 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">A-15</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+</div>
+</div>
+<!-- ARTERIA CENTRAL DE RODADO Y MANIOBRA (Calle Central Doble Vía con Señalética Luminiscente) -->
+<div class="relative py-space-sm px-space-md bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-between my-space-xs">
+<div class="flex items-center gap-space-md font-code-telemetry text-code-telemetry text-primary font-bold">
+<span class="material-symbols-outlined text-[18px]">east</span>
+<span class="tracking-widest uppercase text-[11px]">CALLE DE RODAJE CENTRAL · SERRANO 447 (DOBLE VÍA TÉCNICA 6.2 METROS)</span>
+</div>
+<div class="flex items-center gap-space-lg text-outline font-label-sm text-label-sm uppercase">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> SENTIDO SALIDA GARITA</span>
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> VELOCIDAD MÁX: 10 KM/H</span>
+</div>
+</div>
+<!-- SECTOR B (15 Plazas: B-16 al B-30 - Zona Posterior y Maniobra) -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between bg-surface-container-high px-space-md py-1.5 rounded">
+<div class="flex items-center gap-space-xs font-label-md text-label-md font-bold text-primary">
+<span class="material-symbols-outlined text-[18px]">sync_alt</span>
+<span>SECTOR B: ZONA POSTERIOR Y SERVICIOS ESPECIALES (PLAZAS B-16 A B-30)</span>
+</div>
+<span class="font-code-telemetry text-label-sm text-on-surface-variant">10 OCUPADAS / 5 LIBRES</span>
+</div>
+<!-- Grid de 15 Plazas Sector B -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-space-sm">
+<!-- B-16 (Convenio Banco Estado) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-16', 'BC-7721', 'Convenio Mensual', '05h 10m', 'T. Plana', 'Peugeot 3008 Negro', 'Banco Estado Iquique')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-surface-tint">B-16</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-secondary-container text-on-secondary-container font-bold">BANCA</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">BC-7721</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Banco Estado</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>Convenio #01</span>
+<span class="text-surface-tint font-bold">$0 CLP</span>
+</div>
+</div>
+<!-- B-17 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-17', 'HK-5539', 'Rotativo', '1h 10m', '$2.100', 'Hyundai Grand i10 Blanco', 'Patricia Vega')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">B-17</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">HK-5539</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Hyundai Grand i10</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>70 min</span>
+<span class="text-tertiary font-bold">$2.100</span>
+</div>
+</div>
+<!-- B-18 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">B-18</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- B-19 (Rotativo Gracia Reciente) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-19', 'JP-2290', 'Rotativo', '4 min', '$0', 'Suzuki Swift Azul', 'Ignacio Campos')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">B-19</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">GRACIA</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">JP-2290</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Suzuki Swift</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>04 min</span>
+<span class="text-primary font-bold">$0 CLP</span>
+</div>
+</div>
+<!-- B-20 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">B-20</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- B-21 (Convenio Minera) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-21', 'RT-1099', 'Convenio Mensual', '07h 20m', 'T. Plana', 'Mitsubishi L200 Roja', 'Minera Collahuasi')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-surface-tint">B-21</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-secondary-container text-on-secondary-container font-bold">CONVENIO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">RT-1099</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Minera Collahuasi</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>Convenio #02</span>
+<span class="text-surface-tint font-bold">$0 CLP</span>
+</div>
+</div>
+<!-- B-22 (Tarifa Noche / Hotel Prat) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-22', 'FL-4421', 'Tarifa Noche', '11h 40m', '$12.000', 'BMW 320i Plateado', 'Hotel Prat Residente')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary-fixed">B-22</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary-container text-on-primary-container font-bold">NOCHE</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">FL-4421</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Hotel Prat IQQ</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>Pernocta</span>
+<span class="text-primary-fixed-dim font-bold">$12.000</span>
+</div>
+</div>
+<!-- B-23 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">B-23</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- B-24 (Tarifa Noche / Residente) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-24', 'KJ-1100', 'Tarifa Noche', '09h 15m', '$12.000', 'Audi A4 Negro', 'Residente Edificio Serrano')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary-fixed">B-24</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary-container text-on-primary-container font-bold">NOCHE</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">KJ-1100</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Residente Serrano</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>Pernocta</span>
+<span class="text-primary-fixed-dim font-bold">$12.000</span>
+</div>
+</div>
+<!-- B-25 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">B-25</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+<!-- B-26 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-26', 'MN-6641', 'Rotativo', '1h 05m', '$1.950', 'Jeep Compass Verde', 'Mauricio Lagos')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">B-26</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">MN-6641</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Jeep Compass</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>65 min</span>
+<span class="text-tertiary font-bold">$1.950</span>
+</div>
+</div>
+<!-- B-27 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-27', 'WX-9011', 'Rotativo', '2h 15m', '$4.050', 'Chevrolet Tracker Gris', 'Loreto Núñez')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">B-27</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">WX-9011</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Chevrolet Tracker</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>135 min</span>
+<span class="text-tertiary font-bold">$4.050</span>
+</div>
+</div>
+<!-- B-28 (SOBREESTADÍA CRÍTICA: 4h 12m) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px] shadow-[0_0_12px_rgba(147,0,10,0.5)]" onclick="selectSlot('B-28', 'GH-3388', 'Alerta Sobreestadía', '04h 12m', '$7.560', 'Ford Territory Blanca', 'Conductor No Contactable')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-error">B-28</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-error-container text-on-error-container font-bold animate-pulse">ALERTA &gt;4H</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-error tracking-wider font-code-telemetry">GH-3388</div>
+<div class="font-body-sm text-body-sm text-error-container truncate font-semibold">Exceso de Gracia</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] pt-1 text-error">
+<span class="font-bold">252 min</span>
+<span class="font-bold">$7.560</span>
+</div>
+</div>
+<!-- B-29 (Rotativo) -->
+<div class="slot-card group cursor-pointer bg-surface-container p-space-sm rounded-lg hover:bg-surface-container-highest transition-all relative flex flex-col justify-between min-h-[110px]" onclick="selectSlot('B-29', 'VB-2200', 'Rotativo', '1h 40m', '$3.000', 'Honda HR-V Gris', 'Raúl Castro')">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-on-surface">B-29</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-tertiary-container/30 text-tertiary-fixed font-bold">ROTATIVO</span>
+</div>
+<div class="my-1">
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-wider font-code-telemetry">VB-2200</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant truncate">Honda HR-V</div>
+</div>
+<div class="flex items-center justify-between font-code-telemetry text-[11px] text-outline pt-1">
+<span>100 min</span>
+<span class="text-tertiary font-bold">$3.000</span>
+</div>
+</div>
+<!-- B-30 (Libre) -->
+<div class="group cursor-pointer bg-surface-container-low p-space-sm rounded-lg hover:bg-surface-container transition-all relative flex flex-col justify-between min-h-[110px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md font-bold text-primary">B-30</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-code-telemetry bg-primary/20 text-primary font-bold">LIBRE</span>
+</div>
+<div class="my-auto flex flex-col items-center justify-center py-1">
+<span class="material-symbols-outlined text-primary text-[24px] opacity-75">directions_car</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold mt-1">+ Asignar (F2)</span>
+</div>
+<div class="font-code-telemetry text-[10px] text-outline text-center">Disponible</div>
+</div>
+</div>
+</div>
+</div>
+<!-- PANEL INSPECTOR LATERAL: DETALLE TÉCNICO DEL SLOT SELECCIONADO (DRAWER/INSPECTOR) -->
+<aside class="w-full xl:w-[380px] bg-surface-container-low p-space-lg rounded-xl flex flex-col justify-between shadow-xl shrink-0" id="slot-inspector">
+<div class="flex flex-col gap-space-md">
+<!-- Encabezado de la Ficha Técnica del Slot -->
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_rgba(176,204,207,0.8)]"></span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold">INSPECTOR DE BAHÍA</span>
+</div>
+<span class="font-display-lg text-headline-xl font-bold text-primary font-code-telemetry" id="inspect-slot-id">A-03</span>
+</div>
+<!-- Banner de Patente y Categoría -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-outline uppercase">Patente Vehicular</span>
+<span class="px-2 py-0.5 rounded font-code-telemetry text-[11px] bg-tertiary-container/30 text-tertiary-fixed font-bold" id="inspect-badge">ROTATIVO ACTIVO</span>
+</div>
+<div class="font-display-lg text-display-lg font-bold text-on-surface tracking-wider font-code-telemetry text-center py-1" id="inspect-plate">
+            KW-9428
+          </div>
+<div class="font-body-md text-body-md text-center text-on-surface-variant font-semibold" id="inspect-vehicle-desc">
+            Toyota Rav4 2.5 4x4 · Blanco Glaciar
+          </div>
+</div>
+<!-- Métricas Económicas y Tiempo de Estadía -->
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="bg-surface-container p-space-sm rounded">
+<span class="font-label-sm text-label-sm text-outline uppercase block">Tiempo Activo</span>
+<span class="font-headline-md text-headline-md font-bold text-primary font-code-telemetry" id="inspect-time">1h 15m</span>
+<span class="text-[11px] font-code-telemetry text-on-surface-variant block">Ingreso: 13:13 CLT</span>
+</div>
+<div class="bg-surface-container p-space-sm rounded">
+<span class="font-label-sm text-label-sm text-outline uppercase block">Monto a Cobrar</span>
+<span class="font-headline-md text-headline-md font-bold text-tertiary font-code-telemetry" id="inspect-cost">$2.250</span>
+<span class="text-[11px] font-code-telemetry text-on-surface-variant block">Tarifa: $30/min</span>
+</div>
+</div>
+<!-- Datos del Conductor / Entidad -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Titular / Conductor</span>
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md text-on-surface font-semibold" id="inspect-driver">Juan Pérez Morales</span>
+<span class="font-code-telemetry text-code-telemetry text-primary">+569 8765 4321</span>
+</div>
+<div class="flex items-center gap-space-xs text-[11px] text-outline pt-1">
+<span class="material-symbols-outlined text-[14px]">shield</span>
+<span>RUT 15.342.901-2 · Validación Biométrica Garita</span>
+</div>
+</div>
+<!-- Registro de Blindaje de Daños e Inspección de Entrada -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-tertiary uppercase font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">report_problem</span>
+              Inspección Preexistente (CCTV)
+            </span>
+<span class="font-code-telemetry text-[10px] text-outline">CAM-02 ENTRADA</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant bg-surface-container-lowest p-2 rounded">
+            "Leve abolladura y rayón superficial preexistente en puerta copiloto detectado al cruce del sensor óptico de garita."
+          </p>
+<div class="flex items-center justify-between text-[11px] font-label-sm text-primary">
+<span>Blindaje Jurídico: ACTIVO</span>
+<span>Ticket #98421</span>
+</div>
+</div>
+</div>
+<!-- Acciones Tácticas del Slot (Cobro, Ticket, Reasignar) -->
+<div class="flex flex-col gap-space-sm pt-space-md">
+<button class="w-full py-space-sm px-space-md rounded bg-primary text-on-primary font-label-md text-label-md font-bold uppercase tracking-wider flex items-center justify-center gap-space-xs shadow-lg hover:opacity-95 transition-opacity" type="button">
+<span class="material-symbols-outlined text-[18px]">point_of_sale</span>
+<span>Cobrar y Liberar Plaza (F2)</span>
+</button>
+<div class="grid grid-cols-2 gap-space-sm">
+<button class="py-space-xs px-space-sm rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm uppercase flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">sync_alt</span>
+<span>Reasignar Slot</span>
+</button>
+<button class="py-space-xs px-space-sm rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm uppercase flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">print</span>
+<span>Duplicar Ticket</span>
+</button>
+</div>
+<button class="py-space-xs px-space-sm rounded bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">call</span>
+<span>Contactar a Conductor</span>
+</button>
+</div>
+</aside>
+</div>
+<!-- VISTA 2: TABLERO KANBAN DE TIEMPO DE ESTADÍA Y ROTACIÓN (TOGGLEABLE) -->
+<div class="px-margin-lg py-space-lg hidden flex-col gap-space-md" id="view-kanban">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">view_kanban</span>
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">FLUJO DE ESTADÍA Y ROTACIÓN VEHICULAR (30 PLAZAS TOTALES)</h2>
+</div>
+<div class="font-code-telemetry text-code-telemetry text-on-surface-variant">
+        ACTUALIZACIÓN EN TIEMPO REAL · FRECUENCIA 5 SECS
+      </div>
+</div>
+<!-- 4 Columnas Kanban -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter">
+<!-- Columna 1: Periodo de Gracia (<= 10 min) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl flex flex-col gap-space-md shadow-lg">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs font-label-md text-label-md font-bold text-primary">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<span>PERIODO DE GRACIA (≤ 10 MIN)</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary font-code-telemetry text-[11px] font-bold">2 AUTOS</span>
+</div>
+<!-- Tarjetas Kanban -->
+<div class="flex flex-col gap-space-sm">
+<!-- Card 1 -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-label-sm text-label-sm font-bold">SLOT A-06</span>
+<span class="font-code-telemetry text-[11px] text-primary font-bold">06 MIN ACTIVO</span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface font-code-telemetry">CL-CW-84</span>
+<span class="font-label-md text-label-md text-primary font-bold">$0 CLP</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Nissan Navara Roja · Gonzalo Barra</span>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-primary h-full rounded-full" style="width: 60%;"></div>
+</div>
+<button class="mt-space-xs py-1 px-2 rounded bg-surface-container-high hover:bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[14px]">check</span>
+<span>Liberar $0 CLP (Gracia)</span>
+</button>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-primary/20 text-primary font-label-sm text-label-sm font-bold">SLOT B-19</span>
+<span class="font-code-telemetry text-[11px] text-primary font-bold">04 MIN ACTIVO</span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface font-code-telemetry">JP-2290</span>
+<span class="font-label-md text-label-md text-primary font-bold">$0 CLP</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Suzuki Swift Azul · Ignacio Campos</span>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-primary h-full rounded-full" style="width: 40%;"></div>
+</div>
+<button class="mt-space-xs py-1 px-2 rounded bg-surface-container-high hover:bg-surface-container-highest text-primary font-label-sm text-label-sm uppercase flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[14px]">check</span>
+<span>Liberar $0 CLP (Gracia)</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Columna 2: Estadía Corta (11m a 60m) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl flex flex-col gap-space-md shadow-lg">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs font-label-md text-label-md font-bold text-tertiary">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span>ESTADÍA CORTA (11M A 60M)</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-tertiary font-code-telemetry text-[11px] font-bold">4 AUTOS</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Card 1 -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-tertiary-container/30 text-tertiary font-label-sm text-label-sm font-bold">SLOT A-07</span>
+<span class="font-code-telemetry text-[11px] text-tertiary font-bold">48 MIN</span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface font-code-telemetry">TR-5021</span>
+<span class="font-label-md text-label-md text-tertiary font-bold">$1.440 CLP</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hyundai Tucson · Marcela Díaz</span>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-tertiary h-full rounded-full" style="width: 80%;"></div>
+</div>
+<button class="mt-space-xs py-1 px-2 rounded bg-tertiary text-on-tertiary font-label-sm text-label-sm uppercase font-bold flex items-center justify-center gap-1 hover:opacity-90" type="button">
+<span class="material-symbols-outlined text-[14px]">point_of_sale</span>
+<span>Cobrar $1.440 (F2)</span>
+</button>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-tertiary-container/30 text-tertiary font-label-sm text-label-sm font-bold">SLOT A-11</span>
+<span class="font-code-telemetry text-[11px] text-tertiary font-bold">32 MIN</span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface font-code-telemetry">BB-FF-19</span>
+<span class="font-label-md text-label-md text-tertiary font-bold">$960 CLP</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Kia Sportage · Rodrigo V.</span>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-tertiary h-full rounded-full" style="width: 53%;"></div>
+</div>
+<button class="mt-space-xs py-1 px-2 rounded bg-tertiary text-on-tertiary font-label-sm text-label-sm uppercase font-bold flex items-center justify-center gap-1 hover:opacity-90" type="button">
+<span class="material-symbols-outlined text-[14px]">point_of_sale</span>
+<span>Cobrar $960 (F2)</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Columna 3: Estadía Extendida (1h a 4h) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl flex flex-col gap-space-md shadow-lg">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs font-label-md text-label-md font-bold text-secondary">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span>ESTADÍA EXTENDIDA (1H A 4H)</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-secondary font-code-telemetry text-[11px] font-bold">7 AUTOS</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Card 1 (A-03) -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-primary font-label-sm text-label-sm font-bold">SLOT A-03</span>
+<span class="font-code-telemetry text-[11px] text-tertiary font-bold">1H 15M</span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface font-code-telemetry">KW-9428</span>
+<span class="font-label-md text-label-md text-tertiary font-bold">$2.250 CLP</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Toyota Rav4 · Juan Pérez</span>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full" style="width: 32%;"></div>
+</div>
+<button class="mt-space-xs py-1 px-2 rounded bg-primary text-on-primary font-label-sm text-label-sm uppercase font-bold flex items-center justify-center gap-1 hover:opacity-90" type="button">
+<span class="material-symbols-outlined text-[14px]">point_of_sale</span>
+<span>Cobro Garita (F2)</span>
+</button>
+</div>
+<!-- Card 2 (A-01) -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-secondary font-label-sm text-label-sm font-bold">SLOT A-01</span>
+<span class="font-code-telemetry text-[11px] text-secondary font-bold">1H 24M</span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface font-code-telemetry">ABCD-12</span>
+<span class="font-label-md text-label-md text-tertiary font-bold">$2.520 CLP</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Toyota Yaris · Carlos Silva</span>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-1">
+<div class="bg-secondary h-full rounded-full" style="width: 38%;"></div>
+</div>
+<button class="mt-space-xs py-1 px-2 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm uppercase flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">receipt</span>
+<span>Detalles</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Columna 4: Noche, Convenios & Alertas (> 4h) -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl flex flex-col gap-space-md shadow-lg">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs font-label-md text-label-md font-bold text-surface-tint">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span>NOCHE &amp; CONVENIOS (&gt; 4H)</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-surface-tint font-code-telemetry text-[11px] font-bold">6 PLAZAS</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Card B-28 Alerta -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">SLOT B-28 · ALERTA</span>
+<span class="font-code-telemetry text-[11px] text-error font-bold">04H 12M</span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-error font-code-telemetry">GH-3388</span>
+<span class="font-label-md text-label-md text-error font-bold">$7.560 CLP</span>
+</div>
+<span class="font-body-sm text-body-sm text-error truncate">Sobreestadía crítica detectada</span>
+<button class="mt-space-xs py-1 px-2 rounded bg-error-container hover:bg-error text-on-error font-label-sm text-label-sm uppercase font-bold flex items-center justify-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>Notificar / Despachar Grúa</span>
+</button>
+</div>
+<!-- Card B-22 Tarifa Noche -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-sm">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary-container font-label-sm text-label-sm font-bold">SLOT B-22 · NOCHE</span>
+<span class="font-code-telemetry text-[11px] text-primary-fixed-dim font-bold">11H 40M</span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface font-code-telemetry">FL-4421</span>
+<span class="font-label-md text-label-md text-primary-fixed font-bold">$12.000 CLP</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hotel Prat IQQ · Pernocta</span>
+<button class="mt-space-xs py-1 px-2 rounded bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-sm text-label-sm uppercase flex items-center justify-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">done_all</span>
+<span>Validar Salida Noche</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- CONSOLA INFERIOR DE ACCESOS RÁPIDOS Y ATAJOS DE TECLADO (HOTKEYS TÁCTICOS) -->
+<footer class="w-full bg-surface-container-lowest px-margin-lg py-space-sm border-t border-outline-variant/30 mt-auto">
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex flex-wrap items-center gap-space-md font-label-sm text-label-sm">
+<span class="text-outline uppercase font-bold">Atajos Físicos Teclado Garita:</span>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
+<span class="font-code-telemetry text-primary font-bold">[F1]</span>
+<span class="text-on-surface-variant">Buscar Patente</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
+<span class="font-code-telemetry text-tertiary font-bold">[F2]</span>
+<span class="text-on-surface-variant">Ir a Cobro POS</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
+<span class="font-code-telemetry text-secondary font-bold">[F3]</span>
+<span class="text-on-surface-variant">Módulo Convenios</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
+<span class="font-code-telemetry text-primary font-bold">[F5]</span>
+<span class="text-on-surface-variant">Refrescar Matriz</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
+<span class="font-code-telemetry text-tertiary font-bold">[F8]</span>
+<span class="text-on-surface-variant">Ticket Manual</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded">
+<span class="font-code-telemetry text-error font-bold">[F9]</span>
+<span class="text-on-surface-variant">Apertura Forzada Barrera</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md font-code-telemetry text-code-telemetry text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> ANPR SERRANO-ENTRADA LPR-01 ONLINE</span>
+<span class="text-outline">·</span>
+<span>LATENCIA: 18ms</span>
+</div>
+</div>
+</footer>
+</div>
+<script>
+  // Script de Micro-interacción: Switch de Vistas (Matriz Espacial vs Kanban)
+  function switchView(view) {
+    const matrixView = document.getElementById('view-matrix');
+    const kanbanView = document.getElementById('view-kanban');
+    const btnMatrix = document.getElementById('btn-view-matrix');
+    const btnKanban = document.getElementById('btn-view-kanban');
+
+    if (view === 'matrix') {
+      matrixView.classList.remove('hidden');
+      matrixView.classList.add('flex');
+      kanbanView.classList.add('hidden');
+      kanbanView.classList.remove('flex');
+
+      btnMatrix.className = 'flex items-center gap-space-xs px-space-md py-space-xs rounded font-label-md text-label-md text-on-primary bg-primary shadow-md transition-all';
+      btnKanban.className = 'flex items-center gap-space-xs px-space-md py-space-xs rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all';
+    } else {
+      matrixView.classList.add('hidden');
+      matrixView.classList.remove('flex');
+      kanbanView.classList.remove('hidden');
+      kanbanView.classList.add('flex');
+
+      btnKanban.className = 'flex items-center gap-space-xs px-space-md py-space-xs rounded font-label-md text-label-md text-on-primary bg-primary shadow-md transition-all';
+      btnMatrix.className = 'flex items-center gap-space-xs px-space-md py-space-xs rounded font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-highest transition-all';
+    }
+  }
+
+  // Script de Inspección Rápida de Slot al Clic
+  function selectSlot(slotId, plate, type, time, cost, vehicle, driver) {
+    document.getElementById('inspect-slot-id').textContent = slotId;
+    document.getElementById('inspect-plate').textContent = plate;
+    document.getElementById('inspect-badge').textContent = type.toUpperCase();
+    document.getElementById('inspect-time').textContent = time;
+    document.getElementById('inspect-cost').textContent = cost;
+    document.getElementById('inspect-vehicle-desc').textContent = vehicle;
+    document.getElementById('inspect-driver').textContent = driver;
+
+    // Resaltar visualmente la tarjeta de slot seleccionada
+    const cards = document.querySelectorAll('.slot-card');
+    cards.forEach(card => card.classList.remove('ring-2', 'ring-primary'));
+  }
+
+  // Hotkeys Operacionales para Garita (F1 a F9)
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'F1') {
+      e.preventDefault();
+      const input = document.getElementById('quick-plate-input');
+      if (input) input.focus();
+    } else if (e.key === 'F5') {
+      e.preventDefault();
+      console.log('Recargando telemetría de patio Serrano 447...');
+    }
+  });
+</script></main><footer class="w-full bg-surface-container-lowest border-t border-outline-variant/30 py-space-md"><div class="w-full px-margin-lg flex flex-col md:flex-row items-center justify-between gap-space-sm font-label-sm text-label-sm text-on-surface-variant"><div class="flex items-center gap-space-md"><span class="text-on-surface font-semibold uppercase tracking-wider">Cordano Inversiones Inmobiliarias Ltda.</span><span class="text-outline">·</span><span>RUT 76.492.110-K</span><span class="text-outline">·</span><span>Serrano 447, Casco Histórico, Iquique</span></div><div class="flex items-center gap-gutter"><span class="font-code-telemetry text-code-telemetry text-outline">SHA-256 LEDGER: 8f9b4c0e...d3a2</span><div class="flex items-center gap-space-xs"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span><span class="uppercase text-primary font-bold">NODO IQQ-SR447-01 ACTIVO</span></div><span class="text-outline">v4.8.2-telemetry</span></div></div></footer></body></html>
