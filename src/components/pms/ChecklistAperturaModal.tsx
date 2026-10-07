@@ -1,6 +1,5 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { useParking } from '../context/ParkingContext';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
   ClipboardCheck,
   CheckCircle2,
@@ -13,30 +12,48 @@ import {
   X
 } from 'lucide-react';
 
+export interface ChecklistTaskItem {
+  id: string;
+  label: string;
+  completed: boolean;
+}
+
 interface ChecklistAperturaModalProps {
   isOpen: boolean;
   onClose?: () => void;
+  onComplete?: () => void;
+  onSnooze?: () => void;
+  shiftId?: string;
+  occupiedSlotsCount?: number;
 }
+
+const defaultTasks: ChecklistTaskItem[] = [
+  { id: 'chk-1', label: 'Verificación de Perímetro y Portones de Serrano 447', completed: false },
+  { id: 'chk-2', label: 'Conteo Físico de Vehículos en Arrastre vs Sistema', completed: false },
+  { id: 'chk-3', label: 'Revisión de Fondo de Caja e Impresora 80mm', completed: false },
+  { id: 'chk-4', label: 'Verificación de Cámaras CCTV NVR y LPR', completed: false },
+  { id: 'chk-5', label: 'Aseo y Despeje de Calzada Garita Principal', completed: false }
+];
 
 export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
   isOpen,
-  onClose
+  onClose,
+  onComplete,
+  onSnooze,
+  shiftId = 'TURNO-ACTIVO',
+  occupiedSlotsCount = 4
 }) => {
-  const {
-    checklistTasks,
-    toggleChecklistTask,
-    completeChecklist,
-    snoozeChecklist,
-    slots,
-    currentShift,
-    user
-  } = useParking();
+  const [tasks, setTasks] = useState<ChecklistTaskItem[]>(defaultTasks);
 
   if (!isOpen) return null;
 
-  const allCompleted = checklistTasks.every((t) => t.completed);
-  const completedCount = checklistTasks.filter((t) => t.completed).length;
-  const occupiedSlotsCount = slots.filter((s) => s.status === 'ocupado').length;
+  const completedCount = tasks.filter((t) => t.completed).length;
+
+  const toggleTask = (id: string) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+    );
+  };
 
   const getItemIcon = (id: string) => {
     switch (id) {
@@ -79,7 +96,7 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
                   PROTOCOLO DE APERTURA
                 </span>
                 <span className="text-[10px] font-mono font-bold text-slate-400">
-                  Turno: {currentShift.id}
+                  Turno: {shiftId}
                 </span>
               </div>
               <h3 className="text-base font-black text-white mt-0.5">
@@ -123,25 +140,25 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-slate-300">Progreso del Chequeo:</span>
               <span className="font-mono font-bold text-pink-400">
-                {completedCount} / {checklistTasks.length} completados
+                {completedCount} / {tasks.length} completados
               </span>
             </div>
             <div className="w-full h-2 bg-[#06080E] rounded-full overflow-hidden border border-white/10">
               <div
                 className="h-full bg-gradient-to-r from-[#0F172A] to-[#1E293B] transition-all duration-300 rounded-full"
-                style={{ width: `${(completedCount / checklistTasks.length) * 100}%` }}
+                style={{ width: `${(completedCount / tasks.length) * 100}%` }}
               />
             </div>
           </div>
 
           {/* Checklist Task Items */}
           <div className="space-y-2">
-            {checklistTasks.map((task) => (
+            {tasks.map((task) => (
               <button
                 key={task.id}
                 id={`task-item-${task.id}`}
                 type="button"
-                onClick={() => toggleChecklistTask(task.id)}
+                onClick={() => toggleTask(task.id)}
                 className={`w-full p-3 rounded-2xl border text-left flex items-start space-x-3 transition cursor-pointer ${
                   task.completed
                     ? 'bg-slate-900/40 border-slate-400/50 text-slate-800'
@@ -151,7 +168,7 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
                 <div className="mt-0.5 shrink-0">
                   {task.completed ? (
                     <div className="w-5 h-5 rounded-lg bg-slate-900 text-black flex items-center justify-center font-bold text-xs">
-                      <CheckCircle2 className="w-4 h-4" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     </div>
                   ) : (
                     <div className="w-5 h-5 rounded-lg border-2 border-white/20 hover:border-pink-400 flex items-center justify-center bg-[#06080E]" />
@@ -160,7 +177,7 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
                 <div className="flex-1 text-xs">
                   <div className="flex items-center space-x-1.5 font-bold mb-0.5">
                     {getItemIcon(task.id)}
-                    <span className={task.completed ? 'line-through text-slate-800' : 'text-white'}>
+                    <span className={task.completed ? 'line-through text-slate-400' : 'text-white'}>
                       {task.label}
                     </span>
                   </div>
@@ -188,7 +205,7 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
           <button
             id="btn-snooze-checklist"
             type="button"
-            onClick={snoozeChecklist}
+            onClick={onSnooze || onClose}
             className="px-4 py-2.5 rounded-xl border border-white/15 text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition cursor-pointer flex items-center space-x-1.5"
           >
             <Clock className="w-3.5 h-3.5 text-slate-400" />
@@ -198,7 +215,7 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
           <button
             id="btn-complete-checklist"
             type="button"
-            onClick={completeChecklist}
+            onClick={onComplete || onClose}
             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0F172A] to-[#1E293B] hover:from-[#1E293B] hover:to-[#334155] text-white text-xs font-black transition shadow-xs flex items-center space-x-1.5 cursor-pointer border border-pink-400/30"
           >
             <CheckCircle2 className="w-4 h-4" />
