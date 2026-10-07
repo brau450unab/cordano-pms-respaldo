@@ -4,14 +4,20 @@
   "description": "Sistema de Gestión de Estacionamiento Cordano PMS V1 (Iquique, Serrano 447)",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
-    "build": "next build",
-    "start": "next start -p 8080",
-    "lint": "next lint"
+    "dev:next": "next dev -p 3000",
+    "dev:vite": "vite --host 0.0.0.0 --port 3000",
+    "build:next": "next build",
+    "build:vite": "tsc && vite build",
+    "start:next": "next start -p 8080",
+    "start:vite": "node server.cjs",
+    "lint": "next lint",
+    "preview:vite": "vite preview --port 3000 --host 0.0.0.0"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",
     "clsx": "^2.1.1",
+    "firebase": "^12.19.0",
+    "framer-motion": "^13.4.4",
     "lucide-react": "^0.453.0",
     "next": "^14.2.15",
     "react": "^18.3.1",

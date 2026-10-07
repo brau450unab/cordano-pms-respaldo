@@ -13,6 +13,7 @@ import {
   ModalFugaVehiculo,
   ModalRevisionVehiculosCierre,
 } from '@/components/official/PublishedLogicSuite';
+import { ModalAperturaTurno } from '@/components/pms/ModalAperturaTurno';
 import { AuditLog, ParkingSlot } from '@/types';
 
 interface ShiftHistoryItem {
@@ -55,6 +56,7 @@ export default function OfficialParkOpsApp() {
   const [vehicleHandoverOpen, setVehicleHandoverOpen] = useState<boolean>(false);
   const [handoverConfirmedCount, setHandoverConfirmedCount] = useState<number>(0);
   const [isShiftActive, setIsShiftActive] = useState<boolean>(true);
+  const [isAperturaModalOpen, setIsAperturaModalOpen] = useState<boolean>(false);
   const [operatorName, setOperatorName] = useState<string>('Juan Pérez');
   const [initialFloat, setInitialFloat] = useState<number>(50000);
   const [shiftRevenue, setShiftRevenue] = useState<number>(342500);
@@ -944,7 +946,7 @@ export default function OfficialParkOpsApp() {
             setChecklistItems((prev) => prev.map((v, i) => (i === idx ? !v : v)))
           }
           markAllChecklist={(status) => setChecklistItems([status, status, status, status, status, status])}
-          signChecklist={() => showToast('Apertura de turno firmada exitosamente.', 'success')}
+          signChecklist={() => setIsAperturaModalOpen(true)}
           scrollToTopOfViews={() => viewportRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
         />
 
@@ -1851,6 +1853,20 @@ export default function OfficialParkOpsApp() {
             onNavigateToPos={() => openPosInSubtab('entry')}
           />
         )}
+
+        {/* MODAL MIGRADO DE LEGACY - FASE 1 */}
+        <ModalAperturaTurno
+          isOpen={isAperturaModalOpen}
+          onClose={() => setIsAperturaModalOpen(false)}
+          onConfirm={(totalCash, breakdown) => {
+            setInitialFloat(totalCash);
+            loginSession();
+            setIsAperturaModalOpen(false);
+            showToast(`Turno abierto con $${totalCash.toLocaleString('es-CL')} confirmados en gaveta.`, 'success');
+          }}
+          operatorName={operatorName}
+          suggestedInitialCash={50000}
+        />
       </main>
 
       {/* WIDGET DE TURNO PERSISTENTE */}
