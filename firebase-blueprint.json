@@ -1,0 +1,147 @@
+{
+  "entities": {
+    "Ticket": {
+      "title": "Ticket",
+      "description": "Registro de ingreso, permanencia y cobro de un vehículo",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "ticketNumber": { "type": "string" },
+        "plateNumber": { "type": "string" },
+        "vehicleType": { "type": "string" },
+        "slotCode": { "type": "string" },
+        "entryTime": { "type": "string" },
+        "exitTime": { "type": "string" },
+        "status": { "type": "string", "enum": ["activo", "pagado", "fuga", "anulado"] },
+        "appliedRateType": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "paidAmount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "operatorId": { "type": "string" },
+        "notes": { "type": "string" },
+        "isExempt": { "type": "boolean" },
+        "shiftId": { "type": "string" }
+      },
+      "required": ["id", "ticketNumber", "plateNumber", "vehicleType", "slotCode", "entryTime", "status"]
+    },
+    "Shift": {
+      "title": "Shift",
+      "description": "Turno de caja operativa, fondo de cambio y arqueo ciego",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shiftNumber": { "type": "number" },
+        "operatorId": { "type": "string" },
+        "operatorName": { "type": "string" },
+        "openedAt": { "type": "string" },
+        "closedAt": { "type": "string" },
+        "status": { "type": "string", "enum": ["abierto", "cerrado"] },
+        "initialCashFloat": { "type": "number" },
+        "declaredCash": { "type": "number" },
+        "theoreticalCash": { "type": "number" },
+        "declaredDigital": { "type": "number" },
+        "discrepancy": { "type": "number" },
+        "closeJustification": { "type": "string" },
+        "transferredVehiclesCount": { "type": "number" },
+        "hashAuditoria": { "type": "string" }
+      },
+      "required": ["id", "operatorId", "operatorName", "openedAt", "status", "initialCashFloat"]
+    },
+    "ParkingSlot": {
+      "title": "ParkingSlot",
+      "description": "Estado de ocupación de cada uno de los 32 slots de estacionamiento",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "sector": { "type": "string" },
+        "vehicleType": { "type": "string" },
+        "status": { "type": "string", "enum": ["disponible", "ocupado", "reservado", "mantenimiento"] },
+        "currentTicketId": { "type": "string" },
+        "currentPlate": { "type": "string" }
+      },
+      "required": ["id", "code", "sector", "status"]
+    },
+    "Agreement": {
+      "title": "Agreement",
+      "description": "Convenios corporativos y abonados mensuales de vehículos",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "plateNumber": { "type": "string" },
+        "agreementType": { "type": "string" },
+        "companyName": { "type": "string" },
+        "contactName": { "type": "string" },
+        "rutCompany": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "monthlyRate": { "type": "number" },
+        "validUntil": { "type": "string" },
+        "status": { "type": "string", "enum": ["al_dia", "por_vencer", "vencido"] },
+        "notes": { "type": "string" }
+      },
+      "required": ["id", "plateNumber", "agreementType", "companyName", "validUntil", "status"]
+    },
+    "CashMovement": {
+      "title": "CashMovement",
+      "description": "Retiros parciales de efectivo (sangrías) o gastos menores",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "shiftId": { "type": "string" },
+        "type": { "type": "string", "enum": ["RETIRO_SANGRIA", "GASTO_MENOR", "INGRESO_MANUAL"] },
+        "amount": { "type": "number" },
+        "reason": { "type": "string" },
+        "operatorId": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "voucherFolio": { "type": "string" }
+      },
+      "required": ["id", "shiftId", "type", "amount", "reason", "timestamp"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Registro inmutable de auditoría con sello SHA-256",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "event": { "type": "string" },
+        "operatorId": { "type": "string" },
+        "operatorName": { "type": "string" },
+        "details": { "type": "string" },
+        "hash": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "event", "operatorId", "operatorName", "details"]
+    }
+  },
+  "firestore": {
+    "/tickets/{ticketId}": {
+      "schema": "Ticket",
+      "description": "Colección de tickets de estacionamiento"
+    },
+    "/shifts/{shiftId}": {
+      "schema": "Shift",
+      "description": "Colección de turnos y arqueos de caja"
+    },
+    "/slots/{slotId}": {
+      "schema": "ParkingSlot",
+      "description": "Colección de los 32 slots de estacionamiento"
+    },
+    "/agreements/{agreementId}": {
+      "schema": "Agreement",
+      "description": "Colección de abonados y convenios comerciales"
+    },
+    "/cash_movements/{movementId}": {
+      "schema": "CashMovement",
+      "description": "Colección de sangrías y gastos de turnos"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Colección inmutable de registros de auditoría"
+    },
+    "/settings/{settingId}": {
+      "schema": "object",
+      "description": "Configuración de tarifas y parámetros operativos de garita"
+    }
+  }
+}

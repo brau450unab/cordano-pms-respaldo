@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper to verify basic fields
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Parking Operations (Tickets)
+    match /tickets/{ticketId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAuthenticated();
+    }
+
+    // Shifts / Turnos de Caja
+    match /shifts/{shiftId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAuthenticated();
+    }
+
+    // Slots / Cajones de Estacionamiento
+    match /slots/{slotId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAuthenticated();
+    }
+
+    // Agreements / Convenios & Abonados
+    match /agreements/{agreementId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAuthenticated();
+    }
+
+    // Cash Movements / Sangrías y Gastos
+    match /cash_movements/{movementId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAuthenticated();
+    }
+
+    // Audit Logs / Trazabilidad Inmutable
+    match /audit_logs/{logId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if false; // Inmutable por diseño
+    }
+
+    // Settings / Tarifas y Parámetros
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    // Users / Operadores
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+
+    // Fallback rule for connection test
+    match /test/{testId} {
+      allow read, write: if true;
+    }
+  }
+}

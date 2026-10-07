@@ -1,0 +1,7 @@
+{
+  "name": "Cordano Parking Ops",
+  "description": "Sistema de gestión y control operativo para estacionamientos Cordano Parking Ops: control de accesos, tarifas dinámicas, punto de venta y salida, arqueo de caja ciego y layout en tiempo real.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
