@@ -81,10 +81,10 @@ export const ModalAperturaTurno: React.FC<ModalAperturaTurnoProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono font-bold tracking-wider text-pink-300 uppercase bg-[#0F172A]/30 border border-[#0F172A]/50 px-2.5 py-0.5 rounded-full inline-block">
+                <span className="text-[10px] tabular-nums font-bold tracking-wider text-pink-300 uppercase bg-[#0F172A]/30 border border-[#0F172A]/50 px-2.5 py-0.5 rounded-full inline-block">
                   BLOQUE 1 • CONTROL DE CAJA
                 </span>
-                <span className="text-[10px] font-mono font-bold text-slate-300 bg-white/10 border border-white/10 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] tabular-nums font-bold text-slate-300 bg-white/10 border border-white/10 px-2 py-0.5 rounded-full">
                   Fondo Inicial
                 </span>
               </div>
@@ -110,7 +110,7 @@ export const ModalAperturaTurno: React.FC<ModalAperturaTurnoProps> = ({
               <span className="text-slate-400 block font-medium">Operador de Turno:</span>
               <strong className="text-white text-sm">{operatorName}</strong>
             </div>
-            <div className="text-right text-slate-400 text-[11px] font-mono">
+            <div className="text-right text-slate-400 text-[11px] tabular-nums">
               <span>Garita 01 • Serrano 447</span>
             </div>
           </div>
@@ -121,13 +121,13 @@ export const ModalAperturaTurno: React.FC<ModalAperturaTurnoProps> = ({
               <label htmlFor="initial-cash-input" className="font-extrabold text-sm text-white">
                 Monto de Caja Inicial (Efectivo)
               </label>
-              <span className="text-xs font-mono font-bold text-pink-300">
+              <span className="text-xs tabular-nums font-bold text-pink-300">
                 Fondo Físico en Gaveta
               </span>
             </div>
 
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-mono font-bold text-2xl text-slate-400">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 tabular-nums font-bold text-2xl text-slate-400">$</span>
               <input
                 id="initial-cash-input"
                 type="number"
@@ -143,11 +143,11 @@ export const ModalAperturaTurno: React.FC<ModalAperturaTurnoProps> = ({
                     setInitialCash('');
                   }
                 }}
-                className="w-full pl-10 pr-14 py-3.5 rounded-2xl border-2 border-white/15 text-2xl font-mono font-black text-white outline-none focus:border-[#0F172A] bg-[#06080E] transition"
+                className="w-full pl-10 pr-14 py-3.5 rounded-2xl border-2 border-white/15 text-2xl tabular-nums font-black text-white outline-none focus:border-[#0F172A] bg-[#06080E] transition"
                 placeholder="0"
                 autoFocus
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-xs font-bold text-slate-400">CLP</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 tabular-nums text-xs font-bold text-slate-400">CLP</span>
             </div>
 
             {/* Quick Helper presets for speed */}
@@ -161,7 +161,7 @@ export const ModalAperturaTurno: React.FC<ModalAperturaTurnoProps> = ({
                     setInitialCash(preset.toString());
                     setIsConfirmed(true);
                   }}
-                  className="px-2.5 py-1 bg-white/5 border border-white/10 hover:border-pink-500 text-white font-mono text-xs font-bold rounded-xl transition cursor-pointer"
+                  className="px-2.5 py-1 bg-white/5 border border-white/10 hover:border-pink-500 text-white tabular-nums text-xs font-bold rounded-xl transition cursor-pointer"
                 >
                   ${(preset / 1000)}k
                 </button>
@@ -205,7 +205,7 @@ export const ModalAperturaTurno: React.FC<ModalAperturaTurnoProps> = ({
         <div className="p-4 sm:p-5 border-t border-white/10 bg-[#111827] flex items-center justify-between gap-3">
           <div className="text-xs text-slate-400">
             <span>Monto inicial: </span>
-            <strong className="text-pink-300 font-mono text-sm">
+            <strong className="text-pink-300 tabular-nums text-sm">
               ${(parsedAmount || 0).toLocaleString('es-CL')} CLP
             </strong>
           </div>

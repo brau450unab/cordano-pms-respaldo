@@ -114,7 +114,7 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
                   Turno Activo (#{currentShift.id})
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-pink-300 bg-[#0F172A]/30 border border-[#0F172A]/50 px-2 py-0.5 rounded-full font-extrabold">
+              <span className="text-[10px] tabular-nums text-pink-300 bg-[#0F172A]/30 border border-[#0F172A]/50 px-2 py-0.5 rounded-full font-extrabold">
                 {currentShift.operatorName}
               </span>
             </div>
@@ -125,7 +125,7 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
                 <span className="text-[10px] font-bold text-[#94A3B8] block uppercase">
                   Fondo Inicial
                 </span>
-                <span className="text-sm font-mono font-extrabold text-white">
+                <span className="text-sm tabular-nums font-extrabold text-white">
                   ${(currentShift.initialCash || 0).toLocaleString('es-CL')}
                 </span>
               </div>
@@ -133,7 +133,7 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
                 <span className="text-[10px] font-bold text-[#94A3B8] block uppercase">
                   Recaudación Turno
                 </span>
-                <span className="text-sm font-mono font-extrabold text-slate-800">
+                <span className="text-sm tabular-nums font-extrabold text-slate-800">
                   ${totalRevenue.toLocaleString('es-CL')}
                 </span>
               </div>
@@ -152,7 +152,7 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
                   </span>
                 </div>
               </div>
-              <span className="text-xs font-mono font-extrabold text-pink-300 bg-[#0F172A]/20 px-2 py-1 rounded-xl border border-[#0F172A]/30">
+              <span className="text-xs tabular-nums font-extrabold text-pink-300 bg-[#0F172A]/20 px-2 py-1 rounded-xl border border-[#0F172A]/30">
                 {occupiedSlots} / 30 Slots
               </span>
             </div>
@@ -187,7 +187,7 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
                 <span className="w-2 h-2 rounded-full bg-slate-900 animate-pulse" />
                 Cloud Firestore Sync
               </span>
-              <span className="text-slate-800 font-mono text-[10px]">GCP #349577440002</span>
+              <span className="text-slate-800 tabular-nums text-[10px]">GCP #349577440002</span>
             </div>
 
             {/* Bottom Actions */}
@@ -235,7 +235,7 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
         {/* Start Time & Elapsed Timer */}
         <div className="flex items-center space-x-1.5 text-[#94A3B8]">
           <Clock className="w-3.5 h-3.5 text-pink-400" />
-          <span className="font-mono font-bold text-white text-[11px] sm:text-xs">
+          <span className="tabular-nums font-bold text-white text-[11px] sm:text-xs">
             {elapsedString}
           </span>
           <span className="text-[10px] text-[#94A3B8] hidden md:inline">
@@ -248,7 +248,7 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
         {/* Occupancy Indicator */}
         <div className="flex items-center space-x-1 text-[#94A3B8]">
           <Car className="w-3.5 h-3.5 text-pink-400" />
-          <span className="font-mono font-bold text-white text-[11px]">
+          <span className="tabular-nums font-bold text-white text-[11px]">
             {occupiedSlots}/30
           </span>
         </div>

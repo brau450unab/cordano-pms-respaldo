@@ -234,7 +234,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                 <span className="text-[10px] text-[#717785] uppercase tracking-wider font-bold block">
                   Fecha y Hora Registro:
                 </span>
-                <span className="font-mono text-[11px] text-[#515154] flex items-center justify-end gap-1 mt-0.5">
+                <span className="tabular-nums text-[11px] text-[#515154] flex items-center justify-end gap-1 mt-0.5">
                   <Clock className="w-3 h-3 text-[#717785]" />
                   {currentTimestamp}
                 </span>
@@ -247,12 +247,12 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                 <label className="font-bold text-[#1D1D1F]">
                   Monto del Movimiento ($ CLP)
                 </label>
-                <span className="text-[11px] font-mono text-[#717785]">
+                <span className="text-[11px] tabular-nums text-[#717785]">
                   Efectivo en gaveta: ${currentCashInDrawer.toLocaleString('es-CL')} CLP
                 </span>
               </div>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-mono font-bold text-base text-[#717785]">$</span>
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 tabular-nums font-bold text-base text-[#717785]">$</span>
                 <input
                   type="number"
                   min="1"
@@ -261,7 +261,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="Ej: 50000"
                   required
-                  className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-[#c1c6d6] font-mono font-bold text-base text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white transition"
+                  className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-[#c1c6d6] tabular-nums font-bold text-base text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white transition"
                 />
               </div>
             </div>
@@ -315,7 +315,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                   <KeyRound className="w-3.5 h-3.5 text-[#0F172A]" />
                   <span>Código Temporal (Google / MS Authenticator o PIN 2026):</span>
                 </label>
-                <span className="text-[10px] font-mono text-slate-800 bg-slate-900 px-2 py-0.5 rounded font-bold">
+                <span className="text-[10px] tabular-nums text-slate-800 bg-slate-900 px-2 py-0.5 rounded font-bold">
                   Demo TOTP: {simulatedTotp}
                 </span>
               </div>
@@ -327,7 +327,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                   onChange={(e) => setTotpCode(e.target.value)}
                   placeholder="Ingrese código de 6 dígitos o PIN..."
                   required
-                  className="w-full px-3 py-2.5 text-center tracking-widest rounded-xl border border-[#c1c6d6] font-mono font-black text-base text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white transition"
+                  className="w-full px-3 py-2.5 text-center tracking-widest rounded-xl border border-[#c1c6d6] tabular-nums font-black text-base text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white transition"
                 />
               </div>
               <div className="flex items-center justify-between text-[10px] text-[#717785]">

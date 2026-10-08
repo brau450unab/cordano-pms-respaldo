@@ -79,7 +79,7 @@ export const DashboardAdministrador: React.FC = () => {
     <div className="space-y-6 font-sans text-slate-900">
       
       {/* Header */}
-      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 tabular-nums">
         <div>
           <div className="flex items-center space-x-2">
             <span className="text-[10px] font-bold tracking-wider text-slate-700 uppercase bg-slate-100 border border-slate-300 px-2 py-0.5 rounded">
@@ -97,7 +97,7 @@ export const DashboardAdministrador: React.FC = () => {
 
         <button
           onClick={exportReportCSV}
-          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-mono font-bold transition flex items-center space-x-2 cursor-pointer border border-slate-900"
+          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs tabular-nums font-bold transition flex items-center space-x-2 cursor-pointer border border-slate-900"
         >
           <Download className="w-4 h-4" />
           <span>EXPORTAR REPORTE CSV</span>
@@ -105,7 +105,7 @@ export const DashboardAdministrador: React.FC = () => {
       </div>
 
       {/* Top Admin KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 tabular-nums">
         
         <div className="bg-white rounded-xl p-4 border border-slate-300 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">[ Total Recaudado ]</span>
@@ -151,7 +151,7 @@ export const DashboardAdministrador: React.FC = () => {
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-mono">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 tabular-nums">
         
         {/* Chart 1: Hourly Revenue & Occupancy */}
         <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs lg:col-span-2 space-y-4">
@@ -239,7 +239,7 @@ export const DashboardAdministrador: React.FC = () => {
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
                   <span className="text-slate-700">{item.name}</span>
                 </span>
-                <span className="font-mono font-bold text-slate-900">${item.value.toLocaleString('es-CL')}</span>
+                <span className="tabular-nums font-bold text-slate-900">${item.value.toLocaleString('es-CL')}</span>
               </div>
             ))}
           </div>

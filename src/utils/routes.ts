@@ -33,7 +33,7 @@ export const APP_ROUTES: Record<AppScreen, RouteConfig> = {
     path: '/map',
     title: 'Plano de Slots & Analítica Global',
     category: 'Operación',
-    description: 'Monitoreo de 30 plazas en tiempo real, franjas horarias y RevPAS',
+    description: 'Monitoreo de 30 cupos en tiempo real, franjas horarias y RevPAS',
     isPublic: false,
   },
   reports: {
@@ -47,7 +47,7 @@ export const APP_ROUTES: Record<AppScreen, RouteConfig> = {
   clients: {
     screen: 'clients',
     path: '/clients',
-    title: 'Abonados & Convenios',
+    title: 'Convenios & Convenios',
     category: 'Operación',
     description: 'Gestión de convenios corporativos mensuales, tarifas planas y renovaciones',
     isPublic: false,
@@ -127,7 +127,7 @@ export const APP_ROUTES: Record<AppScreen, RouteConfig> = {
   operacion_convenios: {
     screen: 'operacion_convenios',
     path: '/operacion/convenios',
-    title: 'Convenios & Abonados Mensuales',
+    title: 'Convenios & Convenios Mensuales',
     category: 'Operación',
     description: 'Módulo complementario para gestión de clientes corporativos',
     isPublic: false,
@@ -185,7 +185,7 @@ export function getScreenFromPath(pathname: string): AppScreen {
   if (cleanPath === '/pos' || cleanPath === '/operacion/salida' || cleanPath === '/salida' || cleanPath === '/caja' || cleanPath === '/operacion/ingreso') return 'pos';
   if (cleanPath === '/map' || cleanPath === '/analitica' || cleanPath === '/rendimiento' || cleanPath === '/operacion/layout' || cleanPath === '/layout') return 'map';
   if (cleanPath === '/reports' || cleanPath === '/reportes' || cleanPath === '/reportes/dashboard' || cleanPath === '/reportes/auditoria' || cleanPath === '/reportes/base-datos') return 'reports';
-  if (cleanPath === '/clients' || cleanPath === '/clientes' || cleanPath === '/abonados' || cleanPath === '/convenios' || cleanPath === '/operacion/convenios') return 'clients';
+  if (cleanPath === '/clients' || cleanPath === '/clientes' || cleanPath === '/convenios' || cleanPath === '/convenios' || cleanPath === '/operacion/convenios') return 'clients';
   if (cleanPath === '/settings' || cleanPath === '/configuracion' || cleanPath === '/ajustes' || cleanPath === '/configuracion/tarifas' || cleanPath === '/configuracion/sistema') return 'settings';
   if (cleanPath === '/support' || cleanPath === '/ayuda' || cleanPath === '/soporte') return 'support';
   if (cleanPath === '/cierre' || cleanPath === '/operacion/cierre' || cleanPath === '/arqueo') return 'operacion_cierre';

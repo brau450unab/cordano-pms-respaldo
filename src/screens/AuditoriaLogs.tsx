@@ -25,7 +25,7 @@ export const AuditoriaLogs: React.FC = () => {
     <div className="space-y-6 max-w-5xl mx-auto font-sans text-slate-900">
       
       {/* Header */}
-      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 tabular-nums">
         <div className="flex items-center space-x-3.5">
           <div className="w-10 h-10 bg-slate-100 text-slate-900 rounded-lg flex items-center justify-center border border-slate-300 shrink-0">
             <FileCheck2 className="w-5 h-5 text-slate-800" />
@@ -42,7 +42,7 @@ export const AuditoriaLogs: React.FC = () => {
         </div>
 
         {/* Severity Filter Tabs */}
-        <div className="flex space-x-1.5 text-xs font-mono">
+        <div className="flex space-x-1.5 text-xs tabular-nums">
           <button
             onClick={() => setSeverityFilter('todos')}
             className={`px-3 py-1 rounded-md border transition cursor-pointer ${
@@ -71,7 +71,7 @@ export const AuditoriaLogs: React.FC = () => {
       </div>
 
       {/* Search Input */}
-      <div className="relative font-mono">
+      <div className="relative tabular-nums">
         <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
           type="text"
@@ -83,7 +83,7 @@ export const AuditoriaLogs: React.FC = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-xl border border-slate-300 shadow-xs overflow-hidden font-mono">
+      <div className="bg-white rounded-xl border border-slate-300 shadow-xs overflow-hidden tabular-nums">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>

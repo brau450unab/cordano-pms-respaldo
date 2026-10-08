@@ -105,7 +105,7 @@ export const RegistroEntradaModal: React.FC<RegistroEntradaModalProps> = ({
                 onChange={(e) => setPlate(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))}
                 placeholder="EJ: LK8421 O BC9210"
                 maxLength={8}
-                className="w-full pl-12 pr-4 py-3 rounded-2xl border-2 border-[#c1c6d6] focus:border-[#0071e3] text-2xl font-black font-mono tracking-widest uppercase text-[#1a1c1d] placeholder:text-[#717785]/40 outline-none transition bg-white"
+                className="w-full pl-12 pr-4 py-3 rounded-2xl border-2 border-[#c1c6d6] focus:border-[#0071e3] text-2xl font-black tabular-nums tracking-widest uppercase text-[#1a1c1d] placeholder:text-[#717785]/40 outline-none transition bg-white"
                 autoFocus
               />
             </div>
@@ -143,7 +143,7 @@ export const RegistroEntradaModal: React.FC<RegistroEntradaModalProps> = ({
                   >
                     <span className="text-2xl mb-1">{item.icon}</span>
                     <span className="font-bold text-xs block leading-tight">{item.label}</span>
-                    <span className="text-[10px] text-[#717785] mt-1 font-mono font-bold">
+                    <span className="text-[10px] text-[#717785] mt-1 tabular-nums font-bold">
                       ${rate?.minuteRate || 30}/min
                     </span>
                   </button>

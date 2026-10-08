@@ -53,7 +53,7 @@ export interface ParkingSlot {
   plateNumber?: string;
 }
 
-export type AgreementType = 'Abonado Mensual' | 'Convenio Comercial';
+export type AgreementType = 'Convenio Mensual' | 'Convenio Comercial';
 export type AgreementStatus = 'al_dia' | 'por_vencer' | 'vencido';
 
 export interface Customer {
@@ -63,7 +63,7 @@ export interface Customer {
   phone: string;
   rut?: string;
   email?: string;
-  agreementType?: 'Particular' | 'Convenio Empresa' | 'Vecino Frecuente' | 'Abonado Mensual' | TariffType | AgreementType;
+  agreementType?: 'Particular' | 'Convenio Empresa' | 'Vecino Frecuente' | 'Convenio Mensual' | TariffType | AgreementType;
   isSpecialRate?: boolean;
   notes?: string;
 }

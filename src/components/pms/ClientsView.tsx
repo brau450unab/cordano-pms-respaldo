@@ -80,13 +80,13 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
       companyName: newConvCompany.trim(),
       contactName: 'Titular Registrado',
       phone: '+56 9 9000 0000',
-      agreementType: (newConvType === 'CONVENIO' ? 'Convenio Empresa' : 'Abonado Mensual') as AgreementType,
+      agreementType: (newConvType === 'CONVENIO' ? 'Convenio Empresa' : 'Convenio Mensual') as AgreementType,
       monthlyFeeClp: fee,
       validUntil: validUntilDate.toISOString(),
     });
 
     onShowToast(
-      `Servicio en paralelo (${newConvType}) para ${cleanPlate} en plaza ${newConvSlot.toUpperCase()} registrado sin alterar caja rotativa.`,
+      `Servicio en paralelo (${newConvType}) para ${cleanPlate} en cupo ${newConvSlot.toUpperCase()} registrado sin alterar caja rotativa.`,
       'success'
     );
 
@@ -102,18 +102,18 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
   );
 
   return (
-    <div id="view-clients" className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 animate-fade-in-up">
-      {/* ── SECTION HEADER ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#e8ecf0] pb-4 gap-3">
+    <div id="view-clients" className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 text-[#2C1338] animate-fade-in-up">
+      {/* ── SECTION HEADER (TOGGL TRACK STYLE) ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EDE4E2] pb-4 gap-3">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-mono font-bold mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F7EEFA] border border-[#9E59C7]/30 text-[#9E59C7] text-xs tabular-nums font-bold mb-2">
             <span>SUBMÓDULO EN PARALELO · SERRANO 447</span>
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-            Abonados Mensuales &amp; Servicio Pernocta Noche
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#2C1338]">
+            Convenios Mensuales &amp; Servicio Nocturno
           </h2>
-          <p className="text-[13px] text-slate-500 mt-0.5">
-            Regla de Dominio #7: Bloquea plaza en la matriz Serrano 447 sin ingresar a la lista de transitorios ni alterar la contabilidad de caja rotativa del turno.
+          <p className="text-xs sm:text-sm text-[#65546C] mt-0.5">
+            Bloquea cupo en la matriz Serrano 447 sin ingresar a transitorios ni alterar la contabilidad rotativa del turno.
           </p>
         </div>
 
@@ -123,7 +123,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por patente, titular, plaza..."
-            className="w-64 h-10 px-3 rounded-xl border border-[#dde2e8] bg-white text-xs font-mono focus:border-slate-900 focus:outline-none placeholder:text-slate-400"
+            className="w-64 h-10 px-3 rounded-full border border-[#EDE4E2] bg-white text-xs tabular-nums focus:border-[#E2498A] focus:outline-none placeholder:text-[#96859B] shadow-xs"
           />
         </div>
       </div>
@@ -131,14 +131,14 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
       {/* ── TWO COLUMNS: REGISTRATION FORM (LEFT) + ROSTER LIST (RIGHT) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Registration Form */}
-        <div className="lg:col-span-5 bg-white border border-[#e8ecf0] rounded-2xl shadow-xs p-6 space-y-5">
-          <h3 className="text-[11px] font-mono font-bold uppercase tracking-[0.07em] text-slate-500 border-b border-[#f1f5f9] pb-3">
-            Registrar Servicio en Paralelo [F3]
+        <div className="lg:col-span-5 bg-white border border-[#EDE4E2] rounded-2xl shadow-xs p-6 space-y-5">
+          <h3 className="text-xs tabular-nums font-bold uppercase tracking-wider text-[#2C1338] border-b border-[#F7EFE9] pb-3">
+            Registrar Servicio en Paralelo 
           </h3>
 
           <form onSubmit={handleAddParallel} className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-[0.05em]">
+              <label className="block text-xs font-bold text-[#65546C] mb-1.5 uppercase">
                 Patente Vehículo *
               </label>
               <input
@@ -147,12 +147,12 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                 onChange={(e) => setNewConvPlate(e.target.value.toUpperCase())}
                 placeholder="Ej. KJWP92"
                 maxLength={8}
-                className="w-full h-11 px-3 rounded-[10px] border-[1.5px] border-[#dde2e8] bg-[#f8fafc] font-mono font-bold uppercase text-slate-900 text-[13px] focus:outline-none focus:border-slate-400 transition-colors"
+                className="w-full h-11 px-3 rounded-xl border border-[#EDE4E2] bg-[#FEF9F5] tabular-nums font-bold uppercase text-[#2C1338] text-xs focus:outline-none focus:border-[#E2498A] focus:ring-2 focus:ring-[#E2498A]/20 transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-[0.05em]">
+              <label className="block text-xs font-bold text-[#65546C] mb-1.5 uppercase">
                 Empresa / Titular *
               </label>
               <input
@@ -160,19 +160,19 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                 value={newConvCompany}
                 onChange={(e) => setNewConvCompany(e.target.value)}
                 placeholder="Ej. Notaría Iquique / Clínica Tarapacá"
-                className="w-full h-11 px-3 rounded-[10px] border-[1.5px] border-[#dde2e8] bg-[#f8fafc] text-slate-700 text-[13px] focus:outline-none focus:border-slate-400 transition-colors"
+                className="w-full h-11 px-3 rounded-xl border border-[#EDE4E2] bg-[#FEF9F5] text-[#2C1338] text-xs focus:outline-none focus:border-[#E2498A] focus:ring-2 focus:ring-[#E2498A]/20 transition-colors"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-[0.05em]">
+                <label className="block text-xs font-bold text-[#65546C] mb-1.5 uppercase">
                   Modalidad
                 </label>
                 <select
                   value={newConvType}
                   onChange={(e) => setNewConvType(e.target.value as 'CONVENIO' | 'NOCHE')}
-                  className="w-full h-11 px-3 rounded-[10px] border-[1.5px] border-[#dde2e8] bg-[#f8fafc] text-[12px] font-mono font-bold text-slate-800 focus:outline-none focus:border-slate-400 transition-colors"
+                  className="w-full h-11 px-3 rounded-xl border border-[#EDE4E2] bg-[#FEF9F5] text-xs tabular-nums font-bold text-[#2C1338] focus:outline-none focus:border-[#E2498A] transition-colors cursor-pointer"
                 >
                   <option value="CONVENIO">Convenio Mensual ($75.000)</option>
                   <option value="NOCHE">Pernocta Noche ($8.000)</option>
@@ -180,54 +180,54 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1.5 uppercase tracking-[0.05em]">
-                  Plaza Bloqueada
+                <label className="block text-xs font-bold text-[#65546C] mb-1.5 uppercase">
+                  Cupo Bloqueada
                 </label>
                 <input
                   type="text"
                   value={newConvSlot}
                   onChange={(e) => setNewConvSlot(e.target.value.toUpperCase())}
-                  className="w-full h-11 px-3 rounded-[10px] border-[1.5px] border-[#dde2e8] bg-[#f8fafc] text-[12px] font-mono font-bold text-slate-800 focus:outline-none focus:border-slate-400 transition-colors"
+                  className="w-full h-11 px-3 rounded-xl border border-[#EDE4E2] bg-[#FEF9F5] text-xs tabular-nums font-bold text-[#2C1338] focus:outline-none focus:border-[#E2498A] transition-colors"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="h-11 w-full rounded-xl bg-slate-900 text-white text-[12px] font-bold hover:bg-slate-800 shadow-xs transition-colors cursor-pointer"
+              className="h-11 w-full rounded-xl bg-[#E2498A] hover:bg-[#E57CD8] text-white text-xs font-extrabold shadow-[0_2px_10px_rgba(226,73,138,0.35)] transition-all cursor-pointer active:scale-[0.98]"
             >
-              Bloquear Plaza en Paralelo
+              Bloquear Cupo en Paralelo
             </button>
           </form>
         </div>
 
         {/* Parallel Roster List */}
-        <div className="lg:col-span-7 bg-white border border-[#e8ecf0] rounded-2xl shadow-xs p-6 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#f1f5f9] pb-3">
-            <h3 className="text-[11px] font-mono font-bold uppercase tracking-[0.07em] text-slate-500">
-              Nómina Activa en Paralelo ({filteredAgreements.length} Plazas Reservadas)
+        <div className="lg:col-span-7 bg-white border border-[#EDE4E2] rounded-2xl shadow-xs p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-[#F7EFE9] pb-3">
+            <h3 className="text-xs tabular-nums font-bold uppercase tracking-wider text-[#2C1338]">
+              Nómina Activa en Paralelo ({filteredAgreements.length} Cupos Reservadas)
             </h3>
-            <span className="text-[10px] font-mono text-slate-400">Serrano 447</span>
+            <span className="text-[10px] tabular-nums text-[#96859B]">Serrano 447</span>
           </div>
 
-          <div className="divide-y divide-[#f1f5f9] font-mono text-xs tabular-nums">
+          <div className="divide-y divide-[#F7EFE9] tabular-nums text-xs tabular-nums">
             {filteredAgreements.map((rec) => (
               <div key={rec.id} className="py-3.5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="license-plate-chip px-2.5 py-0.5 text-xs bg-white">
+                  <span className="license-plate-chip px-2.5 py-0.5 text-xs bg-white text-[#2C1338] border-[#2C1338]">
                     {rec.plate}
                   </span>
                   <div>
-                    <div className="font-sans font-bold text-slate-900 text-[13px]">{rec.company}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
-                      <span>Plaza {rec.slotCode}</span>
+                    <div className="font-sans font-bold text-[#2C1338] text-xs">{rec.company}</div>
+                    <div className="text-[11px] text-[#65546C] mt-0.5 flex items-center gap-2">
+                      <span>Cupo {rec.slotCode}</span>
                       <span>·</span>
                       {rec.type === 'CONVENIO' ? (
-                        <span className="inline-block bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.2 text-[10px] font-mono font-bold">
+                        <span className="inline-block bg-[#EAF6FB] text-[#2DA8D8] border border-[#2DA8D8]/30 rounded-full px-2 py-0.2 text-[10px] tabular-nums font-bold">
                           CONVENIO MENSUAL
                         </span>
                       ) : (
-                        <span className="inline-block bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2 py-0.2 text-[10px] font-mono font-bold">
+                        <span className="inline-block bg-[#FEF6E6] text-[#EAA023] border border-[#EAA023]/30 rounded-full px-2 py-0.2 text-[10px] tabular-nums font-bold">
                           PERNOCTA NOCHE
                         </span>
                       )}
@@ -236,10 +236,10 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                 </div>
 
                 <div className="text-right">
-                  <div className="font-black text-slate-900 font-mono tabular-nums text-[14px]">
+                  <div className="font-extrabold text-[#2C1338] tabular-nums tabular-nums text-sm">
                     ${rec.amount.toLocaleString('es-CL')}
                   </div>
-                  <span className="inline-block mt-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full px-2 py-0.2 text-[10px] font-mono font-bold">
+                  <span className="inline-block mt-0.5 bg-[#E8F8F2] text-[#2B9E78] border border-[#2B9E78]/30 rounded-full px-2 py-0.2 text-[10px] tabular-nums font-bold">
                     {rec.status}
                   </span>
                 </div>

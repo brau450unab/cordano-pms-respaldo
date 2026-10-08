@@ -106,7 +106,7 @@ export const ExploradorBaseDatos: React.FC = () => {
           {
             id_convenio: 'CONV-01',
             id_cliente_asociado: 'CLI-101',
-            nombre_convenio: 'Abonado Mensual Centro',
+            nombre_convenio: 'Convenio Mensual Centro',
             patente_vehiculo: 'LK-84-21',
             tipo_descuento: 'TARIFA_PLANA_MENSUAL',
             cuota_mensual_clp: 45000,
@@ -348,7 +348,7 @@ export const ExploradorBaseDatos: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto font-sans text-slate-900">
       
       {/* Header */}
-      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 tabular-nums">
         <div>
           <div className="flex items-center space-x-2">
             <span className="text-[10px] font-bold tracking-wider text-slate-700 uppercase bg-slate-100 border border-slate-300 px-2 py-0.5 rounded inline-block">
@@ -363,7 +363,7 @@ export const ExploradorBaseDatos: React.FC = () => {
             <span>Base de Datos Operacional — CORDANO PMS</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5 font-sans">
-            Estructura alineada con el modelo relacional y hojas de cálculo para 30 plazas en Serrano 447, Iquique.
+            Estructura alineada con el modelo relacional y hojas de cálculo para 30 cupos en Serrano 447, Iquique.
           </p>
         </div>
 
@@ -411,7 +411,7 @@ export const ExploradorBaseDatos: React.FC = () => {
 
       {/* Sync Status Alert Banner */}
       {syncStatusMessage && (
-        <div className="bg-slate-100 text-slate-900 p-3 rounded-lg border border-slate-300 text-xs font-mono font-bold flex items-center justify-between">
+        <div className="bg-slate-100 text-slate-900 p-3 rounded-lg border border-slate-300 text-xs tabular-nums font-bold flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-4 h-4 text-slate-700 animate-spin" />
             <span>{syncStatusMessage}</span>
@@ -431,7 +431,7 @@ export const ExploradorBaseDatos: React.FC = () => {
       )}
 
       {/* Main Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 font-mono text-xs">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 tabular-nums text-xs">
         
         {/* Left Col: 11 Tables Selector Menu */}
         <div className="lg:col-span-4 space-y-2 bg-white p-4 rounded-xl border border-slate-300 shadow-xs">

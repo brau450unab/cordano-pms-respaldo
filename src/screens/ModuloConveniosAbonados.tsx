@@ -20,11 +20,11 @@ import {
   MessageCircle
 } from 'lucide-react';
 
-interface ModuloConveniosAbonadosProps {
+interface ModuloConveniosConveniosProps {
   onNavigate?: (screen: AppScreen) => void;
 }
 
-export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = () => {
+export const ModuloConveniosConvenios: React.FC<ModuloConveniosConveniosProps> = () => {
   const {
     agreements,
     renewAgreement,
@@ -55,7 +55,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
   const [newRut, setNewRut] = useState('');
   const [newContact, setNewContact] = useState('');
   const [newPhone, setNewPhone] = useState('+56 9 ');
-  const [newType, setNewType] = useState<AgreementType>('Abonado Mensual');
+  const [newType, setNewType] = useState<AgreementType>('Convenio Mensual');
   const [newFee, setNewFee] = useState<number>(45000);
   const [newDurationMonths, setNewDurationMonths] = useState<number>(1);
   const [newNotes, setNewNotes] = useState('');
@@ -163,7 +163,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
     setNewRut('');
     setNewContact('');
     setNewPhone('+56 9 ');
-    setNewType('Abonado Mensual');
+    setNewType('Convenio Mensual');
     setNewFee(45000);
     setNewDurationMonths(1);
     setNewNotes('');
@@ -174,7 +174,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
   return (
     <div className="space-y-6 font-sans text-slate-900">
       {/* Top Header Banner */}
-      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 tabular-nums">
         <div className="flex items-center space-x-3.5">
           <div className="w-10 h-10 rounded-lg bg-slate-100 text-slate-800 border border-slate-300 flex items-center justify-center shrink-0">
             <Building2 className="w-5 h-5" />
@@ -182,7 +182,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
           <div>
             <div className="flex items-center space-x-2">
               <h1 className="text-base font-bold text-slate-900 tracking-tight">
-                Convenios & Abonados Mensuales
+                Convenios & Convenios Mensuales
               </h1>
               <span className="bg-slate-100 border border-slate-300 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">
                 Serrano 447
@@ -206,7 +206,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
       </div>
 
       {/* KPI Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 font-mono">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 tabular-nums">
         <div className="bg-white p-4 rounded-xl border border-slate-300 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500 text-xs">
             <span>[ Total ]</span>
@@ -256,7 +256,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
       </div>
 
       {/* Filter and Search Controls */}
-      <div className="bg-white rounded-xl p-3.5 border border-slate-300 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3 font-mono text-xs">
+      <div className="bg-white rounded-xl p-3.5 border border-slate-300 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3 tabular-nums text-xs">
         {/* Search Bar */}
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -324,7 +324,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
 
       {/* Agreements Cards & Table View */}
       {filteredAgreements.length === 0 ? (
-        <div className="bg-white rounded-xl p-12 text-center border border-slate-300 shadow-xs font-mono">
+        <div className="bg-white rounded-xl p-12 text-center border border-slate-300 shadow-xs tabular-nums">
           <Building2 className="w-10 h-10 text-slate-400 mx-auto mb-2 opacity-50" />
           <h3 className="font-bold text-sm text-slate-800">[ No se encontraron convenios ]</h3>
           <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto font-sans">
@@ -332,7 +332,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
           </p>
         </div>
       ) : (
-        <div className="space-y-3 font-mono">
+        <div className="space-y-3 tabular-nums">
           {filteredAgreements.map((agr) => {
             const validUntil = new Date(agr.validUntil);
             const formattedValidUntil = validUntil.toLocaleDateString('es-CL', {
@@ -380,12 +380,12 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-3 text-xs text-slate-500 font-sans">
-                      <span className="flex items-center gap-1 font-mono">
+                      <span className="flex items-center gap-1 tabular-nums">
                         <Users className="w-3.5 h-3.5 text-slate-400" />
                         <span>{agr.contactName}</span>
                       </span>
-                      {agr.rutCompany && <span className="font-mono">RUT: {agr.rutCompany}</span>}
-                      <span className="flex items-center gap-1 font-mono">
+                      {agr.rutCompany && <span className="tabular-nums">RUT: {agr.rutCompany}</span>}
+                      <span className="flex items-center gap-1 tabular-nums">
                         <Phone className="w-3.5 h-3.5 text-slate-400" />
                         <span>{agr.phone}</span>
                         <a
@@ -402,7 +402,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
                 </div>
 
                 {/* Middle: Vigencia, Cuota y Estado */}
-                <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+                <div className="flex flex-wrap items-center gap-4 text-xs tabular-nums">
                   {/* Status Badge */}
                   <div className="px-2.5 py-1 rounded border border-slate-300 bg-slate-100 text-slate-800 text-[11px] font-bold">
                     {statusLabel}
@@ -449,7 +449,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
       {/* MODAL 1: RENOVAR SUSCRIPCIÓN */}
       <AnimatePresence>
         {renewTarget && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs font-mono">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs tabular-nums">
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -473,7 +473,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
               </div>
 
               {/* Form */}
-              <form onSubmit={handleExecuteRenewal} className="p-5 space-y-4 text-xs font-mono">
+              <form onSubmit={handleExecuteRenewal} className="p-5 space-y-4 text-xs tabular-nums">
                 <div className="bg-slate-50 p-3 rounded-lg border border-slate-300 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">Empresa</span>
@@ -590,7 +590,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
       {/* MODAL 2: CREAR NUEVO VEHÍCULO */}
       <AnimatePresence>
         {isNewModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs font-mono">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs tabular-nums">
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -610,7 +610,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
                 </button>
               </div>
 
-              <form onSubmit={handleCreateAgreement} className="p-5 space-y-3.5 text-xs font-mono">
+              <form onSubmit={handleCreateAgreement} className="p-5 space-y-3.5 text-xs tabular-nums">
                 {formError && (
                   <div className="bg-slate-100 border border-slate-400 text-slate-900 p-2.5 rounded flex items-center space-x-2 font-bold">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -646,7 +646,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
                       onChange={(e) => setNewType(e.target.value as AgreementType)}
                       className="w-full px-2.5 py-1.5 bg-white text-slate-900 rounded border border-slate-300 font-bold outline-none"
                     >
-                      <option value="Abonado Mensual">Abonado Mensual</option>
+                      <option value="Convenio Mensual">Convenio Mensual</option>
                       <option value="Convenio Comercial">Convenio Comercial</option>
                     </select>
                   </div>
@@ -781,7 +781,7 @@ export const ModuloConveniosAbonados: React.FC<ModuloConveniosAbonadosProps> = (
       {/* MODAL 3: CONFIRMAR BAJA */}
       <AnimatePresence>
         {deleteConfirmTarget && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs font-mono">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs tabular-nums">
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}

@@ -3,36 +3,41 @@
 @tailwind utilities;
 
 :root {
-  /* Surfaces */
-  --surface-app:     #f4f6f9;
-  --surface-base:    #ffffff;
-  --surface-raised:  #ffffff;
-  --surface-sunken:  #f8fafc;
-  --surface-overlay: rgba(15, 23, 42, 0.72);
+  /* Toggl Track Surfaces */
+  --surface-app:     #FEF9F5; /* Warm Porcelain / Paper */
+  --surface-base:    #FFFFFF; /* Pure White Card */
+  --surface-raised:  #FFFFFF;
+  --surface-sunken:  #FDF1EC; /* Peach / Blush Tint */
+  --surface-dark:    #2C1338; /* Signature Deep Aubergine */
+  --surface-overlay: rgba(44, 19, 56, 0.65);
 
   /* Borders */
-  --border-subtle:   #e8ecf0;
-  --border-default:  #dde2e8;
-  --border-strong:   #c1c9d4;
+  --border-subtle:   #EDE4E2; /* Warm Neutral Hairline */
+  --border-default:  #E5DBDF;
+  --border-strong:   #CDBFC7;
+  --border-dark:     #412A4C; /* Aubergine Border */
 
-  /* Text */
-  --text-primary:    #0f172a;
-  --text-secondary:  #475569;
-  --text-tertiary:   #94a3b8;
-  --text-inverted:   #ffffff;
+  /* Toggl Track Typography */
+  --text-primary:    #2C1338; /* High-contrast Deep Aubergine */
+  --text-secondary:  #65546C; /* Warm Muted Plum */
+  --text-tertiary:   #96859B; /* Soft Lavender Gray */
+  --text-inverted:   #FFFFFF;
 
-  /* Brand accents */
-  --accent-primary:  #0f172a;
-  --accent-success:  #059669;
-  --accent-warning:  #d97706;
-  --accent-danger:   #dc2626;
+  /* Toggl Track Brand Accents */
+  --accent-primary:  #E2498A; /* Toggl Vibrant Action Magenta */
+  --accent-pink:     #E57CD8; /* Toggl Orchid Pink */
+  --accent-brand:    #2C1338; /* Toggl Aubergine */
+  --accent-coral:    #FF9A76; /* Warm Coral */
+  --accent-success:  #2B9E78; /* Mint Emerald */
+  --accent-warning:  #EAA023; /* Warm Amber */
+  --accent-danger:   #E2498A; /* Vibrant Coral / Red */
 
   /* Radii */
-  --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  14px;
-  --radius-xl:  18px;
-  --radius-2xl: 22px;
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --radius-2xl: 24px;
   --radius-pill: 9999px;
 
   /* Transitions */
@@ -41,7 +46,7 @@
 
 @layer base {
   html {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
     background-color: var(--surface-app);
     color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
@@ -50,19 +55,35 @@
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
     background-color: var(--surface-app);
     color: var(--text-primary);
+    font-weight: 400;
     margin: 0;
     padding: 0;
     min-height: 100vh;
     overflow-x: hidden;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  /* Headings & Brand Elements (Public Sans Display) */
+  h1, h2, h3, .brand-text, .font-display, .font-haptik {
+    font-family: 'Public Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-weight: 700;
     color: var(--text-primary);
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
+  }
+
+  h4, h5, h6 {
+    font-family: 'Public Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  /* Standard UI & Body Text */
+  p, .ui-text {
+    font-family: 'Inter', 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-weight: 400;
   }
 }
 
@@ -70,24 +91,24 @@
 .tabular-nums,
 .pos-mono,
 [class*="font-mono"] {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
 /* Chip de Patente Oficial Chilena */
 .license-plate-chip {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
   font-weight: 700;
   letter-spacing: 0.10em;
-  background-color: #ffffff;
-  color: #0f172a;
-  border: 1.5px solid #1e293b;
+  background-color: #FFFFFF;
+  color: #2C1338;
+  border: 1.5px solid #2C1338;
   border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(44, 19, 56, 0.08);
   font-variant-numeric: tabular-nums;
 }
 
@@ -102,19 +123,19 @@
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: #2C1338;
+  color: #FEF9F5;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 7px;
-  border-radius: 5px;
+  border-radius: 6px;
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.18s var(--ease-smooth), transform 0.18s var(--ease-smooth);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-  border: 1px solid #334155;
+  box-shadow: 0 4px 14px rgba(44, 19, 56, 0.25);
+  border: 1px solid #412A4C;
   z-index: 60;
   letter-spacing: 0.04em;
 }
@@ -141,11 +162,11 @@
   font-family: 'JetBrains Mono', monospace;
   font-size: 9px;
   font-weight: 700;
-  padding: 1px 4.5px;
-  border-radius: 4px;
-  background-color: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #64748b;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background-color: #FDF1EC;
+  border: 1px solid #EDE4E2;
+  color: #65546C;
   line-height: 1.2;
 }
 
@@ -176,9 +197,26 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #c1c9d4;
+  background: #CDBFC7;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #96859B;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #ticket-receipt, #ticket-receipt * {
+    visibility: visible;
+  }
+  #ticket-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    margin: 0;
+    padding: 0;
+  }
 }

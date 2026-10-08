@@ -335,7 +335,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
       tabIndex={0}
     >
       {/* 1. TOP BAR: Navigation, Title & Live System Clock */}
-      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 tabular-nums">
         {/* Left: Back button & Title */}
         <div className="flex items-center space-x-3.5">
           {onBack && (
@@ -357,7 +357,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
             <div className="flex items-center space-x-2 text-xs text-slate-500">
               <span className="font-bold text-slate-900">[ MÓDULO: PUNTO DE VENTA Y COBRO POS ]</span>
               <span>·</span>
-              <span className="font-mono text-slate-700 font-semibold">
+              <span className="tabular-nums text-slate-700 font-semibold">
                 Caja: ${currentCashInDrawer.toLocaleString('es-CL')} CLP
               </span>
             </div>
@@ -383,7 +383,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
             <span className="text-[10px] font-bold text-slate-500 block uppercase">
               Hora de Salida
             </span>
-            <span className="font-mono text-xs font-bold text-slate-800">
+            <span className="tabular-nums text-xs font-bold text-slate-800">
               {chileTimeString || 'Cargando...'}
             </span>
           </div>
@@ -392,14 +392,14 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
 
       {/* Global Error Banner */}
       {paymentError && (
-        <div className="p-3 bg-slate-100 border border-slate-400 rounded text-slate-800 text-xs flex items-center space-x-2 font-mono">
+        <div className="p-3 bg-slate-100 border border-slate-400 rounded text-slate-800 text-xs flex items-center space-x-2 tabular-nums">
           <AlertTriangle className="w-4 h-4 text-slate-900 shrink-0" />
           <span className="font-semibold">{paymentError}</span>
         </div>
       )}
 
       {/* 1.5 METRICS SUMMARY (Wireframe Bento Cards) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 tabular-nums">
         {/* Card 1: Ocupación Garita */}
         <div className="bg-white border border-slate-300 rounded-xl p-3.5 space-y-1 shadow-xs">
           <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
@@ -407,7 +407,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
             <span className="font-bold text-slate-900">{Math.round((activeTickets.length / 30) * 100)}%</span>
           </div>
           <div className="text-xl font-black text-slate-900">
-            {activeTickets.length} <span className="text-xs text-slate-500 font-normal">/ 30 Plazas</span>
+            {activeTickets.length} <span className="text-xs text-slate-500 font-normal">/ 30 Cupos</span>
           </div>
           <div className="w-full h-1.5 bg-slate-100 rounded overflow-hidden mt-1">
             <div
@@ -459,12 +459,12 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
           {/* Search Card with Autofocus */}
           <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-xs space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+              <label className="text-xs tabular-nums font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
                 <span className="flex items-center space-x-1.5">
                   <Barcode className="w-4 h-4 text-slate-500" />
                   <span>[ ESCANEAR TICKET / BUSCAR PATENTE ]</span>
                 </span>
-                <span className="text-[10px] font-mono text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-bold">
+                <span className="text-[10px] tabular-nums text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-bold">
                   Enter
                 </span>
               </label>
@@ -478,12 +478,12 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Ticket (T-84920) o Patente (ABCD-12)..."
-                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 focus:border-slate-800 rounded-lg text-sm font-mono font-bold text-slate-900 uppercase transition outline-none placeholder:text-slate-400"
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 focus:border-slate-800 rounded-lg text-sm tabular-nums font-bold text-slate-900 uppercase transition outline-none placeholder:text-slate-400"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold text-xs rounded-lg transition shadow-xs cursor-pointer shrink-0 border border-slate-900"
+                  className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white tabular-nums font-bold text-xs rounded-lg transition shadow-xs cursor-pointer shrink-0 border border-slate-900"
                 >
                   Buscar
                 </button>
@@ -492,14 +492,14 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
 
             {/* Quick Active Vehicle Selector Chips */}
             <div className="space-y-2 pt-2 border-t border-slate-100">
-              <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-600">
+              <div className="flex items-center justify-between text-[11px] tabular-nums font-semibold text-slate-600">
                 <span>Vehículos en garita ({activeTickets.length}):</span>
                 <span>Selección rápida</span>
               </div>
               
               <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
                 {activeTickets.length === 0 ? (
-                  <p className="text-xs font-mono text-slate-400 py-1">No hay vehículos estacionados actualmente.</p>
+                  <p className="text-xs tabular-nums text-slate-400 py-1">No hay vehículos estacionados actualmente.</p>
                 ) : (
                   activeTickets.map((t) => {
                     const isSelected = selectedTicket?.id === t.id;
@@ -508,7 +508,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                         key={t.id}
                         type="button"
                         onClick={() => handleSelectTicketDirect(t)}
-                        className={`px-2.5 py-1 rounded-lg border text-xs font-mono transition cursor-pointer flex items-center space-x-1 ${
+                        className={`px-2.5 py-1 rounded-lg border text-xs tabular-nums transition cursor-pointer flex items-center space-x-1 ${
                           isSelected
                             ? 'bg-slate-900 text-white border-slate-900 font-bold'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200'
@@ -532,7 +532,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
               
               {/* Short Stay Warning (< 5 min) */}
               {isShortStay && showShortStayAlert && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start justify-between gap-2 text-xs text-blue-900 font-mono">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start justify-between gap-2 text-xs text-blue-900 tabular-nums">
                   <div className="flex items-start space-x-2">
                     <Info className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
                     <div>
@@ -554,10 +554,10 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                 </div>
               )}
 
-              {/* Agreement / Abonado Status Alert Banner */}
+              {/* Agreement / Mensualidad Status Alert Banner */}
               {selectedAgreement && (
                 <div
-                  className={`p-3 rounded-lg border text-xs font-mono space-y-1 ${
+                  className={`p-3 rounded-lg border text-xs tabular-nums space-y-1 ${
                     selectedAgreement.status === 'vencido'
                       ? 'bg-red-50 border-red-300 text-red-900'
                       : selectedAgreement.status === 'por_vencer'
@@ -587,22 +587,22 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
               <div className="border border-dashed border-slate-300 p-4 rounded-lg bg-slate-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <span className="font-mono text-xl font-bold bg-white text-slate-900 border border-slate-300 px-3 py-0.5 rounded tracking-wide shadow-xs">
+                    <span className="tabular-nums text-xl font-bold bg-white text-slate-900 border border-slate-300 px-3 py-0.5 rounded tracking-wide shadow-xs">
                       {selectedTicket.plateNumber}
                     </span>
-                    <span className="text-xs font-mono text-slate-700 bg-white border border-slate-300 px-2 py-0.5 rounded">
+                    <span className="text-xs tabular-nums text-slate-700 bg-white border border-slate-300 px-2 py-0.5 rounded">
                       {selectedTicket.vehicleType}
                     </span>
                   </div>
                   
-                  <div className="text-xs font-mono text-slate-500 pt-0.5 flex items-center space-x-2">
+                  <div className="text-xs tabular-nums text-slate-500 pt-0.5 flex items-center space-x-2">
                     <span>Ticket: <strong>{selectedTicket.ticketCode}</strong></span>
                     <span>·</span>
                     <span>Plaza: <strong>{selectedTicket.slotCode}</strong></span>
                   </div>
                 </div>
 
-                <div className="sm:text-right border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-4 space-y-0.5 text-xs font-mono text-slate-600">
+                <div className="sm:text-right border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-4 space-y-0.5 text-xs tabular-nums text-slate-600">
                   <div>
                     Ingreso:{' '}
                     <strong className="text-slate-900">
@@ -623,11 +623,11 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
 
               {/* Transparent Fee Breakdown Table */}
               <div className="space-y-1.5">
-                <span className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider block">
+                <span className="text-xs tabular-nums font-bold text-slate-700 uppercase tracking-wider block">
                   [ DESGLOSE DE COBRO ]
                 </span>
 
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2 text-xs font-mono">
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2 text-xs tabular-nums">
                   {/* Row 1: Duration */}
                   <div className="flex justify-between items-center text-slate-700">
                     <span>Tiempo transcurrido:</span>
@@ -672,13 +672,13 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
 
               {/* Giant Amount Display */}
               <div className="p-4 rounded-xl border border-slate-300 bg-slate-100 text-center space-y-0.5">
-                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-600 block">
+                <span className="text-[10px] tabular-nums font-bold uppercase tracking-wider text-slate-600 block">
                   TOTAL A COBRAR
                 </span>
-                <div className="text-3xl sm:text-4xl font-black font-mono text-slate-900 tracking-tight">
+                <div className="text-3xl sm:text-4xl font-black tabular-nums text-slate-900 tracking-tight">
                   ${finalTotalToPay.toLocaleString('es-CL')} <span className="text-sm font-bold text-slate-600">CLP</span>
                 </div>
-                <p className="text-[11px] font-mono text-slate-500">
+                <p className="text-[11px] tabular-nums text-slate-500">
                   {currentStay?.isGracePeriod && !isLostTicket
                     ? 'Período de gracia vigente: $0 a pagar'
                     : 'Tarifa congelada al momento de salida'}
@@ -691,7 +691,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   <button
                     type="button"
                     onClick={() => setShowLostTicketConfirmModal(true)}
-                    className="px-2.5 py-1.5 rounded-lg text-xs font-mono font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 transition flex items-center space-x-1 cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg text-xs tabular-nums font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 transition flex items-center space-x-1 cursor-pointer"
                   >
                     <FileQuestion className="w-3.5 h-3.5 text-slate-500" />
                     <span>Ticket Perdido ($10.000)</span>
@@ -700,14 +700,14 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   <button
                     type="button"
                     onClick={() => setIsFugaModalOpen(true)}
-                    className="px-2.5 py-1.5 rounded-lg text-xs font-mono font-semibold text-red-700 bg-white hover:bg-red-50 border border-red-300 transition flex items-center space-x-1 cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg text-xs tabular-nums font-semibold text-red-700 bg-white hover:bg-red-50 border border-red-300 transition flex items-center space-x-1 cursor-pointer"
                   >
                     <ShieldAlert className="w-3.5 h-3.5 text-red-600" />
                     <span>Declarar Fuga</span>
                   </button>
                 </div>
 
-                <span className="text-[10px] font-mono text-slate-400">
+                <span className="text-[10px] tabular-nums text-slate-400">
                   ID: {selectedTicket.id}
                 </span>
               </div>
@@ -717,8 +717,8 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
               <div className="w-12 h-12 rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-600 flex items-center justify-center mx-auto">
                 <Receipt className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-mono font-bold text-slate-800">[ SIN TICKET SELECCIONADO ]</h3>
-              <p className="text-xs font-mono text-slate-500 max-w-sm mx-auto leading-normal">
+              <h3 className="text-sm tabular-nums font-bold text-slate-800">[ SIN TICKET SELECCIONADO ]</h3>
+              <p className="text-xs tabular-nums text-slate-500 max-w-sm mx-auto leading-normal">
                 Escanee el ticket, ingrese la patente en el buscador superior o haga clic en un vehículo de la lista.
               </p>
             </div>
@@ -733,7 +733,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
             
             {/* 1. Payment Method Selector */}
             <div className="space-y-2">
-              <label className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider block">
+              <label className="text-xs tabular-nums font-bold text-slate-700 uppercase tracking-wider block">
                 [ MÉTODO DE PAGO ]
               </label>
 
@@ -770,7 +770,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                           setReceivedCashInput(finalTotalToPay.toString());
                         }
                       }}
-                      className={`p-3 rounded-lg border text-center font-mono transition cursor-pointer flex flex-col items-center justify-center space-y-1 ${
+                      className={`p-3 rounded-lg border text-center tabular-nums transition cursor-pointer flex flex-col items-center justify-center space-y-1 ${
                         isSelected
                           ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                           : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
@@ -793,15 +793,15 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                 {/* Monto Recibido Input */}
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
+                    <label className="text-xs tabular-nums font-bold text-slate-700 uppercase tracking-wider flex items-center space-x-1.5">
                       <Banknote className="w-3.5 h-3.5 text-slate-500" />
                       <span>Monto Recibido del Cliente</span>
                     </label>
-                    <span className="text-[10px] font-mono text-slate-500">CLP Efectivo</span>
+                    <span className="text-[10px] tabular-nums text-slate-500">CLP Efectivo</span>
                   </div>
 
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xl font-bold font-mono text-slate-400">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xl font-bold tabular-nums text-slate-400">
                       $
                     </span>
                     <input
@@ -811,14 +811,14 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                       value={receivedCashInput}
                       onChange={(e) => setReceivedCashInput(e.target.value)}
                       placeholder="0"
-                      className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-300 focus:border-slate-800 rounded-lg text-xl font-black font-mono text-slate-900 outline-none transition"
+                      className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-300 focus:border-slate-800 rounded-lg text-xl font-black tabular-nums text-slate-900 outline-none transition"
                     />
                   </div>
                 </div>
 
                 {/* Quick Chilean Bills Buttons */}
                 <div className="space-y-1.5">
-                  <span className="text-[11px] font-mono font-semibold text-slate-600 block">
+                  <span className="text-[11px] tabular-nums font-semibold text-slate-600 block">
                     Billetes rápidos:
                   </span>
                   <div className="grid grid-cols-4 gap-1.5">
@@ -827,7 +827,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                         key={bill}
                         type="button"
                         onClick={() => handleQuickCash(bill)}
-                        className="py-2 px-1 rounded-lg bg-white hover:bg-slate-100 text-slate-800 font-mono font-bold text-xs border border-slate-300 transition cursor-pointer"
+                        className="py-2 px-1 rounded-lg bg-white hover:bg-slate-100 text-slate-800 tabular-nums font-bold text-xs border border-slate-300 transition cursor-pointer"
                       >
                         ${bill >= 1000 ? `${bill / 1000}k` : bill}
                       </button>
@@ -837,7 +837,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   <button
                     type="button"
                     onClick={() => handleQuickCash(finalTotalToPay)}
-                    className="w-full py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-mono font-bold text-xs border border-slate-300 transition cursor-pointer"
+                    className="w-full py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 tabular-nums font-bold text-xs border border-slate-300 transition cursor-pointer"
                   >
                     Monto Exacto (${finalTotalToPay.toLocaleString('es-CL')})
                   </button>
@@ -854,7 +854,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   }`}
                 >
                   <span
-                    className={`text-[10px] font-mono font-bold uppercase tracking-wider block ${
+                    className={`text-[10px] tabular-nums font-bold uppercase tracking-wider block ${
                       isCashInsufficient ? 'text-red-700' : 'text-slate-600'
                     }`}
                   >
@@ -862,15 +862,15 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   </span>
 
                   <div
-                    className={`text-3xl sm:text-4xl font-black font-mono tracking-tight ${
+                    className={`text-3xl sm:text-4xl font-black tabular-nums tracking-tight ${
                       isCashInsufficient ? 'text-red-700' : 'text-slate-900'
                     }`}
                   >
                     ${(isCashInsufficient ? finalTotalToPay - receivedCashNum : computedChange).toLocaleString('es-CL')}
-                    <span className="text-sm font-mono font-bold ml-1.5">CLP</span>
+                    <span className="text-sm tabular-nums font-bold ml-1.5">CLP</span>
                   </div>
 
-                  <p className="text-[11px] font-mono text-slate-500 pt-0.5">
+                  <p className="text-[11px] tabular-nums text-slate-500 pt-0.5">
                     {isCashInsufficient
                       ? 'Ingrese un monto igual o superior al total'
                       : computedChange === 0
@@ -882,7 +882,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
             )}
 
             {paymentMethod === 'tarjeta_debito' && (
-              <div className="space-y-3 pt-2 border-t border-slate-100 font-mono">
+              <div className="space-y-3 pt-2 border-t border-slate-100 tabular-nums">
                 <div className="p-4 bg-slate-50 border border-dashed border-slate-300 rounded-lg text-center space-y-2">
                   <CreditCard className="w-6 h-6 text-slate-600 mx-auto" />
                   <h4 className="font-bold text-sm text-slate-900">
@@ -898,7 +898,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
             )}
 
             {paymentMethod === 'convenio' && (
-              <div className="space-y-3 pt-2 border-t border-slate-100 font-mono">
+              <div className="space-y-3 pt-2 border-t border-slate-100 tabular-nums">
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
                   <div className="flex items-center space-x-2 text-slate-800">
                     <Building2 className="w-4 h-4 text-slate-600" />
@@ -927,7 +927,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                 type="button"
                 disabled={!selectedTicket || (paymentMethod === 'efectivo' && isCashInsufficient)}
                 onClick={() => handleExecuteCheckout()}
-                className="w-full py-3.5 px-5 bg-slate-900 hover:bg-slate-800 text-white font-mono font-bold text-sm rounded-lg transition shadow-xs flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-slate-900"
+                className="w-full py-3.5 px-5 bg-slate-900 hover:bg-slate-800 text-white tabular-nums font-bold text-sm rounded-lg transition shadow-xs flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed border border-slate-900"
               >
                 <CheckCircle2 className="w-4 h-4 text-white" />
                 <span>
@@ -937,11 +937,11 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                     ? 'Liberar Salida Gratuita ($0 CLP)'
                     : 'Confirmar Pago y Liberar Plaza'}
                 </span>
-                <span className="text-[10px] font-mono bg-white/20 px-1.5 py-0.2 rounded text-white font-bold ml-1">
+                <span className="text-[10px] tabular-nums bg-white/20 px-1.5 py-0.2 rounded text-white font-bold ml-1">
                   Enter ↵
                 </span>
               </button>
-              <p className="text-[10px] font-mono text-slate-500 text-center mt-1.5">
+              <p className="text-[10px] tabular-nums text-slate-500 text-center mt-1.5">
                 Libera automáticamente el slot {selectedTicket ? selectedTicket.slotCode : '...'} e imprime comprobante térmico.
               </p>
             </div>
@@ -967,7 +967,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   Declaración de Ticket Extraviado
                 </h3>
                 <p className="text-xs text-[#94A3B8] leading-relaxed">
-                  Se aplicará una tarifa fija por pérdida de comprobante de <strong className="text-amber-300 font-mono">${tariffConfig.lostTicketFee.toLocaleString('es-CL')} CLP</strong>.
+                  Se aplicará una tarifa fija por pérdida de comprobante de <strong className="text-amber-300 tabular-nums">${tariffConfig.lostTicketFee.toLocaleString('es-CL')} CLP</strong>.
                 </p>
               </div>
 
@@ -980,7 +980,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   value={lostTicketSupervisorPin}
                   onChange={(e) => setLostTicketSupervisorPin(e.target.value)}
                   placeholder="PIN (Ej: 1234)"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/20 text-center font-mono font-black text-lg outline-none focus:border-[#1E293B] bg-[#06080E] text-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/20 text-center tabular-nums font-black text-lg outline-none focus:border-[#1E293B] bg-[#06080E] text-white"
                 />
                 {lostTicketAuthError && (
                   <p className="text-xs text-rose-400 font-bold text-center">{lostTicketAuthError}</p>
@@ -1048,7 +1048,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
               <CheckCircle2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <span className="font-black text-sm uppercase tracking-wider block font-mono">
+              <span className="font-black text-sm uppercase tracking-wider block tabular-nums">
                 BARRIER OPENED • AUTOAPERTURA DE PISTA
               </span>
               <span className="text-xs text-slate-800">
@@ -1064,12 +1064,12 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
           ======================================================== */}
       <AnimatePresence>
         {selectedTicket && (
-          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto font-mono">
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto tabular-nums">
             <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="w-full max-w-2xl bg-white border-2 border-slate-900 rounded-lg shadow-2xl p-5 sm:p-6 space-y-4 font-mono text-slate-900 relative"
+              className="w-full max-w-2xl bg-white border-2 border-slate-900 rounded-lg shadow-2xl p-5 sm:p-6 space-y-4 tabular-nums text-slate-900 relative"
             >
               {/* 1. Modal Title Bar */}
               <div className="flex items-center justify-between border-b border-slate-300 pb-3">
@@ -1081,11 +1081,11 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded">
+                  <span className="text-[10px] tabular-nums font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded">
                     Ticket #{selectedTicket.ticketCode}
                   </span>
-                  <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded">
-                    Plaza <strong className="text-slate-900">{selectedTicket.slotCode}</strong>
+                  <span className="text-[10px] tabular-nums font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded">
+                    Cupo <strong className="text-slate-900">{selectedTicket.slotCode}</strong>
                   </span>
                   <button
                     type="button"
@@ -1104,8 +1104,8 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
               <div className="bg-slate-50 border border-slate-300 rounded p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center space-x-4">
                   {/* Chilean License Plate Badge */}
-                  <div className="bg-white border-2 border-slate-900 rounded px-3 py-1.5 font-mono text-xl sm:text-2xl font-black text-slate-900 tracking-widest flex items-center space-x-2 shrink-0">
-                    <span className="text-[10px] bg-slate-900 text-white font-mono font-bold px-1.5 py-0.5 rounded">CHI</span>
+                  <div className="bg-white border-2 border-slate-900 rounded px-3 py-1.5 tabular-nums text-xl sm:text-2xl font-black text-slate-900 tracking-widest flex items-center space-x-2 shrink-0">
+                    <span className="text-[10px] bg-slate-900 text-white tabular-nums font-bold px-1.5 py-0.5 rounded">CHI</span>
                     <span>{selectedTicket.plateNumber}</span>
                   </div>
 
@@ -1115,7 +1115,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                         ? 'Toyota Hilux 4x4 (Particular)'
                         : `${selectedTicket.vehicleType} (Particular)`}
                     </div>
-                    <div className="text-xs text-slate-600 font-mono">
+                    <div className="text-xs text-slate-600 tabular-nums">
                       Ingreso: <strong className="text-slate-900">{new Date(selectedTicket.entryTime).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} hrs</strong> • Estadía: <strong className="text-slate-900">{Math.floor((currentStay?.durationMinutes || 0) / 60)}h {(currentStay?.durationMinutes || 0) % 60}m</strong>
                     </div>
                   </div>
@@ -1125,9 +1125,9 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                     TOTAL A PAGAR
                   </span>
-                  <div className="text-2xl sm:text-3xl font-black font-mono text-slate-900 tracking-tight">
+                  <div className="text-2xl sm:text-3xl font-black tabular-nums text-slate-900 tracking-tight">
                     ${finalTotalToPay.toLocaleString('es-CL')}
-                    <span className="text-xs font-mono font-bold text-slate-500 ml-1.5">CLP</span>
+                    <span className="text-xs tabular-nums font-bold text-slate-500 ml-1.5">CLP</span>
                   </div>
                 </div>
               </div>
@@ -1138,7 +1138,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   <span className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
                     [ MÉTODO DE PAGO ]
                   </span>
-                  <span className="font-mono text-[10px] text-slate-500">
+                  <span className="tabular-nums text-[10px] text-slate-500">
                     ATAJOS: [1, 2, 3]
                   </span>
                 </div>
@@ -1158,7 +1158,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   >
                     <div className="flex items-center justify-between mb-1">
                       <Banknote className="w-5 h-5 text-slate-900" />
-                      <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                      <span className={`text-[10px] tabular-nums font-bold px-1.5 py-0.2 rounded ${
                         paymentMethod === 'efectivo' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
                       }`}>
                         1
@@ -1183,7 +1183,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   >
                     <div className="flex items-center justify-between mb-1">
                       <CreditCard className="w-5 h-5 text-slate-900" />
-                      <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                      <span className={`text-[10px] tabular-nums font-bold px-1.5 py-0.2 rounded ${
                         paymentMethod === 'tarjeta_debito' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
                       }`}>
                         2
@@ -1208,7 +1208,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   >
                     <div className="flex items-center justify-between mb-1">
                       <Send className="w-5 h-5 text-slate-900" />
-                      <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
+                      <span className={`text-[10px] tabular-nums font-bold px-1.5 py-0.2 rounded ${
                         paymentMethod === 'transferencia' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'
                       }`}>
                         3
@@ -1228,7 +1228,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                       <Banknote className="w-4 h-4 text-slate-900" />
                       <span>[ CÁLCULO DE EFECTIVO Y VUELTO ]</span>
                     </span>
-                    <span className="font-mono text-[10px] text-slate-500">
+                    <span className="tabular-nums text-[10px] text-slate-500">
                       Base Garita: $50.000 CLP
                     </span>
                   </div>
@@ -1238,7 +1238,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                     <button
                       type="button"
                       onClick={() => handleQuickCash(finalTotalToPay)}
-                      className={`py-2 px-1 rounded text-xs font-mono font-bold border transition cursor-pointer ${
+                      className={`py-2 px-1 rounded text-xs tabular-nums font-bold border transition cursor-pointer ${
                         receivedCashNum === finalTotalToPay
                           ? 'bg-slate-900 text-white border-slate-900'
                           : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'
@@ -1249,7 +1249,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                     <button
                       type="button"
                       onClick={() => handleQuickCash(5000)}
-                      className={`py-2 px-1 rounded text-xs font-mono font-bold border transition cursor-pointer ${
+                      className={`py-2 px-1 rounded text-xs tabular-nums font-bold border transition cursor-pointer ${
                         receivedCashNum === 5000
                           ? 'bg-slate-900 text-white border-slate-900'
                           : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'
@@ -1260,7 +1260,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                     <button
                       type="button"
                       onClick={() => handleQuickCash(10000)}
-                      className={`py-2 px-1 rounded text-xs font-mono font-bold border transition cursor-pointer ${
+                      className={`py-2 px-1 rounded text-xs tabular-nums font-bold border transition cursor-pointer ${
                         receivedCashNum === 10000
                           ? 'bg-slate-900 text-white border-slate-900'
                           : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'
@@ -1271,7 +1271,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                     <button
                       type="button"
                       onClick={() => handleQuickCash(20000)}
-                      className={`py-2 px-1 rounded text-xs font-mono font-bold border transition cursor-pointer ${
+                      className={`py-2 px-1 rounded text-xs tabular-nums font-bold border transition cursor-pointer ${
                         receivedCashNum === 20000
                           ? 'bg-slate-900 text-white border-slate-900'
                           : 'bg-white text-slate-800 border-slate-300 hover:bg-slate-100'
@@ -1290,7 +1290,7 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                         EFECTIVO RECIBIDO
                       </span>
                       <div className="flex items-center space-x-1">
-                        <span className="text-xl font-bold font-mono text-slate-400">$</span>
+                        <span className="text-xl font-bold tabular-nums text-slate-400">$</span>
                         <input
                           type="number"
                           min="0"
@@ -1298,9 +1298,9 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                           value={receivedCashInput}
                           onChange={(e) => setReceivedCashInput(e.target.value)}
                           placeholder="0"
-                          className="w-full text-2xl font-bold font-mono text-slate-900 bg-transparent outline-none border-b border-slate-400 focus:border-slate-900"
+                          className="w-full text-2xl font-bold tabular-nums text-slate-900 bg-transparent outline-none border-b border-slate-400 focus:border-slate-900"
                         />
-                        <span className="text-xs font-mono text-slate-500">CLP</span>
+                        <span className="text-xs tabular-nums text-slate-500">CLP</span>
                       </div>
                       <p className="text-[10px] text-slate-500">
                         {getReceivedBillDescription(receivedCashNum || finalTotalToPay)}
@@ -1322,14 +1322,14 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                           {isCashInsufficient ? 'FALTA DINERO' : 'VUELTO AL CONDUCTOR'}
                         </span>
                         {!isCashInsufficient && (
-                          <span className="text-[9px] font-mono font-bold bg-slate-900 text-white px-1.5 py-0.2 rounded uppercase">
+                          <span className="text-[9px] tabular-nums font-bold bg-slate-900 text-white px-1.5 py-0.2 rounded uppercase">
                             LISTO
                           </span>
                         )}
                       </div>
-                      <div className="text-2xl font-bold font-mono tracking-tight text-slate-900">
+                      <div className="text-2xl font-bold tabular-nums tracking-tight text-slate-900">
                         ${(isCashInsufficient ? finalTotalToPay - receivedCashNum : computedChange).toLocaleString('es-CL')}
-                        <span className="text-xs font-mono ml-1 text-slate-600">CLP</span>
+                        <span className="text-xs tabular-nums ml-1 text-slate-600">CLP</span>
                       </div>
                       <p className="text-[10px] text-slate-600">
                         {isCashInsufficient
@@ -1349,10 +1349,10 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                     setSelectedTicket(null);
                     setSearchTerm('');
                   }}
-                  className="w-full sm:w-auto px-4 py-3 rounded border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 text-xs font-mono font-bold transition cursor-pointer flex items-center justify-center space-x-1.5"
+                  className="w-full sm:w-auto px-4 py-3 rounded border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 text-xs tabular-nums font-bold transition cursor-pointer flex items-center justify-center space-x-1.5"
                 >
                   <span>Cancelar</span>
-                  <span className="font-mono text-[10px] bg-slate-100 px-1.5 py-0.2 rounded border border-slate-300 text-slate-700">
+                  <span className="tabular-nums text-[10px] bg-slate-100 px-1.5 py-0.2 rounded border border-slate-300 text-slate-700">
                     ESC
                   </span>
                 </button>
@@ -1361,12 +1361,12 @@ export const PuntoVentaSalida: React.FC<PuntoVentaSalidaProps> = ({ onBack, init
                   type="button"
                   disabled={paymentMethod === 'efectivo' && isCashInsufficient}
                   onClick={() => handleExecuteCheckout()}
-                  className="w-full sm:flex-1 py-3 px-6 rounded bg-slate-900 hover:bg-black text-white font-mono font-bold text-xs transition border border-slate-900 flex flex-col items-center justify-center space-y-0.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full sm:flex-1 py-3 px-6 rounded bg-slate-900 hover:bg-black text-white tabular-nums font-bold text-xs transition border border-slate-900 flex flex-col items-center justify-center space-y-0.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <div className="flex items-center space-x-2">
                     <CheckCircle2 className="w-4 h-4 text-white" />
                     <span>CONFIRMAR SALIDA Y ABRIR BARRERA</span>
-                    <span className="font-mono text-[11px] bg-slate-800 px-1.5 py-0.5 rounded text-white ml-1">
+                    <span className="tabular-nums text-[11px] bg-slate-800 px-1.5 py-0.5 rounded text-white ml-1">
                       ENTER ↵
                     </span>
                   </div>

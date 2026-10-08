@@ -161,12 +161,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       <header className="relative z-10 bg-white border-b border-slate-300 py-3.5 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           
-          <div className="flex items-center space-x-2 text-xs font-mono font-semibold text-slate-800">
+          <div className="flex items-center space-x-2 text-xs tabular-nums font-semibold text-slate-800">
             <span className="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block" />
             <span>[ PUESTO DE CONTROL GARITA · SERRANO 447 ]</span>
           </div>
 
-          <div className="flex items-center space-x-2 font-mono text-xs">
+          <div className="flex items-center space-x-2 tabular-nums text-xs">
             <span className="font-bold text-slate-900 uppercase">CORDANO PMS</span>
             <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
               [ ACCESO OPERACIONAL ]
@@ -175,7 +175,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
           <button
             onClick={() => setShowSupportModal(true)}
-            className="text-xs font-mono text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-300 bg-slate-50 cursor-pointer"
+            className="text-xs tabular-nums text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-300 bg-slate-50 cursor-pointer"
           >
             <Headphones className="w-3.5 h-3.5" />
             <span>Soporte</span>
@@ -185,7 +185,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       {/* 2. Main Login Card in Wireframe Style */}
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
-        <div className="w-full max-w-4xl bg-white border border-slate-300 rounded-xl shadow-xs overflow-hidden flex flex-col md:flex-row font-mono text-xs">
+        <div className="w-full max-w-4xl bg-white border border-slate-300 rounded-xl shadow-xs overflow-hidden flex flex-col md:flex-row tabular-nums text-xs">
           
           {/* Left Column: Technical Blueprint Specification (5 cols) */}
           <div className="w-full md:w-5/12 p-6 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-300 flex flex-col justify-between space-y-5">
@@ -202,7 +202,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <div className="space-y-1.5 text-[11px] font-sans">
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-slate-800 shrink-0" />
-                    <span>30 Plazas en Zonas A, B y C</span>
+                    <span>30 Cupos en Zonas A, B y C</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5 text-slate-800 shrink-0" />
@@ -285,7 +285,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="ej. carlos.mendoza o 18.342.119-K"
-                    className="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-slate-800"
+                    className="w-full bg-white border border-slate-300 rounded p-2 text-xs tabular-nums text-slate-900 focus:outline-none focus:border-slate-800"
                   />
                 </div>
 
@@ -309,7 +309,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:outline-none focus:border-slate-800"
+                    className="w-full bg-white border border-slate-300 rounded p-2 text-xs tabular-nums text-slate-900 focus:outline-none focus:border-slate-800"
                   />
                 </div>
 
@@ -385,14 +385,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       </main>
 
       {/* 3. Footer */}
-      <footer className="relative z-10 py-3 text-center text-[10px] font-mono text-slate-500 border-t border-slate-300 bg-white">
+      <footer className="relative z-10 py-3 text-center text-[10px] tabular-nums text-slate-500 border-t border-slate-300 bg-white">
         CORDANO PMS · Terminal Operativo · Serrano 447, Iquique
       </footer>
 
       {/* Support Modal */}
       {showSupportModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-400 rounded-xl max-w-sm w-full p-5 space-y-3 font-mono text-left shadow-lg text-xs">
+          <div className="bg-white border border-slate-400 rounded-xl max-w-sm w-full p-5 space-y-3 tabular-nums text-left shadow-lg text-xs">
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <span className="font-bold text-slate-900 uppercase">[ AYUDA INGRESO ]</span>
               <button onClick={() => setShowSupportModal(false)}>

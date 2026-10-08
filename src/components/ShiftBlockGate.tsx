@@ -33,7 +33,7 @@ export const ShiftBlockGate: React.FC<ShiftBlockGateProps> = ({
 
         {/* Title & Explanation */}
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold font-mono">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold tabular-nums">
             <AlertCircle className="w-3.5 h-3.5 text-slate-800" />
             <span>CONDICIÓN DE BLOQUEO ACTIVA</span>
           </div>

@@ -75,10 +75,10 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-mono font-bold tracking-wider text-pink-300 uppercase bg-[#0F172A]/30 border border-[#0F172A]/50 px-2 py-0.5 rounded-full inline-block">
+                <span className="text-[10px] tabular-nums font-bold tracking-wider text-pink-300 uppercase bg-[#0F172A]/30 border border-[#0F172A]/50 px-2 py-0.5 rounded-full inline-block">
                   PROTOCOLO DE APERTURA
                 </span>
-                <span className="text-[10px] font-mono font-bold text-slate-400">
+                <span className="text-[10px] tabular-nums font-bold text-slate-400">
                   Turno: {currentShift.id}
                 </span>
               </div>
@@ -112,7 +112,7 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
               </p>
             </div>
             <div className="text-right">
-              <span className="text-xs font-mono font-black text-pink-300 bg-[#0F172A]/30 border border-[#0F172A]/50 px-2.5 py-1 rounded-xl">
+              <span className="text-xs tabular-nums font-black text-pink-300 bg-[#0F172A]/30 border border-[#0F172A]/50 px-2.5 py-1 rounded-xl">
                 {occupiedSlotsCount} Vehículos
               </span>
             </div>
@@ -122,7 +122,7 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-slate-300">Progreso del Chequeo:</span>
-              <span className="font-mono font-bold text-pink-400">
+              <span className="tabular-nums font-bold text-pink-400">
                 {completedCount} / {checklistTasks.length} completados
               </span>
             </div>

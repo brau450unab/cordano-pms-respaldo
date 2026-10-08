@@ -163,7 +163,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                 <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F1F5F9]/40 px-2.5 py-0.5 rounded-full inline-block">
                   FASE 3 • MONITOREO OPERACIONAL
                 </span>
-                <span className="text-[10px] font-mono text-[#515154] bg-[#f3f3f5] px-2 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] tabular-nums text-[#515154] bg-[#f3f3f5] px-2 py-0.5 rounded-full font-bold">
                   Recinto Iquique (30 Cupos)
                 </span>
               </div>
@@ -182,7 +182,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Filtrar patente o slot..."
-                className="pl-9 pr-3 py-1.5 rounded-xl bg-[#f9f9fb] border border-[#c1c6d6] text-xs font-mono font-bold text-[#1D1D1F] uppercase focus:bg-white focus:border-[#0F172A] outline-none w-48 sm:w-56 transition"
+                className="pl-9 pr-3 py-1.5 rounded-xl bg-[#f9f9fb] border border-[#c1c6d6] text-xs tabular-nums font-bold text-[#1D1D1F] uppercase focus:bg-white focus:border-[#0F172A] outline-none w-48 sm:w-56 transition"
               />
             </div>
 
@@ -209,21 +209,21 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-[#f3f3f5]">
           <div className="p-3 bg-[#f9f9fb] rounded-2xl border border-[#e2e2e4]">
             <span className="text-[10px] font-bold text-[#717785] uppercase block">En Recinto</span>
-            <span className="text-xl font-black font-mono text-[#1D1D1F] mt-0.5 block">
+            <span className="text-xl font-black tabular-nums text-[#1D1D1F] mt-0.5 block">
               {totalOccupied} <span className="text-xs font-sans text-[#717785] font-semibold">/ 30 cupos</span>
             </span>
           </div>
 
           <div className="p-3 bg-[#f9f9fb] rounded-2xl border border-[#e2e2e4]">
             <span className="text-[10px] font-bold text-[#717785] uppercase block">Promedio Permanencia</span>
-            <span className="text-xl font-black font-mono text-[#1D1D1F] mt-0.5 block">
+            <span className="text-xl font-black tabular-nums text-[#1D1D1F] mt-0.5 block">
               {avgMinutes} <span className="text-xs font-sans text-[#717785] font-semibold">min ({Math.floor(avgMinutes / 60)}h {avgMinutes % 60}m)</span>
             </span>
           </div>
 
           <div className="p-3 bg-[#f9f9fb] rounded-2xl border border-[#e2e2e4]">
             <span className="text-[10px] font-bold text-[#717785] uppercase block">Acumulado en Pista</span>
-            <span className="text-xl font-black font-mono text-slate-800 mt-0.5 block">
+            <span className="text-xl font-black tabular-nums text-slate-800 mt-0.5 block">
               ${totalAccumulatedClp.toLocaleString('es-CL')} <span className="text-xs font-sans text-slate-800 font-semibold">CLP</span>
             </span>
           </div>
@@ -233,7 +233,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
               <span>Alerta &gt; 4 Horas</span>
               {criticalOver4hCount > 0 && <AlertTriangle className="w-3 h-3 text-rose-600 animate-pulse" />}
             </span>
-            <span className={`text-xl font-black font-mono mt-0.5 block ${criticalOver4hCount > 0 ? 'text-rose-700' : 'text-[#1D1D1F]'}`}>
+            <span className={`text-xl font-black tabular-nums mt-0.5 block ${criticalOver4hCount > 0 ? 'text-rose-700' : 'text-[#1D1D1F]'}`}>
               {criticalOver4hCount} <span className="text-xs font-sans font-semibold">vehículos</span>
             </span>
           </div>
@@ -257,7 +257,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                 <p className="text-[10px] text-[#717785] font-semibold">{col.subtitle}</p>
               </div>
 
-              <span className={`text-xs font-mono font-black px-2.5 py-0.5 rounded-full border ${col.badgeColor}`}>
+              <span className={`text-xs tabular-nums font-black px-2.5 py-0.5 rounded-full border ${col.badgeColor}`}>
                 {col.count}
               </span>
             </div>
@@ -284,7 +284,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                       {/* Top Row: Plate & Slot Code */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <span className="font-mono text-sm font-black bg-[#1D1D1F] text-white px-2.5 py-0.5 rounded-lg tracking-wider">
+                          <span className="tabular-nums text-sm font-black bg-[#1D1D1F] text-white px-2.5 py-0.5 rounded-lg tracking-wider">
                             {t.plateNumber}
                           </span>
                           <span className="text-[10px] font-bold text-[#0F172A] bg-[#F1F5F9]/40 px-2 py-0.5 rounded-md flex items-center space-x-1">
@@ -293,7 +293,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                           </span>
                         </div>
 
-                        <span className="font-mono text-xs font-extrabold text-[#0F172A] bg-[#F1F5F9]/30 px-2 py-0.5 rounded-lg border border-[#F1F5F9]">
+                        <span className="tabular-nums text-xs font-extrabold text-[#0F172A] bg-[#F1F5F9]/30 px-2 py-0.5 rounded-lg border border-[#F1F5F9]">
                           Slot {t.slotCode}
                         </span>
                       </div>
@@ -305,14 +305,14 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                             <Clock className="w-3 h-3 text-[#717785]" />
                             <span>Permanencia:</span>
                           </span>
-                          <span className="font-mono font-bold text-[#1D1D1F]">
+                          <span className="tabular-nums font-bold text-[#1D1D1F]">
                             {stay.durationMinutes} min ({Math.floor(stay.durationMinutes / 60)}h {stay.durationMinutes % 60}m)
                           </span>
                         </div>
 
                         <div className="flex items-center justify-between pt-0.5">
                           <span className="text-[#717785] text-[11px]">Estimado acumulado:</span>
-                          <span className="font-mono font-black text-sm text-[#0F172A]">
+                          <span className="tabular-nums font-black text-sm text-[#0F172A]">
                             {isGrace ? (
                               <span className="text-slate-800 text-xs font-bold bg-slate-900 px-1.5 py-0.5 rounded">
                                 Gracia ($0)

@@ -8,4 +8,18 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
   },
+  build: {
+    target: 'es2020',
+    sourcemap: false,
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth'],
+          'vendor-export': ['html2canvas'],
+        },
+      },
+    },
+  },
 });

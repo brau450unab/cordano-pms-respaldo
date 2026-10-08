@@ -142,7 +142,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                   BLOQUE 4 • REPORTE FINANCIERO Z
                 </span>
                 <span
-                  className={`text-[10px] font-mono font-extrabold px-2.5 py-0.5 rounded-full ${
+                  className={`text-[10px] tabular-nums font-extrabold px-2.5 py-0.5 rounded-full ${
                     isFlagged
                       ? 'bg-rose-100 text-rose-800'
                       : isPerfect
@@ -270,7 +270,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                     <Building2 className="w-4 h-4 text-[#0F172A]" />
                     <span className="font-bold text-[#1D1D1F] text-sm">CORDANO PMS — Recinto Iquique</span>
                   </div>
-                  <span className="text-[#717785] block font-mono text-[11px]">
+                  <span className="text-[#717785] block tabular-nums text-[11px]">
                     Turno: <strong>{shift.id}</strong> | Operador: <strong>{shift.operatorName}</strong>
                   </span>
                 </div>
@@ -328,7 +328,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                       <th className="py-2.5 px-4 text-right">Diferencia</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#f3f3f5] font-mono">
+                  <tbody className="divide-y divide-[#f3f3f5] tabular-nums">
                     <tr>
                       <td className="py-2.5 px-4 font-sans font-bold text-[#1D1D1F]">
                         Fondo Inicial de Caja
@@ -414,7 +414,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-[#fbfbfc] border border-[#e2e2e4] rounded-2xl space-y-1 font-mono">
+                <div className="p-3.5 bg-[#fbfbfc] border border-[#e2e2e4] rounded-2xl space-y-1 tabular-nums">
                   <span className="text-[10px] font-bold text-[#717785] uppercase tracking-wider block font-sans">
                     Hash de Inmutabilidad & SSoT:
                   </span>
@@ -450,10 +450,10 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                     <div key={idx} className="p-3 bg-[#f9f9fb] border border-[#e2e2e4] rounded-2xl space-y-1">
                       <span className="text-[10px] text-[#717785] block font-bold">{item.label}</span>
                       <div className="flex items-baseline justify-between">
-                        <span className="font-mono font-bold text-sm text-[#1D1D1F]">
+                        <span className="tabular-nums font-bold text-sm text-[#1D1D1F]">
                           {item.count || 0} un.
                         </span>
-                        <span className="font-mono font-bold text-xs text-[#0F172A]">
+                        <span className="tabular-nums font-bold text-xs text-[#0F172A]">
                           ${((item.count || 0) * item.val).toLocaleString('es-CL')}
                         </span>
                       </div>
@@ -495,7 +495,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                               ? 'GASTO MENOR'
                               : 'SANGRÍA BÓVEDA'}
                           </span>
-                          <span className="font-mono text-[11px] text-[#717785]">
+                          <span className="tabular-nums text-[11px] text-[#717785]">
                             {new Date(m.timestamp).toLocaleTimeString('es-CL')}
                           </span>
                         </div>
@@ -504,7 +504,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                           Solicitó: {m.requesterName || m.operatorName} | Autorizó: {m.authorizerName || m.authorizedBySupervisor || 'Supervisor'}
                         </span>
                       </div>
-                      <div className="text-right font-mono font-bold text-sm text-[#1D1D1F]">
+                      <div className="text-right tabular-nums font-bold text-sm text-[#1D1D1F]">
                         {m.type === 'INGRESO_MANUAL' ? '+' : '-'}${m.amount.toLocaleString('es-CL')} CLP
                       </div>
                     </div>
@@ -527,7 +527,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-4 bg-[#f9f9fb] border border-[#e2e2e4] rounded-2xl space-y-1">
                   <span className="text-[#717785] text-xs block font-medium">Vehículos Traspasados al Siguiente Turno:</span>
-                  <span className="text-2xl font-mono font-black text-[#0F172A]">
+                  <span className="text-2xl tabular-nums font-black text-[#0F172A]">
                     {shift.transferredVehiclesCount || 0}
                   </span>
                   <span className="text-[11px] text-[#515154] block mt-1">
@@ -537,7 +537,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
 
                 <div className="p-4 bg-[#f9f9fb] border border-[#e2e2e4] rounded-2xl space-y-1">
                   <span className="text-[#717785] text-xs block font-medium">Salidas Forzadas / Cobradas en Cierre:</span>
-                  <span className="text-2xl font-mono font-black text-slate-800">
+                  <span className="text-2xl tabular-nums font-black text-slate-800">
                     {shift.forcedExitVehiclesCount || 0}
                   </span>
                   <span className="text-[11px] text-[#515154] block mt-1">
@@ -593,7 +593,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                     <span className="font-extrabold text-xs text-[#0F172A] uppercase tracking-wider">
                       COPIA 1 — PARA LA CAJA DEL RECINTO (AUDITORÍA COMPLETA)
                     </span>
-                    <span className="text-[11px] font-mono text-slate-800 font-bold">
+                    <span className="text-[11px] tabular-nums text-slate-800 font-bold">
                       {shift.signedCopy1Caja ? '✓ Firmada y Sellada' : 'Pendiente de Firma'}
                     </span>
                   </div>
@@ -603,11 +603,11 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <span className="text-[#717785] block">Total Declarado:</span>
-                      <strong className="font-mono text-sm">${totalDeclared.toLocaleString('es-CL')} CLP</strong>
+                      <strong className="tabular-nums text-sm">${totalDeclared.toLocaleString('es-CL')} CLP</strong>
                     </div>
                     <div>
                       <span className="text-[#717785] block">Total Esperado Sistema:</span>
-                      <strong className="font-mono text-sm">${totalExpected.toLocaleString('es-CL')} CLP</strong>
+                      <strong className="tabular-nums text-sm">${totalExpected.toLocaleString('es-CL')} CLP</strong>
                     </div>
                   </div>
                   <div className="pt-3 border-t flex justify-end">
@@ -626,7 +626,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                     <span className="font-extrabold text-xs text-blue-900 uppercase tracking-wider">
                       COPIA 2 — RESPALDO LEGAL PARA EL OPERADOR (PROTECCIÓN LABORAL)
                     </span>
-                    <span className="text-[11px] font-mono text-slate-800 font-bold">
+                    <span className="text-[11px] tabular-nums text-slate-800 font-bold">
                       {shift.signedCopy2Operador ? '✓ Firmada por Operador' : 'Pendiente de Firma'}
                     </span>
                   </div>
@@ -636,19 +636,19 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                   <div className="grid grid-cols-3 gap-3 text-xs">
                     <div>
                       <span className="text-[#717785] block">Efectivo Físico Entregado:</span>
-                      <strong className="font-mono text-sm text-[#1D1D1F]">
+                      <strong className="tabular-nums text-sm text-[#1D1D1F]">
                         ${(shift.declaredCash || 0).toLocaleString('es-CL')} CLP
                       </strong>
                     </div>
                     <div>
                       <span className="text-[#717785] block">Vouchers POS Entregados:</span>
-                      <strong className="font-mono text-sm text-[#1D1D1F]">
+                      <strong className="tabular-nums text-sm text-[#1D1D1F]">
                         ${(shift.declaredCard || 0).toLocaleString('es-CL')} CLP
                       </strong>
                     </div>
                     <div>
                       <span className="text-[#717785] block">Transferencias Reportadas:</span>
-                      <strong className="font-mono text-sm text-[#1D1D1F]">
+                      <strong className="tabular-nums text-sm text-[#1D1D1F]">
                         ${(shift.declaredTransfer || 0).toLocaleString('es-CL')} CLP
                       </strong>
                     </div>

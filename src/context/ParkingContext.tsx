@@ -100,7 +100,7 @@ interface ParkingContextType {
   saveCustomer: (customer: Customer) => void;
   findCustomerByPlate: (plate: string) => Customer | undefined;
   
-  // Agreements (Abonados Mensuales & Convenios Comerciales)
+  // Agreements (Convenios Mensuales & Convenios Comerciales)
   agreements: Agreement[];
   findAgreementByPlate: (plate: string) => Agreement | undefined;
   renewAgreement: (
@@ -573,7 +573,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     addAuditLog(
       'CLIENTE_REGISTRADO',
-      `Nuevo vehículo incorporado a convenio/abonado: Patente ${newAgreement.plateNumber} a nombre de ${newAgreement.companyName}. Cuota mensual: $${newAgreement.monthlyFeeClp.toLocaleString('es-CL')} CLP`,
+      `Nuevo vehículo incorporado a convenio/mensualidad: Patente ${newAgreement.plateNumber} a nombre de ${newAgreement.companyName}. Cuota mensual: $${newAgreement.monthlyFeeClp.toLocaleString('es-CL')} CLP`,
       'info'
     );
 
@@ -818,7 +818,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const diffMs = exit.getTime() - entry.getTime();
     const durationMinutes = Math.max(1, Math.ceil(diffMs / (1000 * 60)));
 
-    // Exención total de cobro por minuto para Abonados Mensuales o Convenios Comerciales
+    // Exención total de cobro por minuto para Convenios Mensuales o Convenios Comerciales
     const hasAgreement = ticket.notes?.includes('CONVENIO') || Boolean(findAgreementByPlate(ticket.plateNumber));
     if (hasAgreement) {
       return {

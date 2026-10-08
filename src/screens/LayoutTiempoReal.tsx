@@ -65,7 +65,7 @@ export const LayoutTiempoReal: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveViewMode('mapa')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition flex items-center space-x-2 cursor-pointer border ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs tabular-nums font-bold transition flex items-center space-x-2 cursor-pointer border ${
               activeViewMode === 'mapa'
                 ? 'bg-slate-900 text-white border-slate-900'
                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
@@ -78,7 +78,7 @@ export const LayoutTiempoReal: React.FC = () => {
           <button
             type="button"
             onClick={() => setActiveViewMode('kanban')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold transition flex items-center space-x-2 cursor-pointer border ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs tabular-nums font-bold transition flex items-center space-x-2 cursor-pointer border ${
               activeViewMode === 'kanban'
                 ? 'bg-slate-900 text-white border-slate-900'
                 : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
@@ -90,7 +90,7 @@ export const LayoutTiempoReal: React.FC = () => {
         </div>
 
         <div className="text-right">
-          <span className="text-[11px] font-mono font-bold text-slate-700 bg-slate-100 border border-slate-300 px-3 py-1 rounded-md uppercase tracking-wider">
+          <span className="text-[11px] tabular-nums font-bold text-slate-700 bg-slate-100 border border-slate-300 px-3 py-1 rounded-md uppercase tracking-wider">
             Serrano 447 • Wireframe Mode
           </span>
         </div>
@@ -107,21 +107,21 @@ export const LayoutTiempoReal: React.FC = () => {
       ) : (
         <>
           {/* Page Title & Legend Header */}
-          <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono">
+          <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 tabular-nums">
             <div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-slate-800" />
                 <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-                  Layout de Plazas · Recinto Serrano 447
+                  Layout de Cupos · Recinto Serrano 447
                 </h2>
               </div>
               <p className="text-xs text-slate-500 mt-1">
-                Visualización gráfica estructural con código de cupos y estado de ocupación (30 Plazas)
+                Visualización gráfica estructural con código de cupos y estado de ocupación (30 Cupos)
               </p>
             </div>
 
             {/* Status Legend Badges */}
-            <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+            <div className="flex flex-wrap items-center gap-2 text-xs tabular-nums">
               <button
                 onClick={() => setSelectedStatusFilter('todos')}
                 className={`px-2.5 py-1 rounded-md border text-xs cursor-pointer ${
@@ -169,7 +169,7 @@ export const LayoutTiempoReal: React.FC = () => {
           </div>
 
           {/* Zone Tabs */}
-          <div className="flex border-b border-slate-300 space-x-2 font-mono text-xs">
+          <div className="flex border-b border-slate-300 space-x-2 tabular-nums text-xs">
             <button
               onClick={() => setSelectedZone('todos')}
               className={`pb-2 px-3 font-bold border-b-2 transition-all cursor-pointer ${
@@ -219,7 +219,7 @@ export const LayoutTiempoReal: React.FC = () => {
                   }`}
                 >
                   {/* Top Slot Header */}
-                  <div className="flex items-center justify-between font-mono">
+                  <div className="flex items-center justify-between tabular-nums">
                     <span className="font-bold text-xs tracking-wider text-slate-900 bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded">
                       {slot.code}
                     </span>
@@ -237,7 +237,7 @@ export const LayoutTiempoReal: React.FC = () => {
                   </div>
 
                   {/* Middle Content */}
-                  <div className="my-auto font-mono">
+                  <div className="my-auto tabular-nums">
                     {isOccupied ? (
                       <div className="space-y-1">
                         <span className="bg-white border border-slate-400 text-slate-900 font-bold text-[11px] px-1.5 py-0.5 rounded block text-center truncate tracking-wider">
@@ -268,7 +268,7 @@ export const LayoutTiempoReal: React.FC = () => {
                   </div>
 
                   {/* Bottom Zone Subtext */}
-                  <div className="text-[9px] font-bold text-slate-500 truncate font-mono">
+                  <div className="text-[9px] font-bold text-slate-500 truncate tabular-nums">
                     {slot.zone.replace('Zona ', '')}
                   </div>
                 </div>
@@ -278,7 +278,7 @@ export const LayoutTiempoReal: React.FC = () => {
 
           {/* Slot Interactive Detail Popover Modal */}
           {activeSlotModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 font-mono">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 tabular-nums">
               <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden border border-slate-400 text-slate-900">
                 
                 {/* Modal Header */}
@@ -288,7 +288,7 @@ export const LayoutTiempoReal: React.FC = () => {
                       {activeSlotModal.code}
                     </div>
                     <div>
-                      <h3 className="font-bold text-sm leading-tight">Plaza {activeSlotModal.code}</h3>
+                      <h3 className="font-bold text-sm leading-tight">Cupo {activeSlotModal.code}</h3>
                       <p className="text-slate-500 text-[11px]">{activeSlotModal.zone}</p>
                     </div>
                   </div>
@@ -349,7 +349,7 @@ export const LayoutTiempoReal: React.FC = () => {
                   ) : (
                     <div className="text-center space-y-3">
                       <div className="p-3 bg-slate-50 text-slate-700 rounded-lg border border-slate-300 text-xs">
-                        Plaza disponible para asignación vehicular inmediata.
+                        Cupo disponible para asignación vehicular inmediata.
                       </div>
 
                       <button

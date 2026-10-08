@@ -1,22 +1,25 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { ParkingProvider, useParking } from './context/ParkingContext';
 import { PlatformNavbar } from './components/pms/PlatformNavbar';
+import { ViewLoadingSkeleton } from './components/common/ViewLoadingSkeleton';
 import { LandingView } from './components/pms/LandingView';
 import { MenuView } from './components/pms/MenuView';
 import { PosView, PatioVehicle, CashHistoryLog } from './components/pms/PosView';
-import { AnalyticsView } from './components/pms/AnalyticsView';
-import { ReportsView } from './components/pms/ReportsView';
-import { ClientsView } from './components/pms/ClientsView';
-import { SettingsView } from './components/pms/SettingsView';
-import { SupportView } from './components/pms/SupportView';
 import { TicketPreviewModal, TicketPreviewData } from './components/pms/TicketPreviewModal';
 import { ArqueoCiegoModal } from './components/pms/ArqueoCiegoModal';
-import { CierreCajaCiego } from './screens/CierreCajaCiego';
-import { LoginPage } from './screens/LoginPage';
-import { CommandPalette } from './components/CommandPalette';
-import { ModalMovimientoCaja } from './components/ModalMovimientoCaja';
 import { AppScreen, UserRole, VehicleType, PaymentMethod } from './types';
 import { getScreenFromPath, getPathFromScreen, APP_ROUTES } from './utils/routes';
+
+// Lazy-loaded secondary modules to optimize initial bundle and Core Web Vitals (LCP <= 2.5s)
+const AnalyticsView = React.lazy(() => import('./components/pms/AnalyticsView').then((m) => ({ default: m.AnalyticsView })));
+const ReportsView = React.lazy(() => import('./components/pms/ReportsView').then((m) => ({ default: m.ReportsView })));
+const ClientsView = React.lazy(() => import('./components/pms/ClientsView').then((m) => ({ default: m.ClientsView })));
+const SettingsView = React.lazy(() => import('./components/pms/SettingsView').then((m) => ({ default: m.SettingsView })));
+const SupportView = React.lazy(() => import('./components/pms/SupportView').then((m) => ({ default: m.SupportView })));
+const CierreCajaCiego = React.lazy(() => import('./screens/CierreCajaCiego').then((m) => ({ default: m.CierreCajaCiego })));
+const LoginPage = React.lazy(() => import('./screens/LoginPage').then((m) => ({ default: m.LoginPage })));
+const CommandPalette = React.lazy(() => import('./components/CommandPalette').then((m) => ({ default: m.CommandPalette })));
+const ModalMovimientoCaja = React.lazy(() => import('./components/ModalMovimientoCaja').then((m) => ({ default: m.ModalMovimientoCaja })));
 
 function MainAppContent() {
   const {
@@ -64,6 +67,10 @@ function MainAppContent() {
   const [shiftTimer, setShiftTimer] = useState('00:00:00');
   useEffect(() => {
     const updateTimer = () => {
+      if (!currentShift || currentShift.status !== 'abierto') {
+        setShiftTimer('Turno Inactivo');
+        return;
+      }
       const start = new Date(currentShift.startTime).getTime();
       const now = Date.now();
       const diff = Math.max(0, Math.floor((now - start) / 1000));
@@ -75,7 +82,7 @@ function MainAppContent() {
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [currentShift.startTime]);
+  }, [currentShift?.startTime, currentShift?.status]);
 
   // Navigate handler that synchronizes browser URL
   const handleNavigate = useCallback((screen: AppScreen, replace = false) => {
@@ -190,7 +197,7 @@ function MainAppContent() {
 
   // History logs for POS
   const historyLogs: CashHistoryLog[] = [
-    ...(currentShift.cashMovements || []).map((m) => ({
+    ...((currentShift?.cashMovements || []) || []).map((m) => ({
       time: new Date(m.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
       type: (m.type === 'INGRESO_MANUAL' ? 'INGRESO_MANUAL' : 'RETIRO') as any,
       desc: m.reason,
@@ -216,11 +223,11 @@ function MainAppContent() {
         isEgreso: false,
       })),
     {
-      time: new Date(currentShift.startTime).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+      time: new Date((currentShift?.startTime || new Date().toISOString())).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
       type: 'APERTURA' as const,
-      desc: `Fondo Inicial Garita Turno ${currentShift.id}`,
+      desc: `Fondo Inicial Garita Turno ${(currentShift?.id || "N/A")}`,
       method: 'Efectivo',
-      amount: currentShift.initialCash,
+      amount: (currentShift?.initialCash || 50000),
       plate: '---',
       isEgreso: false,
     },
@@ -257,7 +264,7 @@ function MainAppContent() {
     const slotCode = availableSlot ? availableSlot.code : `A-${String(ticketPreviewData.slot).padStart(2, '0')}`;
     registerEntry(ticketPreviewData.plate, vehicleType, slotCode, ticketPreviewData.obs || ticketPreviewData.name);
     setIsTicketPreviewConfirmed(true);
-    showToast(`Ticket emitido para ${ticketPreviewData.plate} en plaza ${slotCode}`, 'success');
+    showToast(`Ticket emitido para ${ticketPreviewData.plate} en cupo ${slotCode}`, 'success');
   };
 
   // Handler: Process Checkout in POS
@@ -282,14 +289,16 @@ function MainAppContent() {
   // Dedicated Login Screen if explicitly on 'login' screen
   if (currentScreen === 'login') {
     return (
-      <LoginPage
-        initialRole={loginPresetRole}
-        targetScreen={pendingRedirectScreen || 'menu'}
-        onLoginSuccess={(targetScreen?: AppScreen) => {
-          setPendingRedirectScreen(undefined);
-          handleNavigate(targetScreen || 'menu');
-        }}
-      />
+      <Suspense fallback={<ViewLoadingSkeleton />}>
+        <LoginPage
+          initialRole={loginPresetRole}
+          targetScreen={pendingRedirectScreen || 'menu'}
+          onLoginSuccess={(targetScreen?: AppScreen) => {
+            setPendingRedirectScreen(undefined);
+            handleNavigate(targetScreen || 'menu');
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -299,152 +308,114 @@ function MainAppContent() {
   const occupiedSlotsCount = slots.filter((s) => s.status === 'ocupado').length;
   const activeAgreementsCount = agreements.filter((a) => a.status === 'al_dia').length;
 
+  // Render variables
+  const effectiveScreen = isLoggedIn ? currentScreen : 'landing';
+
   return (
-    <div className="min-h-screen bg-[#f4f6f9] flex flex-col font-sans text-slate-900 relative overflow-x-hidden selection:bg-slate-900 selection:text-white">
-      {/* Top Application Navbar */}
-      <PlatformNavbar
-        currentScreen={currentScreen}
-        onNavigate={(screen) => handleNavigate(screen)}
-        shiftTimer={shiftTimer}
-        operatorName={user.name}
-        onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
-        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-        onLogout={() => {
-          logout();
-          handleNavigate('login');
-        }}
-      />
+    <div className="h-screen w-screen bg-[#FEF9F5] flex flex-col font-sans text-[#2C1338] overflow-hidden selection:bg-[#E57CD8] selection:text-[#2C1338]">
+      {/* Top Application Navbar - Only show if logged in */}
+      {isLoggedIn && (
+        <PlatformNavbar
+          currentScreen={effectiveScreen}
+          onNavigate={(screen) => handleNavigate(screen)}
+          shiftTimer={shiftTimer}
+          operatorName={user.name}
+          onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onLogout={() => {
+            logout();
+            handleNavigate('landing');
+          }}
+        />
+      )}
 
-      {/* Main Viewport Container */}
-      <main className="flex-1 w-full mx-auto relative z-10 pb-16">
-        {/* 0. Portal de Acceso / Landing Wireframe */}
-        {currentScreen === 'landing' && (
-          <LandingView
-            onNavigate={(screen) => handleNavigate(screen)}
-            shiftTimer={shiftTimer}
-            onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
-            onShowToast={(msg, type) => showToast(msg, type)}
-          />
-        )}
+      {/* Main Workspace: Full-width viewport below top navbar */}
+      <main className="flex-1 overflow-y-auto relative z-10">
+        <Suspense fallback={<ViewLoadingSkeleton />}>
+          {/* 0. Portal de Acceso / Landing Wireframe */}
+          {effectiveScreen === 'landing' && (
+            <LandingView
+              onLoginSuccess={() => handleNavigate('menu')}
+              onNavigate={(screen) => handleNavigate(screen)}
+              shiftTimer={shiftTimer}
+              onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
+              onShowToast={(msg, type) => showToast(msg, type as any)}
+            />
+          )}
 
-        {/* 1. Menú Principal & Control de Turno */}
-        {(currentScreen === 'menu' || currentScreen === 'inicio') && (
-          <MenuView
-            occupiedCount={occupiedSlotsCount}
-            totalSlots={slots.length || 30}
-            shiftRevenue={shiftRevenue}
-            initialCash={currentShift.initialCash || 50000}
-            activeAgreementsCount={activeAgreementsCount}
-            totalAgreementsCount={agreements.length || 6}
-            onNavigate={(screen) => handleNavigate(screen)}
-            onOpenPosInSubtab={(subtab) => {
-              setPosInitialSubtab(subtab);
-              handleNavigate('pos');
-            }}
-            onShowToast={(msg, type) => showToast(msg, type)}
-          />
-        )}
+            {/* 1. Menú Principal & Control de Turno */}
+            {isLoggedIn && (effectiveScreen === 'menu' || effectiveScreen === 'inicio') && (
+              <MenuView
+                occupiedCount={occupiedSlotsCount}
+                totalSlots={slots.length || 30}
+                shiftRevenue={shiftRevenue}
+                initialCash={(currentShift?.initialCash || 50000) || 50000}
+                activeAgreementsCount={activeAgreementsCount}
+                totalAgreementsCount={agreements.length || 6}
+                onNavigate={(screen) => handleNavigate(screen)}
+                onOpenPosInSubtab={(subtab) => {
+                  setPosInitialSubtab(subtab);
+                  handleNavigate('pos');
+                }}
+                onShowToast={(msg, type) => showToast(msg, type)}
+              />
+            )}
 
-        {/* 2. Punto de Venta Garita (POS) */}
-        {(currentScreen === 'pos' || currentScreen === 'operacion_salida' || currentScreen === 'operacion_ingreso') && (
-          <PosView
-            initialSubtab={posInitialSubtab}
-            activeVehicles={activeVehicles}
-            historyLogs={historyLogs}
-            onOpenTicketPreview={handleOpenTicketPreview}
-            onProcessCheckout={handleProcessCheckout}
-            onOpenManualTransaction={() => setIsManualMovementModalOpen(true)}
-            onShowToast={(msg, type) => showToast(msg, type)}
-          />
-        )}
+            {/* 2. Punto de Venta Garita (POS) */}
+            {isLoggedIn && (effectiveScreen === 'pos' || effectiveScreen === 'operacion_salida' || effectiveScreen === 'operacion_ingreso') && (
+              <PosView
+                initialSubtab={posInitialSubtab}
+                activeVehicles={activeVehicles}
+                historyLogs={historyLogs}
+                onOpenTicketPreview={handleOpenTicketPreview}
+                onProcessCheckout={handleProcessCheckout}
+                onOpenManualTransaction={() => setIsManualMovementModalOpen(true)}
+                onShowToast={(msg, type) => showToast(msg, type)}
+              />
+            )}
 
-        {/* 3. Plano de Slots & Analítica Global */}
-        {(currentScreen === 'map' || currentScreen === 'operacion_layout') && (
-          <AnalyticsView
-            onShowToast={(msg, type) => showToast(msg, type)}
-            onNavigateToCheckout={(plate) => {
-              setPosInitialSubtab('exit');
-              handleNavigate('pos');
-            }}
-          />
-        )}
+            {/* 3. Plano de Slots & Analítica Global */}
+            {isLoggedIn && (effectiveScreen === 'map' || effectiveScreen === 'operacion_layout') && (
+              <AnalyticsView
+                onShowToast={(msg, type) => showToast(msg, type)}
+                onNavigateToCheckout={(plate) => {
+                  setPosInitialSubtab('exit');
+                  handleNavigate('pos');
+                }}
+              />
+            )}
 
-        {/* 4. Reportes & Auditoría */}
-        {(currentScreen === 'reports' || currentScreen === 'reportes_dashboard' || currentScreen === 'reportes_auditoria' || currentScreen === 'reportes_database') && (
-          <ReportsView
-            onShowToast={(msg, type) => showToast(msg, type)}
-            onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
-          />
-        )}
+            {/* 4. Reportes & Auditoría */}
+            {isLoggedIn && (effectiveScreen === 'reports' || effectiveScreen === 'reportes_dashboard' || effectiveScreen === 'reportes_auditoria' || effectiveScreen === 'reportes_database') && (
+              <ReportsView
+                onShowToast={(msg, type) => showToast(msg, type)}
+                onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
+              />
+            )}
 
-        {/* 5. Submódulo Paralelo de Abonados & Convenios */}
-        {(currentScreen === 'clients' || currentScreen === 'operacion_convenios') && (
-          <ClientsView onShowToast={(msg, type) => showToast(msg, type)} />
-        )}
+            {/* 5. Submódulo Paralelo de Convenios & Convenios */}
+            {isLoggedIn && (effectiveScreen === 'clients' || effectiveScreen === 'operacion_convenios') && (
+              <ClientsView onShowToast={(msg, type) => showToast(msg, type)} />
+            )}
 
-        {/* 6. Centro de Ayuda & SOPs */}
-        {currentScreen === 'support' && (
-          <SupportView onShowToast={(msg, type) => showToast(msg, type)} />
-        )}
+            {/* 6. Centro de Ayuda & SOPs */}
+            {isLoggedIn && effectiveScreen === 'support' && (
+              <SupportView onShowToast={(msg, type) => showToast(msg, type)} />
+            )}
 
-        {/* 7. Ajustes & Parámetros */}
-        {(currentScreen === 'settings' || currentScreen === 'config_tarifas' || currentScreen === 'config_sistema') && (
-          <SettingsView onShowToast={(msg, type) => showToast(msg, type)} />
-        )}
+            {/* 7. Ajustes & Parámetros */}
+            {isLoggedIn && (effectiveScreen === 'settings' || effectiveScreen === 'config_tarifas' || effectiveScreen === 'config_sistema') && (
+              <SettingsView onShowToast={(msg, type) => showToast(msg, type)} />
+            )}
 
-        {/* 8. Cierre Ciego de Turno (Pantalla Completa) */}
-        {currentScreen === 'operacion_cierre' && (
-          <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-            <CierreCajaCiego />
-          </div>
-        )}
+            {/* 8. Cierre Ciego de Turno (Pantalla Completa) */}
+            {isLoggedIn && effectiveScreen === 'operacion_cierre' && (
+              <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+                <CierreCajaCiego />
+              </div>
+            )}
+          </Suspense>
       </main>
-
-      {/* ── PERSISTENT SHIFT WIDGET (Bottom-Left Pill) ── */}
-      <div id="persistent-shift-widget" className="fixed bottom-5 left-5 z-40 group select-none">
-        <div className="h-10 px-4 rounded-full bg-[#0f172a] text-white border border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.2)] flex items-center gap-2.5 cursor-pointer hover:bg-[#1e293b] transition-all tabular-nums">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 live-pulse" />
-          <span className="text-[13px] font-mono font-bold" id="widget-shift-timer">
-            {shiftTimer}
-          </span>
-          <span className="text-white/20">|</span>
-          <span className="text-[13px] font-semibold truncate max-w-[120px]">{user.name}</span>
-        </div>
-
-        {/* Hover Popover Details */}
-        <div className="hidden group-hover:block absolute bottom-12 left-0 w-72 bg-[#0f172a] border border-white/10 rounded-2xl p-5 shadow-[0_16px_48px_rgba(0,0,0,0.3)] text-white text-xs space-y-4 animate-fade-in-up tabular-nums">
-          <div className="flex justify-between border-b border-white/10 pb-3">
-            <span className="font-mono text-[10px] text-slate-400 uppercase tracking-[0.08em]">
-              Turno Garita 01
-            </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-950 text-emerald-300 border border-emerald-900 font-bold">
-              ACTIVO
-            </span>
-          </div>
-          <div className="space-y-2 font-mono text-[12px]">
-            <div className="flex justify-between text-slate-400">
-              <span>Fondo Inicial:</span>
-              <span className="text-white font-semibold">
-                ${(currentShift.initialCash || 50000).toLocaleString('es-CL')}
-              </span>
-            </div>
-            <div className="flex justify-between text-slate-400">
-              <span>Recaudado Turno:</span>
-              <span className="text-emerald-400 font-bold">
-                ${shiftRevenue.toLocaleString('es-CL')}
-              </span>
-            </div>
-          </div>
-          <div className="pt-2 border-t border-white/10">
-            <button
-              onClick={() => setIsArqueoCiegoModalOpen(true)}
-              className="w-full h-9 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-900/40 text-rose-200 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <span>Arqueo Ciego &amp; Fin de Turno</span>
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Ticket Preview Modal (80mm Dual QR + Code 128) */}
       <TicketPreviewModal
@@ -464,7 +435,7 @@ function MainAppContent() {
       <ArqueoCiegoModal
         isOpen={isArqueoCiegoModalOpen}
         onClose={() => setIsArqueoCiegoModalOpen(false)}
-        initialFloat={currentShift.initialCash || 50000}
+        initialFloat={(currentShift?.initialCash || 50000) || 50000}
         shiftRevenue={shiftRevenue}
         onConfirmClose={() => {
           logout();
@@ -473,41 +444,46 @@ function MainAppContent() {
         onShowToast={(msg, type) => showToast(msg, type)}
       />
 
-      {/* Manual Cash Movement Modal */}
-      <ModalMovimientoCaja
-        isOpen={isManualMovementModalOpen}
-        onClose={() => setIsManualMovementModalOpen(false)}
-        onConfirm={(type, amount, reason, requester, authorizer, pin) => {
-          registerCashMovement(type, amount, reason, pin, requester, authorizer);
-          showToast(`Movimiento de caja registrado: $${amount.toLocaleString('es-CL')}`, 'success');
-          setIsManualMovementModalOpen(false);
-        }}
-        currentCashInDrawer={currentShift.initialCash || 50000}
-        activeOperatorName={user.name}
-      />
+      {/* Modals & Command Palette with Suspense */}
+      <Suspense fallback={null}>
+        {isManualMovementModalOpen && (
+          <ModalMovimientoCaja
+            isOpen={isManualMovementModalOpen}
+            onClose={() => setIsManualMovementModalOpen(false)}
+            onConfirm={(type, amount, reason, requester, authorizer, pin) => {
+              registerCashMovement(type, amount, reason, pin, requester, authorizer);
+              showToast(`Movimiento de caja registrado: $${amount.toLocaleString('es-CL')}`, 'success');
+              setIsManualMovementModalOpen(false);
+            }}
+            currentCashInDrawer={(currentShift?.initialCash || 50000) || 50000}
+            activeOperatorName={user.name}
+          />
+        )}
 
-      {/* Global Command Palette (⌘K) */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        onNavigate={(screen) => handleNavigate(screen)}
-        onSelectTicketForCheckout={() => {
-          setPosInitialSubtab('exit');
-          handleNavigate('pos');
-        }}
-      />
+        {isCommandPaletteOpen && (
+          <CommandPalette
+            isOpen={isCommandPaletteOpen}
+            onClose={() => setIsCommandPaletteOpen(false)}
+            onNavigate={(screen) => handleNavigate(screen)}
+            onSelectTicketForCheckout={() => {
+              setPosInitialSubtab('exit');
+              handleNavigate('pos');
+            }}
+          />
+        )}
+      </Suspense>
 
-      {/* Floating Toasts Notification System (High Fidelity) */}
+      {/* Floating Toasts Notification System (High Fidelity Toggl Style) */}
       <div id="toast-container" className="fixed top-4 right-4 z-50 flex flex-col gap-2.5 pointer-events-none max-w-sm w-full">
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-xl border shadow-[0_8px_24px_rgba(0,0,0,0.12)] text-[13px] font-medium animate-fade-in-up ${
+            className={`pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-2xl border shadow-[0_12px_32px_rgba(44,19,56,0.18)] text-[13px] font-medium animate-fade-in-up ${
               toast.type === 'success'
-                ? 'bg-[#052e16] text-emerald-100 border-emerald-900/60'
+                ? 'bg-[#2C1338] text-[#2B9E78] border-[#2B9E78]/40'
                 : toast.type === 'error'
-                ? 'bg-[#450a0a] text-rose-100 border-rose-900/60'
-                : 'bg-[#0f172a] text-slate-100 border-slate-800/80'
+                ? 'bg-[#2C1338] text-[#E2498A] border-[#E2498A]/40'
+                : 'bg-[#2C1338] text-[#FEF9F5] border-[#412A4C]'
             }`}
           >
             <span className="font-bold text-base shrink-0">

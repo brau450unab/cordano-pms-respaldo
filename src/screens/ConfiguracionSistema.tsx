@@ -123,7 +123,7 @@ export const ConfiguracionSistema: React.FC = () => {
     <div className="space-y-6 max-w-4xl mx-auto font-sans text-slate-900">
       
       {/* Title Header */}
-      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 tabular-nums">
         <div>
           <span className="text-[10px] font-bold tracking-wider text-slate-700 uppercase bg-slate-100 px-2 py-0.5 rounded inline-block border border-slate-300">
             CONFIGURACIÓN & SEGURIDAD RBAC
@@ -146,14 +146,14 @@ export const ConfiguracionSistema: React.FC = () => {
       </div>
 
       {savedSuccess && (
-        <div className="p-3 bg-slate-100 border border-slate-300 text-slate-900 rounded-lg text-xs font-mono font-bold flex items-center space-x-2">
+        <div className="p-3 bg-slate-100 border border-slate-300 text-slate-900 rounded-lg text-xs tabular-nums font-bold flex items-center space-x-2">
           <CheckCircle2 className="w-4 h-4 text-slate-700 shrink-0" />
           <span>Configuración guardada correctamente en el sistema.</span>
         </div>
       )}
 
       {testPrintSuccess && (
-        <div className="p-3 bg-slate-100 border border-slate-300 text-slate-900 rounded-lg text-xs font-mono font-bold flex items-center space-x-2">
+        <div className="p-3 bg-slate-100 border border-slate-300 text-slate-900 rounded-lg text-xs tabular-nums font-bold flex items-center space-x-2">
           <Printer className="w-4 h-4 text-slate-700 shrink-0" />
           <span>Ticket de prueba enviado a la impresora ({printerModel}).</span>
         </div>
@@ -161,12 +161,12 @@ export const ConfiguracionSistema: React.FC = () => {
 
       {/* Role Notice Banner for Operator */}
       {!isAdmin && (
-        <div className="p-4 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 flex items-start space-x-3 font-mono">
+        <div className="p-4 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 flex items-start space-x-3 tabular-nums">
           <div className="w-7 h-7 rounded bg-slate-200 text-slate-800 flex items-center justify-center shrink-0 mt-0.5 border border-slate-300">
             <Lock className="w-4 h-4" />
           </div>
           <div className="space-y-1 font-sans">
-            <div className="font-bold text-slate-900 font-mono text-xs">
+            <div className="font-bold text-slate-900 tabular-nums text-xs">
               [ SEGURIDAD & AISLAMIENTO DE MÓDULOS ACTIVO ]
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
@@ -176,7 +176,7 @@ export const ConfiguracionSistema: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSaveConfig} className="space-y-6 font-mono text-xs">
+      <form onSubmit={handleSaveConfig} className="space-y-6 tabular-nums text-xs">
         
         {/* Card 1: Hardware & Impresora */}
         <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-5 space-y-4">
@@ -230,7 +230,7 @@ export const ConfiguracionSistema: React.FC = () => {
               </div>
 
               {/* Hidden printable element */}
-              <div id="printable-system-test-ticket" className="hidden print:block p-4 text-black font-mono text-[11px] max-w-[280px] mx-auto text-center">
+              <div id="printable-system-test-ticket" className="hidden print:block p-4 text-black tabular-nums text-[11px] max-w-[280px] mx-auto text-center">
                 <p className="font-bold text-sm tracking-wider">CORDANO PARKING OPS</p>
                 <p className="text-[9px]">{recintoName} - RUT: {rutFiscal}</p>
                 <p className="text-[9px]">{address}</p>
@@ -291,7 +291,7 @@ export const ConfiguracionSistema: React.FC = () => {
         </div>
 
         {/* Card 2: Matriz RBAC */}
-        <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-5 space-y-3 font-mono">
+        <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-5 space-y-3 tabular-nums">
           <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
             <div className="flex items-center space-x-2">
               <ShieldAlert className="w-4 h-4 text-slate-800" />
@@ -328,7 +328,7 @@ export const ConfiguracionSistema: React.FC = () => {
                   <td className="py-2 px-3 text-[11px] text-slate-500 font-sans">Cobro por minuto y tickets</td>
                 </tr>
                 <tr>
-                  <td className="py-2 px-3 font-bold text-slate-900">Plano de 30 Plazas</td>
+                  <td className="py-2 px-3 font-bold text-slate-900">Plano de 30 Cupos</td>
                   <td className="py-2 px-3 text-center text-slate-900 font-bold">Habilitado</td>
                   <td className="py-2 px-3 text-center text-slate-900 font-bold">Habilitado</td>
                   <td className="py-2 px-3 text-[11px] text-slate-500 font-sans">Visualización en tiempo real</td>
@@ -415,7 +415,7 @@ export const ConfiguracionSistema: React.FC = () => {
         </div>
 
         {/* Card 4: Control de Acceso & Perfil */}
-        <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-5 space-y-3 font-mono">
+        <div className="bg-white rounded-xl border border-slate-300 shadow-xs p-5 space-y-3 tabular-nums">
           <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
             <div className="flex items-center space-x-2">
               <Users className="w-4 h-4 text-slate-800" />

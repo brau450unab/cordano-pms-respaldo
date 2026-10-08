@@ -157,7 +157,7 @@ export const ConfiguracionTarifas: React.FC = () => {
 
   if (!isSupervisor) {
     return (
-      <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl border border-slate-300 text-center space-y-4 font-mono">
+      <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl border border-slate-300 text-center space-y-4 tabular-nums">
         <div className="w-12 h-12 bg-slate-100 text-slate-900 rounded-lg flex items-center justify-center mx-auto border border-slate-300">
           <ShieldAlert className="w-6 h-6" />
         </div>
@@ -182,7 +182,7 @@ export const ConfiguracionTarifas: React.FC = () => {
   return (
     <div className="space-y-6 max-w-5xl mx-auto font-sans text-slate-900">
       {/* Header */}
-      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 tabular-nums">
         <div className="flex items-center space-x-3.5">
           <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center border border-slate-900 shrink-0">
             <Sliders className="w-5 h-5" />
@@ -252,7 +252,7 @@ export const ConfiguracionTarifas: React.FC = () => {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="p-3.5 bg-slate-100 border border-slate-300 rounded-lg flex items-center space-x-2.5 text-slate-900 text-xs font-mono font-bold"
+            className="p-3.5 bg-slate-100 border border-slate-300 rounded-lg flex items-center space-x-2.5 text-slate-900 text-xs tabular-nums font-bold"
           >
             <CheckCircle2 className="w-4 h-4 text-slate-800 shrink-0" />
             <span>{successMessage}</span>
@@ -261,7 +261,7 @@ export const ConfiguracionTarifas: React.FC = () => {
       </AnimatePresence>
 
       {/* Tabs Navigation (Wireframe Tabs) */}
-      <div className="flex flex-wrap gap-2 font-mono text-xs">
+      <div className="flex flex-wrap gap-2 tabular-nums text-xs">
         {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
@@ -283,7 +283,7 @@ export const ConfiguracionTarifas: React.FC = () => {
       </div>
 
       {/* Tab Panels */}
-      <form onSubmit={handleSave} className="space-y-6 font-mono text-xs">
+      <form onSubmit={handleSave} className="space-y-6 tabular-nums text-xs">
         {/* 1. EMPRESA & RECINTO */}
         {activeTab === 'general' && (
           <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs space-y-5">
@@ -332,7 +332,7 @@ export const ConfiguracionTarifas: React.FC = () => {
 
             <div className="border-t border-slate-200 pt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-1">
-                <label className="text-slate-800 font-bold block">Capacidad Total de Plazas</label>
+                <label className="text-slate-800 font-bold block">Capacidad Total de Cupos</label>
                 <input
                   type="number"
                   min="1"
@@ -341,7 +341,7 @@ export const ConfiguracionTarifas: React.FC = () => {
                   onChange={(e) => setTotalCapacity(parseInt(e.target.value) || 30)}
                   className="w-full px-2.5 py-1.5 rounded-md border border-slate-300 font-bold text-sm bg-white text-slate-900 outline-none"
                 />
-                <span className="text-[10px] text-slate-500 block">30 plazas en Zonas A, B y C</span>
+                <span className="text-[10px] text-slate-500 block">30 cupos en Zonas A, B y C</span>
               </div>
 
               <div className="bg-slate-50 p-3.5 rounded-lg border border-slate-200 space-y-1">
@@ -543,7 +543,7 @@ export const ConfiguracionTarifas: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="text-right font-mono">
+                  <div className="text-right tabular-nums">
                     <span className="inline-block px-2 py-0.5 bg-slate-900 text-white text-[10px] font-bold rounded">
                       VIGENCIA: {new Date().toLocaleDateString('es-CL')}
                     </span>
@@ -569,7 +569,7 @@ export const ConfiguracionTarifas: React.FC = () => {
                         <th className="py-2 px-2.5 text-right bg-slate-200">Tope Día</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 font-mono">
+                    <tbody className="divide-y divide-slate-200 tabular-nums">
                       {vehicleTypesList.map((vType) => {
                         const rate = formConfig.vehicleRates[vType];
                         const mRate = rate?.minuteRate || 0;
@@ -768,7 +768,7 @@ export const ConfiguracionTarifas: React.FC = () => {
               </div>
 
               {/* Hidden printable test ticket element */}
-              <div id="printable-test-ticket" className="hidden print:block p-4 text-black font-mono text-[11px] max-w-[280px] mx-auto text-center">
+              <div id="printable-test-ticket" className="hidden print:block p-4 text-black tabular-nums text-[11px] max-w-[280px] mx-auto text-center">
                 <p className="font-bold text-sm tracking-wider">{ticketHeaderTitle}</p>
                 <p className="text-[9px]">{companyName} - RUT: {rutEmpresa}</p>
                 <p className="text-[9px]">{address}</p>

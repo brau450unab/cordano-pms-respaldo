@@ -115,12 +115,12 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="font-mono text-xs font-bold text-slate-800 uppercase tracking-wider">
+            <span className="tabular-nums text-xs font-bold text-slate-800 uppercase tracking-wider">
               [ PUESTO DE CONTROL GARITA · SERRANO 447 · IQUIQUE ]
             </span>
           </div>
-          <p className="text-xs font-mono text-slate-500 mt-1">
-            Gestión operacional de 30 plazas de estacionamiento en tiempo real · Tarificación activa
+          <p className="text-xs tabular-nums text-slate-500 mt-1">
+            Gestión operacional de 30 cupos de estacionamiento en tiempo real · Tarificación activa
           </p>
         </div>
 
@@ -129,14 +129,14 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
           {isShiftOpen ? (
             <div className="flex items-center space-x-3 border border-slate-200 bg-slate-50 px-3.5 py-1.5 rounded-lg">
               <div>
-                <span className="text-[10px] font-mono text-slate-500 block uppercase">Estado Turno</span>
-                <span className="text-xs font-mono font-bold text-slate-800">
+                <span className="text-[10px] tabular-nums text-slate-500 block uppercase">Estado Turno</span>
+                <span className="text-xs tabular-nums font-bold text-slate-800">
                   Turno #{currentShift.id.slice(-6)} · {currentShift.operatorName}
                 </span>
               </div>
               <button
                 onClick={() => onNavigate('operacion_cierre')}
-                className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded text-xs font-mono font-semibold transition cursor-pointer"
+                className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded text-xs tabular-nums font-semibold transition cursor-pointer"
               >
                 Arqueo Ciego [F4]
               </button>
@@ -144,7 +144,7 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
           ) : (
             <button
               onClick={() => setIsAperturaModalOpen(true)}
-              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-mono font-semibold text-xs rounded-lg shadow-xs flex items-center space-x-2 transition cursor-pointer"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white tabular-nums font-semibold text-xs rounded-lg shadow-xs flex items-center space-x-2 transition cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5" />
               <span>Abrir Nuevo Turno</span>
@@ -158,13 +158,13 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
         {/* Metric 1: Ocupación */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
           <div className="border border-dashed border-slate-300 rounded-lg p-3 bg-slate-50/60 flex flex-col items-center justify-center text-center">
-            <span className="font-mono text-[10px] uppercase font-bold text-slate-600 tracking-wider">
+            <span className="tabular-nums text-[10px] uppercase font-bold text-slate-600 tracking-wider">
               [ Slot: Ocupación Garita ]
             </span>
-            <div className="text-2xl font-black font-mono text-slate-900 mt-1">
-              {occupiedSlots} <span className="text-xs font-mono font-normal text-slate-500">/ 30</span>
+            <div className="text-2xl font-black tabular-nums text-slate-900 mt-1">
+              {occupiedSlots} <span className="text-xs tabular-nums font-normal text-slate-500">/ 30</span>
             </div>
-            <span className="font-mono text-[11px] text-slate-500 mt-0.5">
+            <span className="tabular-nums text-[11px] text-slate-500 mt-0.5">
               {occupancyPercentage}% de capacidad
             </span>
           </div>
@@ -175,7 +175,7 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                 style={{ width: `${occupancyPercentage}%` }}
               />
             </div>
-            <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-1.5">
+            <div className="flex items-center justify-between text-[10px] tabular-nums text-slate-500 pt-1.5">
               <span>Zona A: {zoneAOccupied}/10</span>
               <span>Zona B: {zoneBOccupied}/10</span>
               <span>Zona C: {zoneCOccupied}/10</span>
@@ -186,17 +186,17 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
         {/* Metric 2: Disponibilidad */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
           <div className="border border-dashed border-slate-300 rounded-lg p-3 bg-slate-50/60 flex flex-col items-center justify-center text-center">
-            <span className="font-mono text-[10px] uppercase font-bold text-slate-600 tracking-wider">
+            <span className="tabular-nums text-[10px] uppercase font-bold text-slate-600 tracking-wider">
               [ Slot: Disponibilidad Inmediata ]
             </span>
-            <div className="text-2xl font-black font-mono text-slate-900 mt-1">
-              {availableSlots} <span className="text-xs font-mono font-normal text-slate-500">Libres</span>
+            <div className="text-2xl font-black tabular-nums text-slate-900 mt-1">
+              {availableSlots} <span className="text-xs tabular-nums font-normal text-slate-500">Libres</span>
             </div>
-            <span className="font-mono text-[11px] text-slate-500 mt-0.5">
+            <span className="tabular-nums text-[11px] text-slate-500 mt-0.5">
               Entrada y pistas expeditas
             </span>
           </div>
-          <p className="text-[11px] font-mono text-slate-500 leading-normal text-center">
+          <p className="text-[11px] tabular-nums text-slate-500 leading-normal text-center">
             Tolerancia de 15 min de gracia activa según tarifario local.
           </p>
         </div>
@@ -204,17 +204,17 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
         {/* Metric 3: Recaudación */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
           <div className="border border-dashed border-slate-300 rounded-lg p-3 bg-slate-50/60 flex flex-col items-center justify-center text-center">
-            <span className="font-mono text-[10px] uppercase font-bold text-slate-600 tracking-wider">
+            <span className="tabular-nums text-[10px] uppercase font-bold text-slate-600 tracking-wider">
               [ Slot: Recaudación Turno ]
             </span>
-            <div className="text-2xl font-black font-mono text-slate-900 mt-1">
+            <div className="text-2xl font-black tabular-nums text-slate-900 mt-1">
               ${totalShiftRevenue.toLocaleString('es-CL')}
             </div>
-            <span className="font-mono text-[11px] text-slate-500 mt-0.5">
+            <span className="tabular-nums text-[11px] text-slate-500 mt-0.5">
               Pesos Chilenos (CLP)
             </span>
           </div>
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate-600 px-1">
+          <div className="flex items-center justify-between text-[10px] tabular-nums text-slate-600 px-1">
             <span>Efectivo: ${shiftCashTotal.toLocaleString('es-CL')}</span>
             <span>Digital: ${shiftDigitalTotal.toLocaleString('es-CL')}</span>
           </div>
@@ -223,17 +223,17 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
         {/* Metric 4: Alertas */}
         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-xs">
           <div className="border border-dashed border-slate-300 rounded-lg p-3 bg-slate-50/60 flex flex-col items-center justify-center text-center">
-            <span className="font-mono text-[10px] uppercase font-bold text-slate-600 tracking-wider">
+            <span className="tabular-nums text-[10px] uppercase font-bold text-slate-600 tracking-wider">
               [ Slot: Alertas de Estadía ]
             </span>
-            <div className={`text-2xl font-black font-mono mt-1 ${overstayTickets.length > 0 ? 'text-slate-800' : 'text-slate-900'}`}>
-              {overstayTickets.length} <span className="text-xs font-mono font-normal text-slate-500">&gt; 3 Horas</span>
+            <div className={`text-2xl font-black tabular-nums mt-1 ${overstayTickets.length > 0 ? 'text-slate-800' : 'text-slate-900'}`}>
+              {overstayTickets.length} <span className="text-xs tabular-nums font-normal text-slate-500">&gt; 3 Horas</span>
             </div>
-            <span className="font-mono text-[11px] text-slate-500 mt-0.5">
+            <span className="tabular-nums text-[11px] text-slate-500 mt-0.5">
               {overstayTickets.length > 0 ? 'Requiere verificación' : 'Sin sobreestadías'}
             </span>
           </div>
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 px-1">
+          <div className="flex items-center justify-between text-[10px] tabular-nums text-slate-500 px-1">
             <span>Pagados hoy: {paidTickets.length}</span>
             <span>Activos: {activeTickets.length}</span>
           </div>
@@ -243,10 +243,10 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
       {/* 3. OPERATOR QUICK-ACTION DOCK (Wireframes matching image reference) */}
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
-          <span className="font-mono text-xs font-bold text-slate-800 uppercase tracking-wider">
+          <span className="tabular-nums text-xs font-bold text-slate-800 uppercase tracking-wider">
             OPERACIONES & ACCIONES DE GARITA (WIREFRAMES)
           </span>
-          <span className="font-mono text-xs text-slate-500">
+          <span className="tabular-nums text-xs text-slate-500">
             Atajos de Teclado F1 - F5
           </span>
         </div>
@@ -259,13 +259,13 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
           >
             <div className="border border-dashed border-slate-300 rounded-lg h-20 flex flex-col items-center justify-center bg-slate-50/60 group-hover:bg-slate-100/80 transition">
               <Car className="w-5 h-5 text-slate-600 mb-1" />
-              <span className="font-mono text-[10px] text-slate-500">[ F1 ]</span>
+              <span className="tabular-nums text-[10px] text-slate-500">[ F1 ]</span>
             </div>
             <div className="mt-3 text-center">
               <span className="font-bold text-slate-900 text-xs block">
                 Registrar Ingreso
               </span>
-              <span className="font-mono text-[10px] text-slate-500 block mt-0.5">
+              <span className="tabular-nums text-[10px] text-slate-500 block mt-0.5">
                 Entrada rápida &lt; 4 seg
               </span>
             </div>
@@ -278,13 +278,13 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
           >
             <div className="border border-dashed border-slate-300 rounded-lg h-20 flex flex-col items-center justify-center bg-slate-50/60 group-hover:bg-slate-100/80 transition">
               <Receipt className="w-5 h-5 text-slate-600 mb-1" />
-              <span className="font-mono text-[10px] text-slate-500">[ F2 ]</span>
+              <span className="tabular-nums text-[10px] text-slate-500">[ F2 ]</span>
             </div>
             <div className="mt-3 text-center">
               <span className="font-bold text-slate-900 text-xs block">
                 Punto de Venta POS
               </span>
-              <span className="font-mono text-[10px] text-slate-500 block mt-0.5">
+              <span className="tabular-nums text-[10px] text-slate-500 block mt-0.5">
                 Cálculo tarifa y vuelto
               </span>
             </div>
@@ -297,13 +297,13 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
           >
             <div className="border border-dashed border-slate-300 rounded-lg h-20 flex flex-col items-center justify-center bg-slate-50/60 group-hover:bg-slate-100/80 transition">
               <MapPin className="w-5 h-5 text-slate-600 mb-1" />
-              <span className="font-mono text-[10px] text-slate-500">[ F3 ]</span>
+              <span className="tabular-nums text-[10px] text-slate-500">[ F3 ]</span>
             </div>
             <div className="mt-3 text-center">
               <span className="font-bold text-slate-900 text-xs block">
-                Plano de 30 Plazas
+                Plano de 30 Cupos
               </span>
-              <span className="font-mono text-[10px] text-slate-500 block mt-0.5">
+              <span className="tabular-nums text-[10px] text-slate-500 block mt-0.5">
                 Matriz en tiempo real
               </span>
             </div>
@@ -316,13 +316,13 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
           >
             <div className="border border-dashed border-slate-300 rounded-lg h-20 flex flex-col items-center justify-center bg-slate-50/60 group-hover:bg-slate-100/80 transition">
               <Lock className="w-5 h-5 text-slate-600 mb-1" />
-              <span className="font-mono text-[10px] text-slate-500">[ F4 ]</span>
+              <span className="tabular-nums text-[10px] text-slate-500">[ F4 ]</span>
             </div>
             <div className="mt-3 text-center">
               <span className="font-bold text-slate-900 text-xs block">
                 Arqueo Ciego
               </span>
-              <span className="font-mono text-[10px] text-slate-500 block mt-0.5">
+              <span className="tabular-nums text-[10px] text-slate-500 block mt-0.5">
                 Cuadratura sin sesgo
               </span>
             </div>
@@ -335,13 +335,13 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
           >
             <div className="border border-dashed border-slate-300 rounded-lg h-20 flex flex-col items-center justify-center bg-slate-50/60 group-hover:bg-slate-100/80 transition">
               <Building2 className="w-5 h-5 text-slate-600 mb-1" />
-              <span className="font-mono text-[10px] text-slate-500">[ F5 ]</span>
+              <span className="tabular-nums text-[10px] text-slate-500">[ F5 ]</span>
             </div>
             <div className="mt-3 text-center">
               <span className="font-bold text-slate-900 text-xs block">
-                Abonados & Flotas
+                Convenios & Flotas
               </span>
-              <span className="font-mono text-[10px] text-slate-500 block mt-0.5">
+              <span className="tabular-nums text-[10px] text-slate-500 block mt-0.5">
                 Convenios y tarifas
               </span>
             </div>
@@ -353,15 +353,15 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
       <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
-            <span className="font-mono text-xs font-bold text-slate-800 uppercase tracking-wider block">
+            <span className="tabular-nums text-xs font-bold text-slate-800 uppercase tracking-wider block">
               MATRIZ DE OCUPACIÓN EN TIEMPO REAL (30 PLAZAS)
             </span>
-            <span className="text-[11px] font-mono text-slate-500 mt-0.5 block">
+            <span className="text-[11px] tabular-nums text-slate-500 mt-0.5 block">
               Serrano 447, Iquique · Haga clic en cualquier slot para inspeccionar o gestionar
             </span>
           </div>
 
-          <div className="flex items-center space-x-3 text-xs font-mono">
+          <div className="flex items-center space-x-3 text-xs tabular-nums">
             <span className="flex items-center space-x-1.5 text-slate-600">
               <span className="w-2.5 h-2.5 rounded border border-dashed border-slate-400 bg-slate-50" />
               <span>Libre ({availableSlots})</span>
@@ -372,7 +372,7 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
             </span>
             <button
               onClick={() => onNavigate('operacion_layout')}
-              className="text-xs font-mono text-slate-800 hover:text-black font-semibold flex items-center space-x-1 transition ml-2 border border-slate-300 px-2 py-0.5 rounded"
+              className="text-xs tabular-nums text-slate-800 hover:text-black font-semibold flex items-center space-x-1 transition ml-2 border border-slate-300 px-2 py-0.5 rounded"
             >
               <span>Ver plano completo</span>
               <ChevronRight className="w-3 h-3" />
@@ -384,9 +384,9 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
         <div className="space-y-3">
           {/* Zone A */}
           <div>
-            <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-600 mb-1.5">
+            <div className="flex items-center justify-between text-[11px] tabular-nums font-semibold text-slate-600 mb-1.5">
               <span>Zona A (Rotación Rápida · A-01 a A-10)</span>
-              <span className="font-mono">{zoneAOccupied} / 10 Ocupadas</span>
+              <span className="tabular-nums">{zoneAOccupied} / 10 Ocupadas</span>
             </div>
             <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
               {zoneA.map((slot) => {
@@ -408,15 +408,15 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                         : 'border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-400'
                     }`}
                   >
-                    <span className="font-mono text-xs font-bold text-slate-900 block">
+                    <span className="tabular-nums text-xs font-bold text-slate-900 block">
                       {slot.code}
                     </span>
                     {isOccupied && ticket ? (
-                      <span className="font-mono text-[10px] font-bold text-slate-700 truncate w-full mt-0.5">
+                      <span className="tabular-nums text-[10px] font-bold text-slate-700 truncate w-full mt-0.5">
                         {ticket.plateNumber}
                       </span>
                     ) : (
-                      <span className="font-mono text-[9px] text-slate-400 block mt-0.5">
+                      <span className="tabular-nums text-[9px] text-slate-400 block mt-0.5">
                         [ Libre ]
                       </span>
                     )}
@@ -428,9 +428,9 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
 
           {/* Zone B */}
           <div>
-            <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-600 mb-1.5">
+            <div className="flex items-center justify-between text-[11px] tabular-nums font-semibold text-slate-600 mb-1.5">
               <span>Zona B (Techada Central · B-01 a B-10)</span>
-              <span className="font-mono">{zoneBOccupied} / 10 Ocupadas</span>
+              <span className="tabular-nums">{zoneBOccupied} / 10 Ocupadas</span>
             </div>
             <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
               {zoneB.map((slot) => {
@@ -452,15 +452,15 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                         : 'border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-400'
                     }`}
                   >
-                    <span className="font-mono text-xs font-bold text-slate-900 block">
+                    <span className="tabular-nums text-xs font-bold text-slate-900 block">
                       {slot.code}
                     </span>
                     {isOccupied && ticket ? (
-                      <span className="font-mono text-[10px] font-bold text-slate-700 truncate w-full mt-0.5">
+                      <span className="tabular-nums text-[10px] font-bold text-slate-700 truncate w-full mt-0.5">
                         {ticket.plateNumber}
                       </span>
                     ) : (
-                      <span className="font-mono text-[9px] text-slate-400 block mt-0.5">
+                      <span className="tabular-nums text-[9px] text-slate-400 block mt-0.5">
                         [ Libre ]
                       </span>
                     )}
@@ -472,9 +472,9 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
 
           {/* Zone C */}
           <div>
-            <div className="flex items-center justify-between text-[11px] font-mono font-semibold text-slate-600 mb-1.5">
-              <span>Zona C (Abonados & Flotas · C-01 a C-10)</span>
-              <span className="font-mono">{zoneCOccupied} / 10 Ocupadas</span>
+            <div className="flex items-center justify-between text-[11px] tabular-nums font-semibold text-slate-600 mb-1.5">
+              <span>Zona C (Convenios & Flotas · C-01 a C-10)</span>
+              <span className="tabular-nums">{zoneCOccupied} / 10 Ocupadas</span>
             </div>
             <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
               {zoneC.map((slot) => {
@@ -496,15 +496,15 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                         : 'border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100 hover:border-slate-400'
                     }`}
                   >
-                    <span className="font-mono text-xs font-bold text-slate-900 block">
+                    <span className="tabular-nums text-xs font-bold text-slate-900 block">
                       {slot.code}
                     </span>
                     {isOccupied && ticket ? (
-                      <span className="font-mono text-[10px] font-bold text-slate-700 truncate w-full mt-0.5">
+                      <span className="tabular-nums text-[10px] font-bold text-slate-700 truncate w-full mt-0.5">
                         {ticket.plateNumber}
                       </span>
                     ) : (
-                      <span className="font-mono text-[9px] text-slate-400 block mt-0.5">
+                      <span className="tabular-nums text-[9px] text-slate-400 block mt-0.5">
                         [ Libre ]
                       </span>
                     )}
@@ -521,10 +521,10 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
         {/* Table Filter Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
-            <span className="font-mono text-xs font-bold text-slate-800 uppercase tracking-wider block">
+            <span className="tabular-nums text-xs font-bold text-slate-800 uppercase tracking-wider block">
               [ MONITOR DE VEHÍCULOS EN RECINTO: {filteredActiveTickets.length} ACTIVOS ]
             </span>
-            <span className="text-xs font-mono text-slate-500 block mt-0.5">
+            <span className="text-xs tabular-nums text-slate-500 block mt-0.5">
               Cálculo de tarifas en tiempo real · Tolerancia de 15 minutos aplicada
             </span>
           </div>
@@ -538,12 +538,12 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
                 placeholder="Filtrar patente..."
-                className="bg-slate-50 border border-slate-300 rounded-lg pl-8 pr-3 py-1.5 text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-500 w-44"
+                className="bg-slate-50 border border-slate-300 rounded-lg pl-8 pr-3 py-1.5 text-xs tabular-nums text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-500 w-44"
               />
             </div>
 
             {/* Filter Buttons */}
-            <div className="flex items-center bg-slate-50 p-0.5 rounded-lg border border-slate-200 text-xs font-mono">
+            <div className="flex items-center bg-slate-50 p-0.5 rounded-lg border border-slate-200 text-xs tabular-nums">
               <button
                 onClick={() => setActiveVehicleFilter('todos')}
                 className={`px-2.5 py-1 rounded font-medium transition cursor-pointer ${
@@ -582,12 +582,12 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
 
         {/* Table Content */}
         {filteredActiveTickets.length === 0 ? (
-          <div className="py-12 text-center text-xs font-mono text-slate-500">
+          <div className="py-12 text-center text-xs tabular-nums text-slate-500">
             {searchFilter ? 'No hay vehículos coincidentes con el filtro' : 'No hay vehículos estacionados actualmente en esta sección'}
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs font-mono">
+            <table className="w-full text-left text-xs tabular-nums">
               <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
                 <tr>
                   <th className="py-3 px-4">Patente</th>
@@ -624,7 +624,7 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-400 font-mono block">
+                        <span className="text-[10px] text-slate-400 tabular-nums block">
                           #{ticket.ticketCode}
                         </span>
                       </td>
@@ -678,7 +678,7 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                             }
                             onNavigate('operacion_salida');
                           }}
-                          className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-mono font-semibold text-xs rounded-lg shadow-xs transition inline-flex items-center space-x-1 cursor-pointer"
+                          className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white tabular-nums font-semibold text-xs rounded-lg shadow-xs transition inline-flex items-center space-x-1 cursor-pointer"
                         >
                           <span>Cobrar</span>
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -709,12 +709,12 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
             >
               <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                 <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 rounded border border-slate-800 bg-slate-900 text-white flex items-center justify-center font-mono font-bold text-xs">
+                  <div className="w-8 h-8 rounded border border-slate-800 bg-slate-900 text-white flex items-center justify-center tabular-nums font-bold text-xs">
                     {selectedSlotForDrawer.code}
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 font-mono">[ PLAZA {selectedSlotForDrawer.code} ]</h3>
-                    <span className="text-xs text-slate-500 font-mono">{selectedSlotForDrawer.zone} · Serrano 447</span>
+                    <h3 className="text-sm font-bold text-slate-900 tabular-nums">[ PLAZA {selectedSlotForDrawer.code} ]</h3>
+                    <span className="text-xs text-slate-500 tabular-nums">{selectedSlotForDrawer.zone} · Serrano 447</span>
                   </div>
                 </div>
                 <button
@@ -729,8 +729,8 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                 const ticket = activeTickets.find((t) => t.slotCode === selectedSlotForDrawer.code);
                 if (!ticket) {
                   return (
-                    <div className="py-4 text-center text-xs font-mono text-slate-500 border border-dashed border-slate-200 rounded-lg bg-slate-50">
-                      Plaza actualmente disponible
+                    <div className="py-4 text-center text-xs tabular-nums text-slate-500 border border-dashed border-slate-200 rounded-lg bg-slate-50">
+                      Cupo actualmente disponible
                     </div>
                   );
                 }
@@ -738,7 +738,7 @@ export const InicioHub: React.FC<InicioHubProps> = ({ onNavigate, onSelectTicket
                 const entryDate = new Date(ticket.entryTime);
 
                 return (
-                  <div className="space-y-3 text-xs font-mono">
+                  <div className="space-y-3 text-xs tabular-nums">
                     <div className="border border-dashed border-slate-300 p-3 rounded-lg bg-slate-50/60 flex items-center justify-between">
                       <div>
                         <span className="text-[10px] text-slate-500 block uppercase">Patente Vehículo</span>

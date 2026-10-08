@@ -77,7 +77,7 @@ export const AccessDeniedGate: React.FC<AccessDeniedGateProps> = ({
             <div className="bg-[#f9f9fb] p-4 rounded-2xl border border-[#e2e2e4] text-left text-xs space-y-2">
               <div className="flex items-center justify-between text-[#717785]">
                 <span>Módulo Solicitado:</span>
-                <span className="font-mono font-bold text-[#1D1D1F]">{route.title}</span>
+                <span className="tabular-nums font-bold text-[#1D1D1F]">{route.title}</span>
               </div>
               <div className="flex items-center justify-between text-[#717785]">
                 <span>Categoría:</span>
@@ -85,7 +85,7 @@ export const AccessDeniedGate: React.FC<AccessDeniedGateProps> = ({
               </div>
               <div className="flex items-center justify-between text-[#717785]">
                 <span>Ruta Protegida:</span>
-                <span className="font-mono text-[#1D1D1F]">{route.path}</span>
+                <span className="tabular-nums text-[#1D1D1F]">{route.path}</span>
               </div>
             </div>
 

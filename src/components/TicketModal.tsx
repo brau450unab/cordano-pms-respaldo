@@ -84,7 +84,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
               <h3 className="font-black text-sm tracking-tight text-white leading-tight">
                 {title}
               </h3>
-              <p className="text-[10px] text-white/60 font-mono">
+              <p className="text-[10px] text-white/60 tabular-nums">
                 {ticket.ticketCode} • {ticket.plateNumber}
               </p>
             </div>
@@ -148,7 +148,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-slate-50/50">
           <div
             id="printable-ticket"
-            className={`mx-auto bg-white rounded-2xl p-5 border border-dashed border-[#c1c6d6] shadow-xs font-mono text-[#1a1c1d] ${
+            className={`mx-auto bg-white rounded-2xl p-5 border border-dashed border-[#c1c6d6] shadow-xs tabular-nums text-[#1a1c1d] ${
               paperSize === '58mm' ? 'max-w-[260px]' : 'max-w-[320px]'
             }`}
           >
@@ -235,7 +235,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                   ))}
                 </div>
               </div>
-              <p className="text-[10px] text-[#717785] font-mono mt-1">* {ticket.ticketCode} *</p>
+              <p className="text-[10px] text-[#717785] tabular-nums mt-1">* {ticket.ticketCode} *</p>
               <p className="text-[9px] text-[#9095a5] font-sans mt-0.5">Tolerancia: 10 min de gracia</p>
             </div>
           </div>

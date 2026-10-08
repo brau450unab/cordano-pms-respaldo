@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useParking } from '../context/ParkingContext';
 import { Shift, ChileanCashBreakdown } from '../types';
+import { generateShiftReportPDF, generateShiftOpenReportPDF } from '../utils/pdfGenerator';
 import { ModalAperturaTurno } from '../components/ModalAperturaTurno';
 import { ModalMovimientoCaja } from '../components/ModalMovimientoCaja';
 import { ModalRevisionVehiculosCierre } from '../components/ModalRevisionVehiculosCierre';
@@ -237,7 +238,7 @@ export const CierreCajaCiego: React.FC = () => {
   return (
     <div className="space-y-6 max-w-4xl mx-auto font-sans text-slate-900">
       {/* Title Header */}
-      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 tabular-nums">
         <div className="flex items-center space-x-3.5">
           <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center border border-slate-900 shrink-0">
             <Lock className="w-5 h-5" />
@@ -262,6 +263,17 @@ export const CierreCajaCiego: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-2">
+          {!isShiftClosed && currentShift && (
+            <button
+              type="button"
+              onClick={() => generateShiftOpenReportPDF(currentShift)}
+              className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer border border-emerald-200"
+            >
+              <FileCheck className="w-3.5 h-3.5" />
+              <span>PDF Apertura</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setIsInstruccionesOpen(true)}
@@ -285,7 +297,7 @@ export const CierreCajaCiego: React.FC = () => {
 
           <div className="text-right">
             <span
-              className={`inline-block font-mono font-bold text-xs px-2.5 py-1 rounded border ${
+              className={`inline-block tabular-nums font-bold text-xs px-2.5 py-1 rounded border ${
                 isShiftClosed
                   ? 'bg-slate-900 text-white border-slate-900'
                   : 'bg-slate-100 text-slate-800 border-slate-300'
@@ -299,7 +311,7 @@ export const CierreCajaCiego: React.FC = () => {
 
       {/* BLOQUE REVISIÓN DE VEHÍCULOS EN RECINTO */}
       {hasActiveVehicles && !isShiftClosed && (
-        <div className="p-4 bg-slate-50 border border-slate-300 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono text-xs">
+        <div className="p-4 bg-slate-50 border border-slate-300 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 tabular-nums text-xs">
           <div className="flex items-start space-x-3">
             <div className="w-8 h-8 rounded bg-slate-200 text-slate-800 border border-slate-300 flex items-center justify-center shrink-0 mt-0.5">
               <Car className="w-4 h-4" />
@@ -340,7 +352,7 @@ export const CierreCajaCiego: React.FC = () => {
 
       {!isShiftClosed ? (
         /* STEP 1: BLIND CASH DECLARATION FORM */
-        <form onSubmit={handlePerformClose} className="space-y-6 font-mono text-xs">
+        <form onSubmit={handlePerformClose} className="space-y-6 tabular-nums text-xs">
           <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs space-y-5">
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-700 flex items-start space-x-2.5">
               <EyeOff className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
@@ -571,7 +583,7 @@ export const CierreCajaCiego: React.FC = () => {
         </form>
       ) : (
         /* STEP 2: REVEALED SUMMARY & MULTI-TAB REPORT */
-        <div className="space-y-6 font-mono text-xs">
+        <div className="space-y-6 tabular-nums text-xs">
           <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 gap-3">
               <div>
@@ -608,6 +620,15 @@ export const CierreCajaCiego: React.FC = () => {
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Imprimir A4</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => generateShiftReportPDF(activeShift, true)}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
+                >
+                  <FileCheck className="w-3.5 h-3.5" />
+                  <span>Descargar PDF</span>
                 </button>
 
                 <button
@@ -1030,7 +1051,7 @@ export const CierreCajaCiego: React.FC = () => {
       {/* Modal de Validación con PIN o Notificación WhatsApp si supera tolerancia */}
       <AnimatePresence>
         {showPinRequirementModal && (
-          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 font-mono">
+          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 tabular-nums">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

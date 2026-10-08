@@ -15,7 +15,7 @@ export const INITIAL_AGREEMENTS: Agreement[] = [
     contactName: 'Patricio Almonte',
     phone: '+56987654321',
     email: 'patricio.almonte@zofri.cl',
-    agreementType: 'Abonado Mensual',
+    agreementType: 'Convenio Mensual',
     monthlyFeeClp: 45000,
     validUntil: daysFromNow(22), // al día (verde)
     status: 'al_dia',
@@ -23,7 +23,7 @@ export const INITIAL_AGREEMENTS: Agreement[] = [
     lastPaymentAmount: 45000,
     lastPaymentMethod: 'Transferencia Bancaria',
     lastPaymentVoucher: 'TR-982341',
-    notes: 'Abonado sector Serrano con acceso diario',
+    notes: 'Mensualidad sector Serrano con acceso diario',
     createdAt: daysFromNow(-68),
   },
   {
@@ -34,7 +34,7 @@ export const INITIAL_AGREEMENTS: Agreement[] = [
     contactName: 'Valeria Castro',
     phone: '+56965432109',
     email: 'valeria.castro@contratas.cl',
-    agreementType: 'Abonado Mensual',
+    agreementType: 'Convenio Mensual',
     monthlyFeeClp: 60000,
     validUntil: daysFromNow(4), // por vencer (amarillo <= 7 días)
     status: 'por_vencer',
@@ -122,7 +122,7 @@ export const INITIAL_CUSTOMERS: Customer[] = [
     name: 'Valeria Castro',
     phone: '+56965432109',
     email: 'valeria.castro@gmail.com',
-    agreementType: 'Abonado Mensual',
+    agreementType: 'Convenio Mensual',
     isSpecialRate: true,
     notes: 'Abono Mensual Techado'
   },

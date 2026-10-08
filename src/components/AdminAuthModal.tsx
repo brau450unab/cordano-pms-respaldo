@@ -69,7 +69,7 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Ingrese clave (ej: admin123)"
-              className="w-full px-4 py-3 rounded-xl border border-[#c1c6d6] focus:border-[#0071e3] font-mono text-base outline-none transition bg-white"
+              className="w-full px-4 py-3 rounded-xl border border-[#c1c6d6] focus:border-[#0071e3] tabular-nums text-base outline-none transition bg-white"
               autoFocus
             />
             {error && <p className="text-xs text-[#ba1a1a] font-bold mt-1.5">{error}</p>}
@@ -78,7 +78,7 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({
           <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start space-x-2">
             <CheckCircle2 className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
             <span className="font-medium">
-              <strong>Claves de prueba válidas:</strong> <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">admin123</code> o <code className="bg-amber-100 px-1 py-0.5 rounded font-mono font-bold">1234</code>.
+              <strong>Claves de prueba válidas:</strong> <code className="bg-amber-100 px-1 py-0.5 rounded tabular-nums font-bold">admin123</code> o <code className="bg-amber-100 px-1 py-0.5 rounded tabular-nums font-bold">1234</code>.
             </span>
           </div>
 

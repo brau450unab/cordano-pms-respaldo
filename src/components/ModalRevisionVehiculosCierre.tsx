@@ -121,7 +121,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                 <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F1F5F9]/50 px-2 py-0.5 rounded-full inline-block">
                   BLOQUE 3 • REVISIÓN 1 A 1 DE RECINTO
                 </span>
-                <span className="text-[11px] font-mono font-bold text-[#515154] bg-[#f3f3f5] px-2 py-0.5 rounded-full">
+                <span className="text-[11px] tabular-nums font-bold text-[#515154] bg-[#f3f3f5] px-2 py-0.5 rounded-full">
                   Vehículo {currentIndex + 1} de {totalVehicles}
                 </span>
               </div>
@@ -155,7 +155,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                 <span className="text-[10px] font-bold text-[#717785] uppercase tracking-wider block">
                   Patente Vehículo
                 </span>
-                <span className="text-2xl font-mono font-black text-[#1D1D1F] tracking-wider">
+                <span className="text-2xl tabular-nums font-black text-[#1D1D1F] tracking-wider">
                   {currentTicket.plateNumber}
                 </span>
               </div>
@@ -163,7 +163,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                 <span className="text-[10px] font-bold text-[#717785] uppercase tracking-wider block">
                   Slot Asignado
                 </span>
-                <span className="text-base font-black text-[#0F172A] bg-white px-3 py-1 rounded-xl border border-[#e2e2e4] inline-block font-mono">
+                <span className="text-base font-black text-[#0F172A] bg-white px-3 py-1 rounded-xl border border-[#e2e2e4] inline-block tabular-nums">
                   {currentTicket.slotCode}
                 </span>
               </div>
@@ -219,7 +219,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
               <span className="text-[11px] text-[#717785] font-bold block">
                 Monto Calculado a este Minuto:
               </span>
-              <span className="text-xl font-mono font-black text-[#1D1D1F]">
+              <span className="text-xl tabular-nums font-black text-[#1D1D1F]">
                 ${feeEstimate.totalAmount.toLocaleString('es-CL')} CLP
               </span>
             </div>

@@ -167,7 +167,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
     setPlateNumber(formatted);
     setAntiPassbackError(null);
 
-    // Auto-detection of Agreements / Abonados
+    // Auto-detection of Agreements / Convenios
     if (clean.length >= 5 && !bypassAgreementPopup) {
       const agr = findAgreementByPlate(clean) || findAgreementByPlate(formatted);
       if (agr) {
@@ -188,7 +188,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
         if (found.agreementType) {
           if (found.agreementType === 'Convenio Empresa' || found.agreementType === 'convenio') {
             setTariffType('convenio');
-          } else if (found.agreementType === 'Abonado Mensual' || found.agreementType === 'mensual') {
+          } else if (found.agreementType === 'Convenio Mensual' || found.agreementType === 'mensual') {
             setTariffType('mensual');
           } else if (found.agreementType === 'tarifa_plana') {
             setTariffType('tarifa_plana');
@@ -211,7 +211,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
       return;
     }
 
-    // Auto-detection of Agreements / Abonados
+    // Auto-detection of Agreements / Convenios
     if (!bypassAgreementPopup) {
       const agr = findAgreementByPlate(targetPlate);
       if (agr) {
@@ -357,7 +357,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
   return (
     <div className="space-y-6 max-w-7xl mx-auto font-sans text-slate-900">
       {/* 1. TOP BAR */}
-      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono">
+      <div className="bg-white rounded-xl p-4 sm:p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 tabular-nums">
         {/* Left: Back button & Title */}
         <div className="flex items-center space-x-3.5">
           {onBack && (
@@ -393,9 +393,9 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
           <div className="bg-slate-50 border border-slate-300 px-3.5 py-1.5 rounded flex items-center space-x-3">
             <div>
               <span className="text-[10px] text-slate-500 font-bold block uppercase">
-                Plazas Disponibles
+                Cupos Disponibles
               </span>
-              <div className="flex items-baseline space-x-1 font-mono">
+              <div className="flex items-baseline space-x-1 tabular-nums">
                 <span className="text-lg font-black text-slate-900">
                   {freeCount}
                 </span>
@@ -409,7 +409,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
             <span className="text-[10px] font-bold text-slate-500 block uppercase">
               Hora Entrada (Iquique)
             </span>
-            <span className="font-mono text-xs font-bold text-slate-800">
+            <span className="tabular-nums text-xs font-bold text-slate-800">
               {chileTime || 'Cargando...'}
             </span>
           </div>
@@ -422,7 +422,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
         {/* =========================================
             LEFT PANEL: FORMULARIO ULTRA-RÁPIDO (5 cols)
             ========================================= */}
-        <div className="lg:col-span-5 space-y-4 font-mono text-xs">
+        <div className="lg:col-span-5 space-y-4 tabular-nums text-xs">
           <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-300 shadow-xs space-y-5">
             
             {/* Anti-Passback Error Notice */}
@@ -443,7 +443,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                   <Tag className="w-3.5 h-3.5 text-slate-600" />
                   <span>[ PATENTE DEL VEHÍCULO ]</span>
                 </label>
-                <span className="text-[10px] font-mono text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] tabular-nums text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
                   Enter ↵
                 </span>
               </div>
@@ -457,16 +457,16 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                   onKeyDown={handleKeyDown}
                   placeholder="ABCD-12"
                   maxLength={7}
-                  className="w-full bg-slate-50 border-2 border-slate-900 rounded px-4 py-3 text-2xl font-black font-mono tracking-widest text-slate-900 uppercase transition-all outline-none placeholder:text-slate-400"
+                  className="w-full bg-slate-50 border-2 border-slate-900 rounded px-4 py-3 text-2xl font-black tabular-nums tracking-widest text-slate-900 uppercase transition-all outline-none placeholder:text-slate-400"
                 />
                 <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center space-x-1.5 bg-white border border-slate-300 px-2 py-0.5 rounded">
-                  <span className="text-[10px] font-black text-slate-900 font-mono">CHILE</span>
+                  <span className="text-[10px] font-black text-slate-900 tabular-nums">CHILE</span>
                 </div>
               </div>
               <p className="text-[11px] text-slate-500 font-sans flex items-center justify-between">
                 <span>Formato: BBBB-11 o BB-1111</span>
                 {plateNumber && (
-                  <span className="text-slate-900 font-bold font-mono text-[10px]">
+                  <span className="text-slate-900 font-bold tabular-nums text-[10px]">
                     [ PATENTE DETECTADA ]
                   </span>
                 )}
@@ -514,7 +514,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                     >
                       <Icon className="w-4 h-4" />
                       <span className="text-xs font-bold block">{item.label}</span>
-                      <span className="text-[10px] font-mono opacity-80">{item.rate}</span>
+                      <span className="text-[10px] tabular-nums opacity-80">{item.rate}</span>
                     </button>
                   );
                 })}
@@ -533,7 +533,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                 onChange={(e) => setPhone(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="+56 9 1234 5678"
-                className="w-full px-3 py-2 rounded border border-slate-300 text-xs font-mono font-bold text-slate-900 outline-none bg-white placeholder-slate-400"
+                className="w-full px-3 py-2 rounded border border-slate-300 text-xs tabular-nums font-bold text-slate-900 outline-none bg-white placeholder-slate-400"
               />
             </div>
 
@@ -549,7 +549,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] font-mono bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold">
+                <span className="text-[10px] tabular-nums bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-bold">
                   Reconocido
                 </span>
               </div>
@@ -561,7 +561,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                 <ShieldCheck className="w-4 h-4 text-slate-800 shrink-0" />
                 <span className="font-bold">Tolerancia de Gracia Activa:</span>
               </div>
-              <span className="font-mono font-bold bg-white text-slate-900 border border-slate-300 px-2 py-0.5 rounded text-[11px]">
+              <span className="tabular-nums font-bold bg-white text-slate-900 border border-slate-300 px-2 py-0.5 rounded text-[11px]">
                 {tariffConfig.gracePeriodMinutes} min sin costo
               </span>
             </div>
@@ -604,7 +604,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
               >
                 <Check className="w-4 h-4" />
                 <span>[ REGISTRAR ENTRADA Y EMITIR TICKET ]</span>
-                <span className="text-[10px] font-mono bg-slate-700 px-1.5 py-0.2 rounded text-white ml-1">
+                <span className="text-[10px] tabular-nums bg-slate-700 px-1.5 py-0.2 rounded text-white ml-1">
                   Enter ↵
                 </span>
               </button>
@@ -618,10 +618,10 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
         <div className="lg:col-span-7 space-y-4">
           
           {/* Card 1: Slot Selection (Interactive Map / Suggestion) */}
-          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-300 shadow-xs space-y-4 font-mono">
+          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-300 shadow-xs space-y-4 tabular-nums">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
               <div>
-                <span className="text-[10px] font-mono font-bold uppercase text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded inline-block">
+                <span className="text-[10px] tabular-nums font-bold uppercase text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded inline-block">
                   [ MATRIZ DE PLAZAS: 30 SLOTS ]
                 </span>
                 <h3 className="text-xs font-bold text-slate-900 mt-1 uppercase">
@@ -632,7 +632,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
               {suggestedSlot && (
                 <div className="flex items-center space-x-1.5 text-xs">
                   <span className="text-slate-500">Slot Asignado:</span>
-                  <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
+                  <span className="tabular-nums font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
                     {selectedSlotCode || suggestedSlot.code}
                   </span>
                 </div>
@@ -670,7 +670,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                       type="button"
                       disabled={!isAvailable}
                       onClick={() => setSelectedSlotCode(s.code)}
-                      className={`p-2 rounded text-center font-mono font-bold text-xs transition cursor-pointer flex flex-col items-center justify-center border ${
+                      className={`p-2 rounded text-center tabular-nums font-bold text-xs transition cursor-pointer flex flex-col items-center justify-center border ${
                         isCurrentSelected
                           ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                           : isAvailable
@@ -691,7 +691,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
           </div>
 
           {/* Card 2: Live Thermal Ticket Preview */}
-          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-300 shadow-xs space-y-3.5 font-mono">
+          <div className="bg-white rounded-xl p-5 sm:p-6 border border-slate-300 shadow-xs space-y-3.5 tabular-nums">
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <span className="text-xs font-bold uppercase text-slate-900 flex items-center space-x-1.5">
                 <Barcode className="w-4 h-4 text-slate-700" />
@@ -750,7 +750,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                     ))}
                   </div>
                 </div>
-                <p className="text-[9px] text-slate-500 font-mono mt-1">* T-CHECKIN-PREVIEW *</p>
+                <p className="text-[9px] text-slate-500 tabular-nums mt-1">* T-CHECKIN-PREVIEW *</p>
               </div>
 
               {/* Legal Responsibility Clause */}
@@ -780,7 +780,7 @@ export const IngresoVehiculos: React.FC<IngresoVehiculosProps> = ({ onBack, onNa
                   ¿Desea forzar ingreso de patente?
                 </h3>
                 <p className="text-xs text-[#94A3B8] leading-relaxed">
-                  La patente <span className="font-mono font-bold text-pink-300 bg-white/10 px-2 py-0.5 rounded-md">{pendingForcePlate}</span> no coincide con la máscara estándar chilena (BBBB-11 o BB-1111).
+                  La patente <span className="tabular-nums font-bold text-pink-300 bg-white/10 px-2 py-0.5 rounded-md">{pendingForcePlate}</span> no coincide con la máscara estándar chilena (BBBB-11 o BB-1111).
                 </p>
               </div>
 

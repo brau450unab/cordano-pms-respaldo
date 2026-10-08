@@ -106,7 +106,7 @@ export const ModalInstruccionesCierreCiego: React.FC<ModalInstruccionesCierreCie
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-[10px] text-[#0F172A] bg-[#F1F5F9]/40 px-2 py-0.5 rounded">
+                    <span className="tabular-nums font-bold text-[10px] text-[#0F172A] bg-[#F1F5F9]/40 px-2 py-0.5 rounded">
                       PASO {s.step}
                     </span>
                     <h4 className="font-extrabold text-[#1D1D1F] text-xs sm:text-sm">

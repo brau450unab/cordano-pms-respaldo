@@ -104,7 +104,7 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
                   </span>
                 </div>
               </div>
-              <span className="font-mono font-black text-base text-blue-900">
+              <span className="tabular-nums font-black text-base text-blue-900">
                 ${totalPosAmount.toLocaleString('es-CL')} CLP
               </span>
             </div>
@@ -121,7 +121,7 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
                   </span>
                 </div>
               </div>
-              <span className="font-mono font-black text-base text-slate-800">
+              <span className="tabular-nums font-black text-base text-slate-800">
                 ${totalTransferAmount.toLocaleString('es-CL')} CLP
               </span>
             </div>
@@ -191,10 +191,10 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
                               className="rounded accent-emerald-600 cursor-pointer"
                             />
                           </td>
-                          <td className="py-2.5 px-3 font-mono font-bold text-[#1D1D1F]">
+                          <td className="py-2.5 px-3 tabular-nums font-bold text-[#1D1D1F]">
                             {voucherNum}
                           </td>
-                          <td className="py-2.5 px-3 font-mono font-bold text-right text-[#0F172A]">
+                          <td className="py-2.5 px-3 tabular-nums font-bold text-right text-[#0F172A]">
                             ${(t.totalAmount || 0).toLocaleString('es-CL')}
                           </td>
                           <td className="py-2.5 px-3 text-[#515154] font-medium">
@@ -218,7 +218,7 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
                                 : 'POS Crédito'}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-[#515154]">
+                          <td className="py-2.5 px-3 tabular-nums text-[#515154]">
                             <span className="flex items-center gap-1">
                               <Car className="w-3 h-3 text-[#717785]" />
                               {t.plateNumber}

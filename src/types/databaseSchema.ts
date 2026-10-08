@@ -229,7 +229,7 @@ export const CORDANO_11_TABLES_SCHEMA: Record<string, SheetMetadata> = {
   Customers: {
     sheetName: '3_CLIENTES',
     title: 'Clientes y Cuentas Frecuentes',
-    description: 'Directorio de abonados, convenios y saldos',
+    description: 'Directorio de convenios, convenios y saldos',
     columns: ['id_cliente', 'nombre_cliente', 'rut_dni', 'telefono_contacto', 'email_contacto', 'consentimiento_whatsapp', 'tipo_cliente', 'patentes_asociadas', 'acumulado_visitas', 'saldo_cuenta', 'ultima_visita_timestamp'],
   },
   Vehicles: {

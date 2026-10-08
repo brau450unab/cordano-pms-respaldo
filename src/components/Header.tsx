@@ -55,7 +55,7 @@ export const Header: React.FC = () => {
 
         {/* Center: Live Clock & Shift Badge */}
         <div className="hidden sm:flex items-center space-x-3 text-xs">
-          <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#edeef0] border border-[#d9dadc] text-[#414753] font-mono text-[11px]">
+          <div className="flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-[#edeef0] border border-[#d9dadc] text-[#414753] tabular-nums text-[11px]">
             <Clock className="w-3 h-3 text-[#0F172A]" />
             <span>{time || '00:00:00'}</span>
           </div>

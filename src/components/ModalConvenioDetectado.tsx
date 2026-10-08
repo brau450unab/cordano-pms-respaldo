@@ -89,7 +89,7 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
                   Detección Automática de Convenio
                 </span>
                 <h3 className="text-base sm:text-lg font-black tracking-tight">
-                  Vehículo Abonado / Convenio Comercial
+                  Vehículo Mensualidad / Convenio Comercial
                 </h3>
               </div>
             </div>
@@ -110,7 +110,7 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
                   <div className="flex items-center space-x-1 -mb-1">
                     <span className="text-[8px] font-black text-blue-900 tracking-widest">CHILE</span>
                   </div>
-                  <span className="font-mono text-2xl font-black tracking-wider text-black">
+                  <span className="tabular-nums text-2xl font-black tracking-wider text-black">
                     {agreement.plateNumber}
                   </span>
                 </div>

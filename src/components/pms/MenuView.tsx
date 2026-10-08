@@ -20,7 +20,7 @@ const CHECKLIST_ITEMS = [
   },
   {
     title: '2. Verificar cámaras de seguridad',
-    desc: 'Transmisión activa de los canales CCTV NVR y cámara LPR de garita.',
+    desc: 'Transmisión activa de los canales CCTV NVR y cámara de acceso de garita.',
   },
   {
     title: '3. Revisar instalaciones físicas',
@@ -31,7 +31,7 @@ const CHECKLIST_ITEMS = [
     desc: 'Zona de pago y calzada despejada de obstáculos.',
   },
   {
-    title: '5. Conciliación en patio (30 plazas)',
+    title: '5. Conciliación en patio (30 cupos)',
     desc: 'Contraste visual físico Sector A (01–15) y Sector B (16–30) contra sistema.',
   },
   {
@@ -78,67 +78,69 @@ export const MenuView: React.FC<MenuViewProps> = ({
   const freeCount = Math.max(0, totalSlots - occupiedCount);
 
   return (
-    <div id="view-menu" className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6 animate-fade-in-up">
-      {/* ── 4 KPI BANNER CARDS ── */}
+    <div id="view-menu" className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6 text-[#2C1338] animate-fade-in-up">
+      {/* ── 4 KPI BANNER CARDS (TOGGL TRACK METRICS) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Ocupación */}
-        <div className="p-5 bg-white rounded-2xl border border-[#e8ecf0] shadow-xs hover:border-[#dde2e8] transition-all">
-          <div className="text-[11px] font-mono font-bold uppercase tracking-[0.08em] text-slate-400">
-            Ocupación Actual
+        <div className="p-5 bg-white rounded-2xl border border-[#EDE4E2] shadow-xs hover:border-[#2DA8D8]/50 transition-all">
+          <div className="text-xs tabular-nums font-bold uppercase text-[#65546C] flex items-center justify-between">
+            <span>Ocupación Actual</span>
+            <span className="w-2 h-2 rounded-full bg-[#2DA8D8]" />
           </div>
-          <div className="mt-2 flex items-baseline gap-1.5 font-mono tabular-nums">
-            <span className="text-3xl font-extrabold tracking-tight text-slate-900">
+          <div className="mt-2 flex items-baseline gap-1.5 tabular-nums tabular-nums">
+            <span className="text-3xl font-extrabold tracking-tight text-[#2C1338]">
               {occupiedCount}
             </span>
-            <span className="text-sm font-bold text-slate-400">/ {totalSlots} Plazas</span>
+            <span className="text-xs font-medium text-[#65546C]">/ {totalSlots} Cupos</span>
           </div>
-          <div className="mt-3 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="mt-3 w-full h-2 bg-[#FEF9F5] rounded-full overflow-hidden border border-[#EDE4E2]">
             <div
-              className="h-full bg-slate-900 rounded-full transition-all duration-500"
+              className="h-full bg-[#2DA8D8] rounded-full transition-all duration-500"
               style={{ width: `${occupancyPercent}%` }}
             />
           </div>
-          <div className="mt-2 text-[10px] font-mono tabular-nums text-slate-400 flex items-center justify-between">
+          <div className="mt-2 text-[11px] tabular-nums tabular-nums text-[#65546C] flex items-center justify-between">
             <span>{occupancyPercent}% ocupado</span>
-            <span className="text-emerald-700 font-bold">{freeCount} libres</span>
+            <span className="text-[#2B9E78] font-bold">{freeCount} libres</span>
           </div>
         </div>
 
         {/* Recaudación */}
-        <div className="p-5 bg-white rounded-2xl border border-[#e8ecf0] shadow-xs hover:border-[#dde2e8] transition-all">
-          <div className="text-[11px] font-mono font-bold uppercase tracking-[0.08em] text-slate-400">
-            Recaudación Turno
+        <div className="p-5 bg-white rounded-2xl border border-[#EDE4E2] shadow-xs hover:border-[#2B9E78]/50 transition-all">
+          <div className="text-xs tabular-nums font-bold uppercase text-[#65546C] flex items-center justify-between">
+            <span>Recaudación del Turno</span>
+            <span className="w-2 h-2 rounded-full bg-[#2B9E78]" />
           </div>
-          <div className="mt-2 text-3xl font-extrabold font-mono tabular-nums tracking-tight text-emerald-600">
+          <div className="mt-2 text-3xl font-extrabold tabular-nums tabular-nums tracking-tight text-[#2B9E78]">
             ${shiftRevenue.toLocaleString('es-CL')}
           </div>
-          <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
-            <span className="text-[10px] font-mono font-bold text-emerald-700">Flujo activo en caja</span>
+          <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E8F8F2] border border-[#2B9E78]/30">
+            <span className="text-[10px] tabular-nums font-bold text-[#2B9E78]">Flujo en garita activo</span>
           </div>
         </div>
 
         {/* Fondo Inicial */}
-        <div className="p-5 bg-white rounded-2xl border border-[#e8ecf0] shadow-xs hover:border-[#dde2e8] transition-all">
-          <div className="text-[11px] font-mono font-bold uppercase tracking-[0.08em] text-slate-400">
-            Fondo Inicial Garita
+        <div className="p-5 bg-white rounded-2xl border border-[#EDE4E2] shadow-xs hover:border-[#EAA023]/50 transition-all">
+          <div className="text-xs tabular-nums font-bold uppercase text-[#65546C]">
+            Fondo Inicial en Gaveta
           </div>
-          <div className="mt-2 text-3xl font-extrabold font-mono tabular-nums tracking-tight text-slate-800">
+          <div className="mt-2 text-3xl font-extrabold tabular-nums tabular-nums tracking-tight text-[#2C1338]">
             ${initialCash.toLocaleString('es-CL')}
           </div>
-          <div className="mt-2 text-[10px] font-mono text-slate-400">
+          <div className="mt-2 text-xs text-[#65546C]">
             Sencillo validado en apertura
           </div>
         </div>
 
-        {/* Abonados */}
-        <div className="p-5 bg-white rounded-2xl border border-[#e8ecf0] shadow-xs hover:border-[#dde2e8] transition-all">
-          <div className="text-[11px] font-mono font-bold uppercase tracking-[0.08em] text-slate-400">
-            Abonados en Patio
+        {/* Convenios */}
+        <div className="p-5 bg-white rounded-2xl border border-[#EDE4E2] shadow-xs hover:border-[#9E59C7]/50 transition-all">
+          <div className="text-xs tabular-nums font-bold uppercase text-[#65546C]">
+            Convenios en Patio
           </div>
-          <div className="mt-2 text-3xl font-extrabold font-mono tabular-nums tracking-tight text-slate-800">
-            {activeAgreementsCount} / {totalAgreementsCount}
+          <div className="mt-2 text-3xl font-extrabold tabular-nums tabular-nums tracking-tight text-[#2C1338]">
+            {activeAgreementsCount} <span className="text-xs font-normal text-[#65546C]">/ {totalAgreementsCount}</span>
           </div>
-          <div className="mt-2 text-[10px] font-mono text-slate-400">
+          <div className="mt-2 text-xs text-[#65546C]">
             Convenios mensuales en paralelo
           </div>
         </div>
@@ -148,52 +150,52 @@ export const MenuView: React.FC<MenuViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Hero POS + Secondary Modules */}
         <div className="lg:col-span-8 space-y-5">
-          {/* HERO POS CARD */}
-          <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white shadow-md relative overflow-hidden">
-            <div className="relative z-10 space-y-6">
+          {/* HERO POS CARD (Toggl Aubergine Theme) */}
+          <div className="p-6 sm:p-8 rounded-2xl bg-[#2C1338] border border-[#412A4C] text-white shadow-md relative overflow-hidden">
+            <div className="relative z-10 space-y-5">
               {/* Header row */}
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.08] border border-white/10 backdrop-blur-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 live-pulse" />
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-[0.08em] text-emerald-400">
-                    Módulo Operativo Principal
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#412A4C] border border-[#563560]">
+                  <span className="w-2 h-2 rounded-full bg-[#E57CD8]" />
+                  <span className="text-[10px] tabular-nums font-bold uppercase tracking-wider text-[#E57CD8]">
+                    Módulo Operativo Principal · F2
                   </span>
                 </div>
-                <span className="text-[11px] font-mono tabular-nums text-slate-400">
-                  {occupiedCount} Ocupados · {freeCount} Libres · Serrano 447
+                <span className="text-xs tabular-nums tabular-nums text-[#CDBFC7]">
+                  {occupiedCount} Ocupadas · {freeCount} Libres · Serrano 447
                 </span>
               </div>
 
               {/* Title & Description */}
               <div className="space-y-2">
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
+                <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
                   Punto de Venta Garita (POS)
                 </h3>
-                <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#E5DBDF] max-w-xl leading-relaxed">
                   Centro de control en garita para registrar ingresos de vehículos, liquidar cobros por tiempo de estadía,
-                  emitir tickets térmicos de 80mm (Dual QR + Code 128) y consultar el historial del turno.
+                  emitir tickets térmicos de 80mm con código QR y consultar el historial del turno.
                 </p>
               </div>
 
-              {/* Action Buttons with Discrete Tooltips */}
+              {/* Action Buttons */}
               <div className="flex flex-wrap gap-3 pt-1">
                 <button
                   onClick={() => onOpenPosInSubtab('entry')}
-                  data-shortcut="Atajo: F2"
-                  className="shortcut-tooltip py-3 px-6 sm:px-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold flex items-center gap-2 shadow-xs transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                  title="Atajo: F2"
+                  className="py-3 px-6 sm:px-8 rounded-full bg-[#E2498A] hover:bg-[#E57CD8] text-white font-extrabold text-xs tracking-tight shadow-[0_2px_12px_rgba(226,73,138,0.35)] active:scale-[0.98] transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
-                  <span>Registrar Nuevo Ingreso</span>
+                  <span>Registrar Nuevo Ingreso </span>
                 </button>
                 <button
                   onClick={() => onNavigate('settings')}
-                  data-shortcut="Atajo: Ajustes & Presets"
-                  className="shortcut-tooltip py-3 px-5 rounded-xl bg-white/[0.08] hover:bg-white/[0.14] border border-white/10 text-slate-300 text-xs font-mono font-bold flex items-center gap-2 transition-all cursor-pointer"
+                  title="Atajo: Ajustes & Presets"
+                  className="py-3 px-5 rounded-full bg-[#412A4C] hover:bg-[#563560] border border-[#563560] text-white text-xs tabular-nums font-bold flex items-center gap-2 transition-all cursor-pointer"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="w-4 h-4 text-[#E57CD8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="3" />
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
@@ -208,103 +210,111 @@ export const MenuView: React.FC<MenuViewProps> = ({
             {/* Plano & Analítica */}
             <div
               onClick={() => onNavigate('map')}
-              data-shortcut="Atajo: Plano 30 Plazas"
-              className="shortcut-tooltip bg-white border border-[#e8ecf0] border-l-3 border-l-transparent hover:border-l-emerald-500 rounded-2xl shadow-xs p-5 cursor-pointer group transition-all hover:shadow-sm"
+              title="Atajo: Plano 30 Cupos"
+              className="bg-white border border-[#EDE4E2] hover:border-[#2DA8D8] rounded-2xl shadow-xs p-5 cursor-pointer group transition-all hover:-translate-y-0.5"
             >
-              <div className="flex items-center justify-between pb-2.5 border-b border-[#f1f5f9]">
+              <div className="flex items-center justify-between pb-2.5 border-b border-[#F7EFE9]">
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 live-pulse" />
-                  <span className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  <span className="w-2 h-2 rounded-full bg-[#2DA8D8]" />
+                  <span className="text-sm font-bold text-[#2C1338] group-hover:text-[#2DA8D8] transition-colors">
                     Plano &amp; Analítica Global
                   </span>
                 </div>
-                <span className="text-slate-400 group-hover:text-emerald-500 transition-colors">→</span>
+                <span className="text-[#96859B] group-hover:text-[#2DA8D8] transition-colors">→</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-2.5 leading-relaxed">
-                Rendimiento del recinto: análisis por franjas, matriz semántica de 30 plazas Serrano 447 y métricas RevPAS.
+              <p className="text-xs text-[#65546C] mt-2.5 leading-relaxed">
+                Rendimiento del recinto: análisis por franjas, matriz semántica de 30 cupos Serrano 447 y métricas RevPAS.
               </p>
             </div>
 
             {/* Reportes & Auditoría PIN */}
             <div
               onClick={() => onNavigate('reports')}
-              data-shortcut="Atajo: Bitácora & Corte Z"
-              className="shortcut-tooltip bg-white border border-[#e8ecf0] border-l-3 border-l-transparent hover:border-l-slate-400 rounded-2xl shadow-xs p-5 cursor-pointer group transition-all hover:shadow-sm"
+              title="Atajo: Bitácora & Corte Z"
+              className="bg-white border border-[#EDE4E2] hover:border-[#E2498A] rounded-2xl shadow-xs p-5 cursor-pointer group transition-all hover:-translate-y-0.5"
             >
-              <div className="flex items-center justify-between pb-2.5 border-b border-[#f1f5f9]">
-                <span className="text-sm font-bold text-slate-900 group-hover:text-slate-700 transition-colors">
-                  Reportes &amp; Auditoría PIN
-                </span>
-                <span className="text-slate-400 group-hover:text-slate-600 transition-colors">→</span>
+              <div className="flex items-center justify-between pb-2.5 border-b border-[#F7EFE9]">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#E2498A]" />
+                  <span className="text-sm font-bold text-[#2C1338] group-hover:text-[#E2498A] transition-colors">
+                    Reportes &amp; Auditoría PIN
+                  </span>
+                </div>
+                <span className="text-[#96859B] group-hover:text-[#E2498A] transition-colors">→</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-2.5 leading-relaxed">
+              <p className="text-xs text-[#65546C] mt-2.5 leading-relaxed">
                 Cortes de caja Z, arqueos ciegos con firma SHA-256 y bitácora antifraude (Verde Operador / Rojo Admin).
               </p>
             </div>
 
-            {/* Abonados & Convenios */}
+            {/* Convenios & Convenios */}
             <div
               onClick={() => onNavigate('clients')}
-              data-shortcut="Atajo: F3"
-              className="shortcut-tooltip bg-white border border-[#e8ecf0] border-l-3 border-l-transparent hover:border-l-blue-400 rounded-2xl shadow-xs p-5 cursor-pointer group transition-all hover:shadow-sm"
+              title="Atajo: F3"
+              className="bg-white border border-[#EDE4E2] hover:border-[#9E59C7] rounded-2xl shadow-xs p-5 cursor-pointer group transition-all hover:-translate-y-0.5"
             >
-              <div className="flex items-center justify-between pb-2.5 border-b border-[#f1f5f9]">
-                <span className="text-sm font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
-                  Abonados &amp; Convenios
-                </span>
-                <span className="text-slate-400 group-hover:text-blue-500 transition-colors">→</span>
+              <div className="flex items-center justify-between pb-2.5 border-b border-[#F7EFE9]">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#9E59C7]" />
+                  <span className="text-sm font-bold text-[#2C1338] group-hover:text-[#9E59C7] transition-colors">
+                    Convenios &amp; Convenios
+                  </span>
+                </div>
+                <span className="text-[#96859B] group-hover:text-[#9E59C7] transition-colors">→</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-2.5 leading-relaxed">
-                Submódulo paralelo de convenios corporativos mensuales ($75.000) y servicio Noche ($8.000) sin alterar caja rotativa.
+              <p className="text-xs text-[#65546C] mt-2.5 leading-relaxed">
+                Submódulo paralelo de convenios corporativos mensuales ($75.000) y servicio Noche ($8.000).
               </p>
             </div>
 
             {/* Centro de Ayuda & SOPs */}
             <div
               onClick={() => onNavigate('support')}
-              data-shortcut="Atajo: Manuales & SOPs"
-              className="shortcut-tooltip bg-white border border-[#e8ecf0] border-l-3 border-l-transparent hover:border-l-purple-400 rounded-2xl shadow-xs p-5 cursor-pointer group transition-all hover:shadow-sm"
+              title="Atajo: Manuales & SOPs"
+              className="bg-white border border-[#EDE4E2] hover:border-[#2B9E78] rounded-2xl shadow-xs p-5 cursor-pointer group transition-all hover:-translate-y-0.5"
             >
-              <div className="flex items-center justify-between pb-2.5 border-b border-[#f1f5f9]">
-                <span className="text-sm font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
-                  Centro de Ayuda &amp; SOPs
-                </span>
-                <span className="text-slate-400 group-hover:text-purple-500 transition-colors">→</span>
+              <div className="flex items-center justify-between pb-2.5 border-b border-[#F7EFE9]">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#2B9E78]" />
+                  <span className="text-sm font-bold text-[#2C1338] group-hover:text-[#2B9E78] transition-colors">
+                    Centro de Ayuda &amp; SOPs
+                  </span>
+                </div>
+                <span className="text-[#96859B] group-hover:text-[#2B9E78] transition-colors">→</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-2.5 leading-relaxed">
-                Manuales operativos, protocolo de contingencia offline (-O), bobinas 80mm y showroom interactivo paso a paso.
+              <p className="text-xs text-[#65546C] mt-2.5 leading-relaxed">
+                Manuales operativos, protocolo de contingencia offline (-O), bobinas 80mm y guías paso a paso.
               </p>
             </div>
           </div>
         </div>
 
         {/* Right Column: Quality Checklist (6 Items) */}
-        <div className="lg:col-span-4 bg-white border border-[#e8ecf0] rounded-2xl shadow-xs p-5 space-y-5">
-          {/* Header */}
-          <div className="flex items-start justify-between border-b border-[#f1f5f9] pb-3.5">
+        <div className="lg:col-span-4 bg-white border border-[#EDE4E2] rounded-2xl shadow-xs p-5 space-y-4">
+          <div className="flex items-start justify-between border-b border-[#F7EFE9] pb-3">
             <div>
-              <div className="text-[11px] font-mono font-bold uppercase tracking-[0.08em] text-slate-400">
+              <div className="text-xs tabular-nums font-bold uppercase text-[#E2498A]">
                 Apertura de Turno
               </div>
-              <h3 className="text-sm font-extrabold tracking-tight text-slate-900 mt-0.5">
+              <h3 className="text-base font-extrabold tracking-tight text-[#2C1338] mt-0.5">
                 Checklist de Calidad
               </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">Supervisión en apertura de garita</p>
+              <p className="text-xs text-[#65546C] mt-0.5">Supervisión en apertura de garita</p>
             </div>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200 tabular-nums shrink-0 mt-0.5">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] tabular-nums font-bold bg-[#FEF9F5] text-[#2C1338] border border-[#EDE4E2] tabular-nums shrink-0 mt-0.5">
               {checkedCount}/{checklist.length} REV.
             </span>
           </div>
 
           {/* Progress */}
           <div>
-            <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1.5 tabular-nums">
+            <div className="flex items-center justify-between text-xs tabular-nums text-[#65546C] mb-1.5 tabular-nums">
               <span>Progreso de Verificación</span>
-              <span className="font-bold text-slate-700">{checklistPercent}%</span>
+              <span className="font-bold text-[#2C1338]">{checklistPercent}%</span>
             </div>
-            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-[#FEF9F5] rounded-full overflow-hidden border border-[#EDE4E2]">
               <div
-                className="h-full bg-slate-900 rounded-full transition-all duration-300"
+                className="h-full bg-[#E2498A] rounded-full transition-all duration-300"
                 style={{ width: `${checklistPercent}%` }}
               />
             </div>
@@ -315,39 +325,39 @@ export const MenuView: React.FC<MenuViewProps> = ({
             {CHECKLIST_ITEMS.map((item, idx) => (
               <label
                 key={item.title}
-                className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-[#f8fafc] cursor-pointer transition-colors border border-transparent hover:border-[#dde2e8]"
+                className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-[#FEF9F5] cursor-pointer transition-colors"
               >
                 <input
                   type="checkbox"
                   checked={checklist[idx]}
                   onChange={() => toggleChecklistItem(idx)}
-                  className="mt-0.5 w-4 h-4 rounded border-[#dde2e8] text-slate-900 focus:ring-0 cursor-pointer accent-slate-900 shrink-0"
+                  className="mt-0.5 w-4 h-4 rounded border-[#EDE4E2] text-[#E2498A] focus:ring-0 cursor-pointer accent-[#E2498A] shrink-0"
                 />
                 <div className="min-w-0">
                   <div
                     className={`text-xs font-bold leading-snug ${
-                      checklist[idx] ? 'text-slate-400 line-through' : 'text-slate-900'
+                      checklist[idx] ? 'text-[#96859B] line-through' : 'text-[#2C1338]'
                     }`}
                   >
                     {item.title}
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-0.5 leading-snug">{item.desc}</div>
+                  <div className="text-[11px] text-[#65546C] mt-0.5 leading-snug">{item.desc}</div>
                 </div>
               </label>
             ))}
           </div>
 
           {/* Footer actions */}
-          <div className="pt-3 border-t border-[#f1f5f9] flex items-center justify-between">
+          <div className="pt-3 border-t border-[#F7EFE9] flex items-center justify-between">
             <button
               onClick={() => markAll(true)}
-              className="text-[11px] font-mono font-bold text-slate-400 hover:text-slate-700 transition-colors uppercase tracking-[0.06em] cursor-pointer"
+              className="text-xs tabular-nums font-bold text-[#65546C] hover:text-[#2C1338] transition-colors uppercase tracking-wider cursor-pointer"
             >
               Marcar todas
             </button>
             <button
               onClick={() => onShowToast('Apertura de turno firmada y registrada en auditoría.', 'success')}
-              className="px-5 h-9 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-xs cursor-pointer"
+              className="px-4 py-2 rounded-full bg-[#2C1338] hover:bg-[#412A4C] text-white text-xs font-bold tabular-nums transition-colors shadow-xs cursor-pointer active:scale-[0.98]"
             >
               Firmar Apertura
             </button>

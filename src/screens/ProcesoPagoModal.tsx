@@ -268,7 +268,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                           className="w-full p-3.5 rounded-xl border border-[#e2e2e4] hover:border-[#0071e3] hover:bg-[#d7e2ff]/20 transition-all text-left flex items-center justify-between group cursor-pointer"
                         >
                           <div className="flex items-center space-x-3">
-                            <div className="bg-[#000722] text-white font-mono font-bold text-sm px-2.5 py-1 rounded-lg">
+                            <div className="bg-[#000722] text-white tabular-nums font-bold text-sm px-2.5 py-1 rounded-lg">
                               {t.plateNumber}
                             </div>
                             <div>
@@ -285,7 +285,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                           </div>
 
                           <div className="text-right">
-                            <span className="font-mono font-bold text-base text-[#0059b5] block">
+                            <span className="tabular-nums font-bold text-base text-[#0059b5] block">
                               ${stay.totalAmount.toLocaleString('es-CL')} CLP
                             </span>
                             <span className="text-[11px] text-[#717785] font-medium">
@@ -305,7 +305,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                 {/* Vehicle Header Card */}
                 <div className="bg-[#000722] text-white rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center space-x-3">
-                    <div className="bg-[#0071e3] text-white font-mono font-black text-xl px-3 py-1 rounded-xl">
+                    <div className="bg-[#0071e3] text-white tabular-nums font-black text-xl px-3 py-1 rounded-xl">
                       {selectedTicket.plateNumber}
                     </div>
                     <div>
@@ -334,7 +334,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                 <div className="bg-[#f9f9fb] rounded-xl p-4 border border-[#e2e2e4] space-y-2 text-xs">
                   <div className="flex justify-between text-[#414753] font-medium">
                     <span>Tiempo transcurrido:</span>
-                    <span className="font-mono font-bold text-[#1a1c1d]">{stayInfo?.durationMinutes} minutos</span>
+                    <span className="tabular-nums font-bold text-[#1a1c1d]">{stayInfo?.durationMinutes} minutos</span>
                   </div>
 
                   {stayInfo?.isGracePeriod ? (
@@ -346,27 +346,27 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                     <>
                       <div className="flex justify-between text-[#414753] font-medium">
                         <span>Tarifa base ({selectedTicket.vehicleType}):</span>
-                        <span className="font-mono text-[#1a1c1d]">${stayInfo?.subtotalAmount.toLocaleString('es-CL')} CLP</span>
+                        <span className="tabular-nums text-[#1a1c1d]">${stayInfo?.subtotalAmount.toLocaleString('es-CL')} CLP</span>
                       </div>
 
                       {stayInfo && stayInfo.nightSurcharge > 0 && (
                         <div className="flex justify-between text-[#0059b5] font-semibold">
                           <span>Recargo Nocturno ({tariffConfig.nightSurchargePercent}%):</span>
-                          <span className="font-mono">+${stayInfo.nightSurcharge.toLocaleString('es-CL')} CLP</span>
+                          <span className="tabular-nums">+${stayInfo.nightSurcharge.toLocaleString('es-CL')} CLP</span>
                         </div>
                       )}
 
                       {isLostTicket && (
                         <div className="flex justify-between text-[#ba1a1a] font-bold">
                           <span>Multa Ticket Perdido:</span>
-                          <span className="font-mono">${tariffConfig.lostTicketFee.toLocaleString('es-CL')} CLP</span>
+                          <span className="tabular-nums">${tariffConfig.lostTicketFee.toLocaleString('es-CL')} CLP</span>
                         </div>
                       )}
 
                       {discountAmount > 0 && (
                         <div className="flex justify-between text-amber-800 font-bold bg-amber-50 p-1.5 rounded border border-amber-200">
                           <span>Descuento aplicado ({discountReason || 'Convenio'}):</span>
-                          <span className="font-mono">-${discountAmount.toLocaleString('es-CL')} CLP</span>
+                          <span className="tabular-nums">-${discountAmount.toLocaleString('es-CL')} CLP</span>
                         </div>
                       )}
                     </>
@@ -374,7 +374,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
 
                   <div className="border-t border-[#e2e2e4] pt-2 flex justify-between items-center">
                     <span className="font-extrabold text-[#1a1c1d] text-sm">TOTAL A COBRAR:</span>
-                    <span className="font-mono font-black text-2xl text-[#0059b5]">
+                    <span className="tabular-nums font-black text-2xl text-[#0059b5]">
                       ${finalTotal.toLocaleString('es-CL')} CLP
                     </span>
                   </div>
@@ -507,7 +507,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                               value={customDiscountValue}
                               onChange={(e) => setCustomDiscountValue(e.target.value)}
                               placeholder={`Máximo $${rawTotal}`}
-                              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-mono font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                              className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs tabular-nums font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
                             />
                           </div>
                         )}
@@ -594,7 +594,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                         onChange={(e) => setVoucherNumber(e.target.value)}
                         placeholder="Ej: 19482019 / Transf. BancoEstado"
                         required
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#c1c6d6] text-xs font-mono font-bold bg-white focus:border-[#0F172A] outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#c1c6d6] text-xs tabular-nums font-bold bg-white focus:border-[#0F172A] outline-none"
                       />
                     </div>
 
@@ -635,7 +635,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                         value={voucherNumber}
                         onChange={(e) => setVoucherNumber(e.target.value)}
                         placeholder="Ej: OP-8492"
-                        className="w-full px-3 py-2 rounded-xl border border-[#c1c6d6] text-xs font-mono bg-white focus:border-[#0F172A] outline-none"
+                        className="w-full px-3 py-2 rounded-xl border border-[#c1c6d6] text-xs tabular-nums bg-white focus:border-[#0F172A] outline-none"
                       />
                     </div>
                   </div>
@@ -655,7 +655,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                           value={paidAmount}
                           onChange={(e) => setPaidAmount(e.target.value)}
                           placeholder={finalTotal.toString()}
-                          className="w-full pl-8 pr-4 py-2 rounded-xl border border-[#c1c6d6] text-lg font-bold font-mono focus:border-[#0071e3] outline-none bg-white"
+                          className="w-full pl-8 pr-4 py-2 rounded-xl border border-[#c1c6d6] text-lg font-bold tabular-nums focus:border-[#0071e3] outline-none bg-white"
                         />
                       </div>
                       
@@ -666,7 +666,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                             key={bill}
                             type="button"
                             onClick={() => setPaidAmount(bill.toString())}
-                            className="px-2.5 py-1 bg-white border border-[#c1c6d6] hover:bg-[#f3f3f5] text-[#1a1c1d] font-mono text-xs font-bold rounded-lg cursor-pointer"
+                            className="px-2.5 py-1 bg-white border border-[#c1c6d6] hover:bg-[#f3f3f5] text-[#1a1c1d] tabular-nums text-xs font-bold rounded-lg cursor-pointer"
                           >
                             ${bill / 1000}k
                           </button>
@@ -677,7 +677,7 @@ export const ProcesoPagoModal: React.FC<ProcesoPagoModalProps> = ({
                     {/* Vuelto / Change display */}
                     <div className="flex justify-between items-center bg-white p-3 rounded-xl border border-[#e2e2e4]">
                       <span className="text-xs font-bold text-[#414753] uppercase">Vuelto A Entregar:</span>
-                      <span className={`font-mono font-black text-xl ${changeAmount > 0 ? 'text-slate-800' : 'text-[#717785]'}`}>
+                      <span className={`tabular-nums font-black text-xl ${changeAmount > 0 ? 'text-slate-800' : 'text-[#717785]'}`}>
                         ${changeAmount.toLocaleString('es-CL')} CLP
                       </span>
                     </div>

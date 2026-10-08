@@ -1,394 +1,500 @@
-# CORDANO PMS — Documento Maestro de Diseño, Arquitectura y Especificación Funcional
+# DESIGN.md — ParkOps PMS & ERP
+## Sistema de Diseño Unificado · Versión 2026 · CORDANO-PMS-2026
 
-> **Documento de Referencia Técnica y Gestión de Proyecto**  
-> **Sistema**: CORDANO PMS (Cordano Parking Ops — V1)  
-> **Fecha de Consolidación**: Septiembre 2026  
-> **Autor**: Arquitectura de Software & Gestión de Proyectos  
-> **Propósito**: Base técnica, funcional y de negocio para el desarrollo e implementación del nuevo frontend desde cero (excluyendo código visual previo).
-
----
-
-## 1. Resumen de Requerimientos y Contexto
-
-### 1.1. Contexto Operativo y Geográfico
-- **Entorno**: Estacionamiento comercial urbano de rotación continua y abonados mensuales en Chile (ej. Serrano 447, Iquique, Región de Tarapacá).
-- **Moneda oficial**: Peso Chileno (`CLP`, `$`), sin decimales, con desglose físico exacto del cono monetario vigente.
-- **Huso Horario de Referencia**: `America/Santiago` (UTC-3 / UTC-4 según horario oficial de Chile).
-- **Capacidad Instalada**: 30 a 32 cajones físicos (slots), divididos estratégicamente en tres sectores:
-  1. *Zona A (Techado)*: Cupos cubiertos de alta demanda.
-  2. *Zona B (General)*: Patios abiertos de rotación general.
-  3. *Zona C (Preferencial)*: Cupos para personas con movilidad reducida, embarazadas, tercera edad o convenios especiales.
-
-### 1.2. Objetivos Principales del Sistema
-1. **Velocidad de Pista y Operación en Cabina (Cero Fricción)**:
-   - Proporcionar al cajero/operador una herramienta táctil, rápida y sin distracciones para registrar entradas en menos de 5 segundos y cobrar salidas en menos de 10 segundos.
-2. **Blindaje Financiero y Cierre de Turno Ciego**:
-   - Erradicar la manipulación de caja obligando al operador a declarar el dinero físico sin conocer el monto teórico acumulado por el sistema.
-3. **Trazabilidad y Auditoría Forense**:
-   - Registro inmutable de cada descuento, anulación, fuga forzada o retiro manual, respaldado por PIN de supervisor y sellos criptográficos.
-4. **Supervisión Remota Multiplataforma**:
-   - Acceso en tiempo real para dueños y administradores mediante la nube (Google Cloud Firestore) y planillas ejecutivas (Google Sheets).
-
-### 1.3. Reglas de Negocio Esenciales
-
-#### A. Tarifación y Tolerancia
-- **Período de Gracia (Grace Period)**:
-  - Primeros **15 minutos** (configurable por administración). Si el vehículo ingresa y sale dentro de este lapso, el costo es `$0 CLP`.
-- **Fracción y Minuto**:
-  - Pasado el período de gracia, se cobra el tiempo total transcurrido por bloques o minuto fraccionado según el tarifario vigente por tipo de vehículo (Automóvil, Camioneta/SUV, Motocicleta, Furgón).
-- **Recargos Especiales**:
-  - *Nocturno*: Aplicable a estadías que cruzan el umbral de las 22:00 hrs.
-  - *Fin de Semana / Feriado*: Recargo porcentual sobre la base estándar.
-- **Ticket Perdido**:
-  - Cobro fijo punitivo predefinido (ej. `$10.000 CLP`), exigiendo la patente del vehículo y la validación de un supervisor.
-
-#### B. Control de Acceso y Anti-Passback
-- **Validación de Patente Chilena**:
-  - Admisión de formatos vigentes: Nuevo (4 letras + 2 números, ej. `BB·CL·10`) y Antiguo (2 letras + 4 números, ej. `AB·12·34`). Normalización automática a mayúsculas sin guiones ni puntos en base de datos.
-- **Regla Anti-Passback**:
-  - Queda estrictamente prohibido emitir un nuevo ticket para una patente que ya figure en estado `activo` (dentro del recinto). Se debe arrojar alerta bloqueante con el número de ticket existente.
-
-#### C. Convenios Comerciales y Abonados Mensuales
-- **Suscripciones**: Registro de vehículos autorizados por contrato mensual (empresas, bancos, trabajadores locales, vecinos).
-- **Semáforo de Vigencia**:
-  - `Al día` (Verde): Contrato vigente. Tarifa al salir es `$0 CLP` (o tarifa preferencial pactada).
-  - `Por vencer` (Ámbar / Naranja): Faltan 5 a 7 días para el vencimiento de la mensualidad. El sistema alerta al operador para que gestione el cobro de la renovación en pista.
-  - `Vencido` (Rojo): Plazo caducado. El vehículo pierde el beneficio y el sistema le liquida la estadía como cliente particular por minuto.
-- **Renovación en Cabina**: Posibilidad de cobrar el mes siguiente en la misma caja, emitiendo comprobante e impactando el turno.
-
-#### D. Arqueo Ciego y Cuadratura de Turno (Blind Close)
-- **Definición de Cierre Ciego**:
-  - Al cerrar turno, el cajero **NO** ve los montos calculados por el sistema (ni recaudación teórica, ni desglose por método de pago).
-  - El cajero debe contar y declarar:
-    1. Efectivo físico desglosado por denominación chilena (Billetes: $20.000, $10.000, $5.000, $2.000, $1.000; Monedas: $500, $100, $50, $10).
-    2. Total sumado de vouchers POS (Débito y Crédito).
-    3. Total sumado de comprobantes de Transferencia Electrónica.
-- **Tolerancia Estricta de $2.000 CLP**:
-  - $|\text{Efectivo Declarado} - \text{Efectivo Esperado}| \le \$2.000\text{ CLP} \rightarrow$ Turno Cuadrado / Aprobado.
-  - Diferencia superior a $\pm\$2.000\text{ CLP} \rightarrow$ **Descuadre Crítico (Bandera Roja)**:
-    - Exige obligatoriamente:
-      1. Justificación escrita y detallada del cajero.
-      2. Autorización y presencia de **PIN de Supervisor**.
-      3. Nombre del supervisor que valida la recepción de la gaveta.
-- **Custodia de Vehículos en Arrastre (Handover)**:
-  - El acta de cierre registra el inventario exacto de autos que quedan físicamente dentro del patio al momento del cambio de turno, traspasando la responsabilidad al siguiente operador.
-- **Doble Firma del Acta**:
-  - Generación de **Copia 1 (Caja / Recinto)** y **Copia 2 (Operador Saliente)**, con generación de reporte en PDF formal.
-
-#### E. Mermas y Fugas (Salidas Forzadas)
-- En caso de que un conductor rompa barrera o escape sin pagar, el operador no puede eliminar el ticket:
-  - Debe seleccionar la opción **"Registrar Fuga / Salida Forzada"**.
-  - Exige PIN de supervisor y motivo del incidente.
-  - El ticket pasa a estado `anulado_fuga`, calcula el monto no percibido para auditoría, pero no se suma como dinero en caja, manteniendo el arqueo transparente.
-
-#### F. Movimientos Manuales de Caja
-- **Retiro / Sangría**: Extracción de excedentes de efectivo desde la caja hacia la caja fuerte de seguridad. Reduce el efectivo esperado del cajero.
-- **Gasto Menor**: Compra imprevista autorizada (insumos de aseo, rollo térmico). Reduce el efectivo esperado.
-- **Ingreso Manual**: Inyección de sencillo/cambio a la gaveta. Aumenta el efectivo esperado.
-- Todos generan comprobante numerado (`VOUCHER-XXXX`).
-
-#### G. Checklist de Inicio de Turno
-- 5 verificaciones físicas obligatorias:
-  1. Integridad del perímetro del recinto.
-  2. Conteo físico de autos en arrastre vs. sistema.
-  3. Prueba de barrera y semáforos.
-  4. Revisión y enfoque de cámaras de seguridad.
-  5. Stock de papel térmico en impresoras y aseo en área de cobro.
-- Mecanismo *Snooze*: Permite postergar por 15 minutos en caso de flujo vehicular inmediato.
-
-### 1.4. Perfiles y Roles de Usuario (RBAC)
-1. **Operador / Cajero**:
-   - Registrar entradas y salidas.
-   - Cobrar en efectivo, POS o transferencia.
-   - Solicitar movimientos de caja y renovar convenios.
-   - Ejecutar el checklist de apertura y el arqueo ciego final.
-   - *Restricciones*: No puede modificar tarifas, no puede ver el monto esperado de caja, no puede anular tickets sin PIN de supervisor.
-2. **Supervisor de Turno**:
-   - Autorizar descuentos manuales superiores a la norma.
-   - Autorizar salidas forzadas o fugas vehiculares.
-   - Validar y autorizar descuadres de caja que superen los $\pm\$2.000\text{ CLP}$.
-   - Autorizar sangrías y retiros a bóveda.
-3. **Administrador General / Propietario**:
-   - Modificar tarifas, períodos de gracia y recargos.
-   - Crear, editar o dar de baja contratos de convenios.
-   - Consultar la bitácora completa de auditoría SHA-256.
-   - Configurar y sincronizar la conexión a Google Sheets y Google Cloud.
+> **Actualizado**: Octubre 2026  
+> **Fuente de Diseño**: Google Stitch `projects/10292600008632163693` + Magnific AI Presets  
+> **Aplicación**: Landing Page Comercial + Cockpit Operativo de Garita + Módulos ERP
 
 ---
 
-## 2. Estado Actual de la Aplicación
+## 1. Principios de Diseño
 
-### 2.1. Nivel de Madurez del Proyecto
-- **Fase**: Prototipo Funcional Completo (MVP Avanzado con lógica de negocio validada en el cliente).
-- **Backend / Conectividad**: Vinculado con el proyecto de Google Cloud `gen-lang-client-0862587160` (Proyecto Nº `349577440002`).
-- **Base de Datos Operativa**: Integrado con **Firebase Firestore** con colecciones y reglas de seguridad desplegadas.
-- **Persistencia de Respaldo**: Doble capa (*dual-write*) activa: guarda en Firestore y en `localStorage` del navegador para contingencias fuera de línea.
-- **Reportería Tabular**: Módulo de exportación y sincronización con **Google Sheets API v4** preparado con OAuth 2.0.
-
-### 2.2. Componentes de Lógica Operativa Validados
-- Motor de cálculo de estadías chilenas (minuto fraccionado, gracia de 15m, recargos).
-- Validador y detector de patentes duplicadas (anti-passback).
-- Formulario de arqueo ciego con calculadora de denominación monetaria chilena.
-- Semáforo de días restantes para convenios y abonados.
-- Generador de comprobantes y actas de cierre en formato imprimible/PDF (usando `jspdf`).
-- Bitácora de eventos con severidades clasificadas (`info`, `warning`, `critical`).
+| Principio | Regla |
+|:---|:---|
+| **Comercial primero** | La landing es el escaparate del producto. Debe hablar el lenguaje del cliente, no del técnico. Cero jerga. |
+| **Operativo sin scroll** | Las pantallas de garita (POS, Matriz, POS Cobro) no requieren scroll en 1080p/4K. |
+| **Keyboard-First** | F1–F9 como atajos primarios. El campo de patente/ticket tiene autofoco inmediato. |
+| **Numérica tabular** | Todo valor CLP, tiempo y correlativo usa `font-mono` + `tabular-nums`. |
+| **Modo claro / oscuro** | Todos los componentes soportan ambos temas. El token de cada color se define en par light/dark. |
+| **Accesibilidad AA** | Ratio de contraste mínimo 4.5:1. Focus visible en todos los interactivos. |
 
 ---
 
-## 3. Copywriting y Frases Clave
+## 2. Paleta de Color
 
-El tono del sistema debe ser **ejecutivo, preciso, sobrio y enfocado en la seguridad operativa**. A continuación, los textos y frases normadas:
+### 2.1 Colores Semánticos de Plazas (Obligatorio — sin excepciones)
 
-### 3.1. Landing Page e Inicio de Sesión
-- **Título Institucional**: `"CORDANO PMS — Sistema de Control y Gestión Operacional"`
-- **Subtítulo**: `"Control de acceso vehicular, tarifación en tiempo real y auditoría financiera ciega."`
-- **Frase de Autenticación**: `"Ingrese sus credenciales operativas o PIN de autorización para habilitar el terminal de cobro."`
-- **Badges de Confianza**:
-  - `"Terminal Certificado — Recinto Serrano 447"`
-  - `"Enlace Activo con Google Cloud Platform"`
-  - `"Auditoría Continua con Sellado Digital"`
+| Estado | Token | Hex | Uso |
+|:---|:---|:---|:---|
+| Disponible / Libre | `--slot-libre` | `#10B981` | Plaza abierta, confirmación, éxito |
+| Ocupado | `--slot-ocupado` | `#64748B` | Plaza con vehículo activo |
+| Reservado | `--slot-reservado` | `#F59E0B` | Plaza con reserva previa |
+| Abonado / VIP | `--slot-abonado` | `#3B82F6` | Contrato mensual activo |
+| PMR (Movilidad Reducida) | `--slot-pmr` | `#06B6D4` | Plaza preferencial |
+| Punto Carga EV | `--slot-ev` | `#8B5CF6` | Electrolinera |
+| Sobrestadía / Alerta | `--slot-alerta` | `#EF4444` | Más de 3 horas sin cobro |
+| Offline / Contingencia | `--slot-offline` | `#F97316` | Ticket emitido sin conexión |
 
-### 3.2. Pistas de Entrada y Salida (Operación Diaria)
-- **Ingreso**:
-  - Botón Principal: `"Registrar Ingreso de Vehículo"`
-  - Etiqueta de Patente: `"Patente del Vehículo (Formato Nacional)"`
-  - Placeholder: `"Ej: BBCL10 o AB1234"`
-  - Asignación de Espacio: `"Asignar Cajón Inmediato (Opcional)"`
-  - Anti-Passback Error: `"Alerta Anti-Passback: La patente [PATENTE] ya cuenta con un ingreso activo registrado a las [HORA] en el ticket [ID]."`
-  - Confirmación: `"Ticket emitido exitosamente. Entrada registrada en tiempo cero."`
-- **Cobro y Salida**:
-  - Botón de Liquidación: `"Liquidar Estadía y Liberar Cupo"`
-  - Frase de Gracia: `"Estadía cubierta bajo los 15 minutos de tolerancia (Costo: $0 CLP)."`
-  - Vuelto / Cambio: `"Cambio a Devolver al Conductor: $[MONTO] CLP"`
-  - Voucher POS: `"Ingrese últimos 4 dígitos o folio del comprobante Transbank/Getnet"`
-  - Ticket Extraviado: `"Aplicar Tarifa Plana por Ticket Extraviado (Requiere Patente)"`
-  - Fuga: `"Declarar Fuga Vehicular / Evasión de Barrera"`
+### 2.2 Superficies
 
-### 3.3. Arqueo Ciego y Fin de Turno
-- **Apertura de Turno**:
-  - `"Declaración de Fondo Inicial de Sencillo (Gaveta de Cambio)"`
-- **Cierre Ciego**:
-  - Título: `"Arqueo Ciego de Caja — Rendición Operacional"`
-  - Advertencia al Cajero: `"Cuente físicamente el dinero de la gaveta. Ingrese el número exacto de billetes y monedas. El sistema contrastará el saldo final de forma privada."`
-  - Regla de Tolerancia: `"Tolerancia máxima permitida sin justificación: ±$2.000 CLP."`
-  - Cuadrado (Verde): `"Arqueo Conforme: La caja cuadra dentro de la tolerancia operativa permitida."`
-  - Descuadre (Rojo): `"Alerta de Descuadre Crítico: Se detectó una diferencia de $[MONTO] CLP. Se requiere justificación formal del cajero y validación mediante PIN de supervisor para procesar el cierre."`
-- **Acta de Traspaso**:
-  - `"Acta Oficial de Cierre de Turno y Traspaso de Custodia de Vehículos"`
-  - `"Copia 1: Respaldo de Administración y Caja"`
-  - `"Copia 2: Comprobante de Recepción del Operador"`
+| Token | Light | Dark |
+|:---|:---|:---|
+| `--surface-app` | `#f8fafc` | `#09090f` |
+| `--surface-base` | `#ffffff` | `#111118` |
+| `--surface-raised` | `#f1f5f9` | `#17171f` |
+| `--surface-overlay` | `rgba(15,23,42,0.72)` | `rgba(0,0,0,0.75)` |
+| `--surface-dark-hero` | `#0f172a` | `#0a0a14` |
+
+### 2.3 Marca y Acentos
+
+| Token | Hex | Rol |
+|:---|:---|:---|
+| `--accent-brand-dark` | `#0f172a` | Marca principal (modo claro), botón primario light |
+| `--accent-emerald` | `#10B981` | CTA principal, éxito, estados "libre", badge landing |
+| `--accent-emerald-hover` | `#059669` | Hover sobre CTA, botones secundarios activos |
+| `--accent-warning` | `#F59E0B` | Alertas suaves, abonados por vencer |
+| `--accent-danger` | `#EF4444` | Error, sobrestadía, descuadre de caja crítico |
+| `--accent-info` | `#3B82F6` | Informativo, abonados VIP |
+
+### 2.4 Texto
+
+| Token | Light | Dark |
+|:---|:---|:---|
+| `--text-primary` | `#0f172a` | `#f8fafc` |
+| `--text-secondary` | `#475569` | `#94a3b8` |
+| `--text-tertiary` | `#94a3b8` | `#475569` |
+| `--text-inverted` | `#ffffff` | `#ffffff` |
+
+### 2.5 Bordes
+
+| Token | Light | Dark |
+|:---|:---|:---|
+| `--border-subtle` | `#e2e8f0` | `rgba(255,255,255,0.06)` |
+| `--border-default` | `#e2e8f0` | `rgba(255,255,255,0.08)` |
+| `--border-strong` | `#cbd5e1` | `rgba(255,255,255,0.14)` |
 
 ---
 
-## 4. Árbol de Navegación (Sitemap)
+## 3. Tipografía
 
-Estructura jerárquica de la plataforma para la nueva arquitectura:
+### 3.1 Familia de fuentes
 
-```
-CORDANO PMS
-│
-├── / (Acceso Público & Seguridad)
-│   ├── /login (Inicio de sesión por Operador / PIN / Google Auth)
-│   └── /terminal-lock (Pantalla de bloqueo por inactividad de cabina)
-│
-├── /operacion (Vistas del Operador de Cabina — Rol: Cajero/Operador)
-│   ├── /operacion/pos (Punto de Venta Unificado: Entrada rápida + Cobro de salida)
-│   ├── /operacion/patio (Mapa interactivo de slots y asignación física)
-│   ├── /operacion/turnos (Apertura de turno, movimientos manuales de caja, sangrías)
-│   ├── /operacion/cierre-ciego (Módulo de conteo físico y cuadratura de turno)
-│   └── /operacion/checklist (Checklist interactivo de 5 puntos con snooze de 15m)
-│
-├── /gestion (Vistas de Gestión y Supervisión — Rol: Supervisor/Administrador)
-│   ├── /gestion/dashboard (Métricas gerenciales: recaudación, rotación, ocupación)
-│   ├── /gestion/convenios (Padrón de abonados, contratos de flotas, renovaciones)
-│   ├── /gestion/tarifario (Configuración de tarifas, minutos de gracia y penalidades)
-│   ├── /gestion/auditoria (Bitácora inmutable de eventos, intentos de acceso y fugas)
-│   └── /gestion/base-datos (Explorador relacional de tablas y sincronizador a Google Sheets)
-│
-└── /reportes (Emisión y Exportación)
-    ├── /reportes/acta-turno/:id (Visualizador e impresor PDF de acta doble)
-    └── /reportes/consolidado-diario (Resumen para gerencia y contabilidad)
+| Rol | Fuente | Peso | Uso |
+|:---|:---|:---|:---|
+| Cuerpo / UI | `Plus Jakarta Sans` | 400, 600, 700, 800, 900 | Títulos, párrafos, botones, labels |
+| Monoespaciada numérica | `JetBrains Mono` | 400, 600, 700, 900 | CLP, patentes, tickets, timers, coords |
+| Fallback | `system-ui, -apple-system, sans-serif` | — | Sin carga de fuente |
+
+### 3.2 Escala tipográfica
+
+| Nivel | Tamaño | Peso | Uso |
+|:---|:---|:---|:---|
+| `display-xl` | `clamp(2rem, 4vw, 3.25rem)` | 900 | Hero H1 landing |
+| `display-lg` | `clamp(1.75rem, 3.5vw, 2.5rem)` | 900 | Sección CTA final |
+| `heading-lg` | `clamp(1.5rem, 3vw, 2.25rem)` | 900 | H2 de sección |
+| `heading-md` | `1.125rem` / `18px` | 800 | Título de panel, card header |
+| `body-lg` | `16px` | 400, 600 | Párrafos de hero |
+| `body-md` | `14px` | 600 | Texto de módulos, descripciones |
+| `body-sm` | `13px` | 600, 700 | Labels de nav, textos secundarios |
+| `caption` | `12px` | 600, 700 | Subtítulos, badges, ayuda |
+| `micro` | `11px` | 700 | Tags, UPPERCASE labels, tooltips |
+| `mono-data` | `13–14px` | 700, 900 | CLP, timestamps, placas, códigos |
+
+### 3.3 Reglas de letra
+
+```css
+/* Todo valor monetario, timer, ocupación o placa: */
+font-family: 'JetBrains Mono', ui-monospace, monospace;
+font-variant-numeric: tabular-nums;
+font-feature-settings: "tnum" 1;
+letter-spacing: -0.01em;
+
+/* H1, H2 de landing: */
+letter-spacing: -0.04em to -0.06em;
+line-height: 1.08–1.15;
+
+/* Badges y micro-labels: */
+font-weight: 700;
+letter-spacing: 0.08em;
+text-transform: uppercase;
 ```
 
 ---
 
-## 5. Análisis y Estructura de Diseño
+## 4. Espaciado y Layout
 
-### 5.1. Filosofía de Diseño: "Ergonomía de Cabina y Cero Slop"
-- **Entorno Hostil de Operación**: Las casetas de estacionamiento enfrentan reflejos de sol diurno, pantallas táctiles pequeñas o sucias, e iluminación artificial deficiente de noche.
-- **Directrices Visuales**:
-  - **Alto Contraste Estricto**: Nunca usar grises claros sobre fondos blancos. WCAG AA mínimo 4.5:1.
-  - **Elementos Táctiles Grandes**: Objetivos de toque (*touch targets*) de al menos 48px a 56px para botones clave en pantalla POS.
-  - **Sin Adornos Superfluos**: Prohibidos los degradados arbitrarios de color morado/azul, sombras pesadas difuminadas y efectos de vidrio reflectante (*glassmorphism*). Priorizar superficies sólidas y limpias.
-  - **Doble Tipografía Semántica**:
-    - Tipografía de lectura e interfaz: `Manrope` o `Plus Jakarta Sans` (humana, nítida y geométrica).
-    - Tipografía numérica, patentes y dinero: `JetBrains Mono` (monoespaciada, perfecta para alineación vertical de cifras en columnas).
+### 4.1 Grid principal
 
-### 5.2. Paleta de Colores Corporativa
-- **Color Institucional Primario (Borgoña Cordano)**: `#80093A`
-  - Utilizado en: Botones de acción primaria, encabezados institucionales, bordes de selección activa.
-- **Primario Hover / Activo**: `#A52C55`
-- **Fondo de Aplicación (Off-White Calmante)**: `#F8F9FA` (reduce el encandilamiento).
-- **Superficie de Tarjetas y Módulos**: `#FFFFFF` con borde fino `#E2E2E4`.
-- **Texto Principal**: `#1D1D1F` (negro carbón profundo).
-- **Texto Secundario**: `#515154` (gris grafito legible).
-- **Semántica Operativa**:
-  - *Verde Esmeralda* (`#059669` / Fondo `#ECFDF5`): Slot disponible, cobro exitoso, turno cuadrado, convenio al día.
-  - *Rojo Carmesí* (`#DC2626` / Fondo `#FEF2F2`): Slot ocupado, descuadre superior a $2.000, fuga reportada, convenio vencido.
-  - *Ámbar Dorado* (`#D97706` / Fondo `#FFFBEB`): Período de gracia activo, convenio por vencer, advertencia de supervisor.
-  - *Azul Pizarra* (`#2563EB` / Fondo `#EFF6FF`): Slot preferencial / personas con discapacidad, convenio corporativo.
+| Contexto | Grid | Gap |
+|:---|:---|:---|
+| Landing Hero | `1.2fr 0.8fr` | `40px` |
+| Módulos | `repeat(auto-fill, minmax(260px, 1fr))` | `16px` |
+| FAQ | `1fr` | `8px` |
+| Footer | `flexbox space-between` | `16px` |
+| Cockpit Garita | `7fr 5fr` (sin scroll) | `16px` |
+| Matriz de Plazas | `repeat(auto-fill, minmax(72px, 1fr))` | `8px` |
 
-### 5.3. El Widget HUD Persistente (Head-Up Display)
-Un componente esencial de la interfaz es la **Barra Flotante Inferior de Turno**:
-- Permanece visible en todo momento para el cajero sin importar la página en la que se encuentre.
-- Muestra en tiempo real:
-  1. *Reloj vivo*: Tiempo exacto transcurrido del turno (`04h 12m 30s`).
-  2. *Ocupación*: Razón de cupos (`24/30 Slots`).
-  3. *Recaudación*: Total acumulado en el turno actual.
-  4. *Estado de Sincronización*: Indicador de conexión Firestore (`Cloud Sync OK`).
-  5. *Botón Rápido de Cierre*: Acceso directo al arqueo ciego para cambio de turno expedito.
+### 4.2 Max-widths
+
+| Contexto | Max Width |
+|:---|:---|
+| Landing completa | `1200px` |
+| FAQ / Soporte | `1000px` |
+| Hero párrafo | `480px` |
+| Hero descripción FAQ | `440px` |
+| App (Cockpit) | `1536px` |
+
+### 4.3 Radios
+
+| Token | Valor | Uso |
+|:---|:---|:---|
+| `--radius-sm` | `6px` | Badges, chips pequeños |
+| `--radius-md` | `9–10px` | Inputs, botones secundarios |
+| `--radius-lg` | `14–16px` | Cards de módulo, FAQ items |
+| `--radius-xl` | `20px` | Login panel, modales |
+| `--radius-2xl` | `24px` | Secciones grandes |
+| `--radius-pill` | `9999px` | Badges de estado, toggle pill |
 
 ---
 
-## 6. Reporte Técnico y Arquitectura de Sistemas
+## 5. Componentes de Landing
 
-### 6.1. Identificadores de Infraestructura Activa
-- **Google Cloud Platform (GCP) Project ID**: `gen-lang-client-0862587160`
-- **GCP Project Number**: `349577440002`
-- **Google Cloud Run Host Region**: `us-west1`
-- **AI Studio Applet ID**: `e1c08131-a20e-48b9-8ee7-ee1d6aede812`
-- **URLs de Producción y Previsualización**:
-  - Desarrollo: `https://ais-dev-ozdgdixo2zrjkhyagygnzk-68180734196.us-west1.run.app`
-  - Compartida / Staging: `https://ais-pre-ozdgdixo2zrjkhyagygnzk-68180734196.us-west1.run.app`
-- **Cuenta Administradora**: `automatizable@gmail.com`
-- **Repositorio de Control de Versiones**: `https://github.com/brau450unab/pms_matic`
-
-### 6.2. Diagrama de Arquitectura de Tres Capas
+### 5.1 Navbar pública (landing)
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        CAPA 1: CLIENTE (FRONTEND)                      │
-│                                                                        │
-│   [ PWA / React SPA en Navegador de Cabina o Tablet Móvil ]            │
-│   ├── Máquina de Estado React (Context / Redux / Zustand)              │
-│   ├── Capa Local-First (LocalStorage / IndexedDB para contingencia)    │
-│   └── Generador de Documentos PDF y Comprobantes Térmicos (58/80mm)    │
-└─────────────────────────────────┬──────────────────────────────────────┘
-                                  │
-                                  │ HTTPS / WebSocket
-                                  ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                   CAPA 2: SERVIDOR (GOOGLE CLOUD RUN)                  │
-│                                                                        │
-│   [ Contenedor Docker Node.js / Express en us-west1 ]                  │
-│   ├── Escucha fija en Puerto 3000 (0.0.0.0:3000)                       │
-│   ├── Proxy inverso NGINX administrado                                 │
-│   ├── Endpoints REST: /api/tickets, /api/shifts, /api/sheets-sync      │
-│   └── Gestión segura de variables de entorno y secrets de GCP          │
-└──────────────────┬─────────────────────────────────┬───────────────────┘
-                   │                                 │
-                   │ SDK Admin / Web                 │ REST API v4
-                   ▼                                 ▼
-┌──────────────────────────────────────┐  ┌──────────────────────────────┐
-│        BASE DE DATOS VIVA            │  │     AUDITORÍA Y NEGOCIO      │
-│     Google Cloud Firestore           │  │      Google Sheets         │
-│     (Proyecto: 349577440002)         │  │  (Hojas de Cálculo Drive)   │
-├──────────────────────────────────────┤  ├──────────────────────────────┤
-│ • tickets: Estadías y cobros         │  │ 1. REGISTRO_VEHICULOS        │
-│ • slots: Estado de los 30 cajones    │  │ 2. TURNOS_CAJA               │
-│ • shifts: Arqueos ciegos             │  │ 3. CLIENTES_FRECUENTES       │
-│ • cash_movements: Sangrías           │  │ 4. LOGS_AUDITORIA            │
-│ • agreements: Abonados               │  │                              │
-│ • audit_logs: Trazabilidad SHA-256   │  │                              │
-└──────────────────────────────────────┘  └──────────────────────────────┘
+height: 60px
+position: sticky top-0 z-50
+background: rgba(bg, 0.92) + backdrop-blur(16px)
+border-bottom: 1px solid --border-subtle
 ```
 
-### 6.3. Esquema Normalizado de Datos (11 Tablas y Colecciones)
+**Contenido**: Logo + Nombre · Links de sección (Módulos, Funciones, FAQ) · Toggle dark/light · CTA "Iniciar sesión →"
 
-1. **`DBUser` / `Usuarios`**: `id_usuario`, `nombre_completo`, `email`, `rol` (`OPERADOR` | `SUPERVISOR` | `ADMIN`), `pin_autorizacion`, `activo`.
-2. **`DBRolePermission`**: Permisos granulares por módulo para evitar fugas de privilegios.
-3. **`DBParkingSlot` / `Slots`**: `id_slot`, `codigo` (`A-01`..`C-10`), `zona`, `tipo_vehiculo`, `estado` (`disponible`, `ocupado`, `reservado`, `mantenimiento`), `current_ticket_id`, `plate_number`.
-4. **`DBTicket` / `Tickets`**: `id_ticket`, `folio_ticket`, `patente`, `tipo_vehiculo`, `slot_codigo`, `hora_ingreso`, `hora_salida`, `minutos_totales`, `tarifa_aplicada`, `monto_total`, `monto_pagado`, `vuelto`, `metodo_pago` (`efectivo`, `tarjeta_debito`, `tarjeta_credito`, `transferencia`), `voucher_folio`, `estado` (`activo`, `pagado`, `anulado_fuga`, `anulado_cajero`), `operador_ingreso`, `operador_salida`.
-5. **`DBShift` / `Turnos`**: `id_turno`, `numero_turno`, `operador_id`, `operador_nombre`, `hora_apertura`, `hora_cierre`, `monto_inicial_efectivo`, `desglose_billetes_apertura`, `efectivo_declarado`, `tarjeta_declarada`, `transferencia_declarada`, `desglose_billetes_cierre`, `efectivo_esperado`, `tarjeta_esperada`, `transferencia_esperada`, `diferencia_efectivo`, `diferencia_total`, `estado_cuadratura` (`cuadrado`, `descuadre_critico`), `justificacion_descuadre`, `supervisor_pin`, `supervisor_nombre`, `arrastre_vehiculos_conteo`, `firma_caja_ok`, `firma_operador_ok`, `hash_auditoria`.
-6. **`DBCashMovement` / `MovimientosCaja`**: `id_movimiento`, `turno_id`, `tipo` (`RETIRO_SANGRIA`, `GASTO_MENOR`, `INGRESO_MANUAL`), `monto`, `motivo`, `comprobante_folio`, `timestamp`, `solicitante`, `autorizador_pin`.
-7. **`DBAgreement` / `Convenios`**: `id_convenio`, `patente`, `empresa_razon_social`, `rut`, `nombre_contacto`, `telefono`, `email`, `tipo_convenio`, `tarifa_mensual`, `fecha_inicio`, `fecha_vencimiento`, `estado` (`al_dia`, `por_vencer`, `vencido`), `ultimo_pago_fecha`, `ultimo_pago_monto`, `ultimo_pago_voucher`.
-8. **`DBCustomer` / `Clientes`**: Directorio consolidado de conductores frecuentes.
-9. **`DBAuditLog` / `Auditoria`**: `id_log`, `timestamp`, `evento`, `usuario_id`, `usuario_nombre`, `detalles`, `severidad` (`info`, `warning`, `critical`), `hash_integridad`.
-10. **`DBTariffConfig` / `ConfiguracionTarifas`**: Minutos de gracia (15), cobro por minuto, recargo ticket extraviado, recargo nocturno.
-11. **`DBSyncQueue`**: Cola de transacciones locales pendientes de sincronizar con la nube cuando el terminal vuelve a tener internet.
+### 5.2 Hero Section
+
+**Layout**: Grid 1.2fr / 0.8fr en desktop, apilado en mobile  
+**Izquierda**: Badge animado → H1 comercial → párrafo → doble botón CTA → stats strip  
+**Derecha**: Login panel flotante con shadow y border
+
+**Badge animado**:
+```
+background: rgba(16,185,129,0.12)
+border: 1px solid rgba(16,185,129,0.25)
+border-radius: 99px
+dot: 6px verde pulsante (animation: pulse 2s infinite)
+```
+
+### 5.3 Login Panel
+
+```
+background: --surface-base
+border: 1px solid --border-default
+border-radius: 20px
+padding: 32px
+box-shadow: dark: 0 24px 48px rgba(0,0,0,0.4) | light: 0 16px 48px rgba(15,23,42,0.08)
+```
+
+**Elementos**:
+1. Toggle de rol (Operador / Administrador) — pill selector
+2. Input Email/Usuario
+3. Input Contraseña con toggle show/hide
+4. Link "¿Olvidaste tu contraseña?"
+5. Botón "Ingresar al Sistema →" (verde `#10B981`, `box-shadow: 0 4px 12px rgba(16,185,129,0.3)`)
+6. Divider + link de soporte
+
+**Estado de error**: `background: rgba(239,68,68,0.12)` + `border: rgba(239,68,68,0.3)`  
+**Estado de carga**: spinner `⟳` rotando + texto "Verificando..."
+
+### 5.4 Matrix Preview (Sección oscura)
+
+```
+background: #0f172a (light) / #0a0a14 (dark)
+padding: 64px 20px
+```
+
+Slot cards en grid `auto-fill, minmax(72px, 1fr)`, cada una con:
+- `background: ${colorSlot}18` (12% opacidad del color semántico)
+- `border: 1.5px solid ${colorSlot}40` (25% opacidad)
+- `border-radius: 10px`
+- Emoji de estado + ID + label
+- Transición suave (`transition: all 0.4s cubic-bezier(0.16,1,0.3,1)`)
+
+### 5.5 Module Cards
+
+```
+background: --surface-base
+border: 1.5px solid --border-default (hover → colorMódulo + 40%)
+border-radius: 16px
+padding: 22px
+transition: all 0.3s cubic-bezier(0.16,1,0.3,1)
+hover: translateY(-3px) + box-shadow
+```
+
+**Estructura**: Emoji grande (28px) + Badge de categoría (10px UPPERCASE) → Título (14px 800) → Descripción (12px)
+
+### 5.6 FAQ Accordion
+
+```
+background: --surface-base
+border: 1px solid --border-default
+border-radius: 14px
+overflow: hidden
+```
+
+- Botón header: full-width, padding `20px 24px`, `flex justify-between`  
+- Número `P.01` en `JetBrains Mono` + color `#10B981`
+- Ícono `+` con `transform: rotate(45deg)` cuando está abierto
+- Respuesta: `border-top: 1px solid --border`, `padding: 16px 24px 20px`
+
+### 5.7 Footer dark
+
+```
+background: #0f172a (light) / #060608 (dark)
+padding: 32px 20px
+```
+
+Tres columnas: Empresa + dirección · Links legales · Copyright
 
 ---
 
-## 7. Guía de Inicialización para el Nuevo Proyecto
+## 6. Animaciones
 
-Siga esta lista de verificación secuencial para inicializar el nuevo frontend y dejarlo 100% cableado a la infraestructura actual:
+### 6.1 Reveal on scroll (Intersection Observer)
 
-### Paso 1: Configuración del Entorno y Variables del Sistema
-1. Asegurarse de que el servidor dev y producción enlace a `0.0.0.0` en el puerto **`3000`** (norma estricta de Cloud Run y AI Studio).
-2. Crear el archivo `.env.example` declarando las variables requeridas:
-   ```env
-   VITE_FIREBASE_PROJECT_ID=gen-lang-client-0862587160
-   VITE_FIREBASE_APP_ID=1:349577440002:web:488eeb4a99c415e104f01b
-   VITE_FIREBASE_API_KEY=AIzaSyAL5dqHzF0ymkxhE8SYvA1ldUYPdMZw_GE
-   VITE_FIREBASE_AUTH_DOMAIN=gen-lang-client-0862587160.firebaseapp.com
-   VITE_GOOGLE_CLIENT_ID=349577440002-6r0ijjtbqo7biqt4c8cd9r69daeit48v.apps.googleusercontent.com
-   ```
+```tsx
+// Hook useInView con threshold 0.15
+// Estilos inline:
+transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.6s ...
+opacity: inView ? 1 : 0
+transform: inView ? 'translateY(0)' : 'translateY(24px)'
+```
 
-### Paso 2: Conexión con Google Cloud Run
-1. **Configuración de Contenedor**:
-   - En el `package.json`, conservar la compatibilidad de producción:
-     - SPA estática compilada en carpeta `dist/`.
-     - Si se utiliza servidor Express personalizado (`server.ts`), compilar a `dist/server.cjs` ejecutando `node dist/server.cjs` en el puerto 3000.
-2. **Health Check**:
-   - Disponer de una ruta `/api/health` que devuelva `{ "status": "ok", "project": "CORDANO_PMS" }` para que Cloud Run mantenga vivo el contenedor sin reinicios en frío.
+**Delays escalonados**: Módulos → `i * 50ms`, FAQ → `i * 40ms`, Stats → `260ms`
 
-### Paso 3: Inicialización del SDK de Firebase Firestore
-1. Instalar la librería cliente oficial:
-   ```bash
-   npm install firebase
-   ```
-2. Inicializar la conexión en un módulo de servicios con soporte para reconexión:
-   - Configurar la persistencia de Firestore (`enableIndexedDbPersistence`) para que las consultas sigan respondiendo al cajero incluso si se corta la fibra óptica o el Wi-Fi.
-   - Establecer listeners reactivos (`onSnapshot`) sobre las colecciones `slots` y `tickets`.
+### 6.2 Badge de ocupación pulsante
 
-### Paso 4: Integración y Conexión con Google Sheets
-1. **Carga de SDK de Google Identity Services (GIS)**:
-   - Incluir en el `index.html` el script oficial de Google:
-     ```html
-     <script src="https://accounts.google.com/gsi/client" async defer></script>
-     ```
-2. **Alcances (OAuth Scopes) Requeridos**:
-   - `https://www.googleapis.com/auth/spreadsheets` (Lectura y escritura de celdas).
-   - `https://www.googleapis.com/auth/drive.file` (Creación de la planilla en el Drive del usuario).
-3. **Mecanismo de Token Client**:
-   - Inicializar con el Client ID de GCP: `349577440002-6r0ijjtbqo7biqt4c8cd9r69daeit48v.apps.googleusercontent.com`.
-   - Utilizar el flujo `initTokenClient` en el cliente web para solicitar el acceso mediante ventana modal emergente de Google.
-4. **Estructura Automática de las 4 Hojas Maestras**:
-   - Si la hoja no existe, la función creadora debe generar una planilla con las siguientes pestañas y encabezados:
-     1. `REGISTRO_VEHICULOS`: `[ID_Ticket, Folio, Patente, Tipo, Slot, Ingreso, Salida, Minutos, Tarifa, Total_Pagado, Metodo, Operador, Estado]`
-     2. `TURNOS_CAJA`: `[ID_Turno, Fecha, Operador, Hora_Apertura, Hora_Cierre, Monto_Inicial, Efectivo_Declarado, Tarjeta_Declarada, Transferencia_Declarada, Diferencia_Efectivo, Estado_Cuadratura, Justificacion, Supervisor_Validador]`
-     3. `CLIENTES_FRECUENTES_CONVENIOS`: `[ID_Convenio, Empresa, RUT, Contacto, Telefono, Patentes, Tarifa_Mensual, Vencimiento, Estado]`
-     4. `LOGS_AUDITORIA`: `[Timestamp, Usuario, Evento, Detalle, Severidad, Hash_Auditoria]`
+```css
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+```
 
-### Paso 5: Asignación de Nombres, Metadatos y Dominios
-1. **Sincronización en `metadata.json`**:
-   - `name`: `"CORDANO PMS"`
-   - `description`: `"Parking Management System — Control de acceso vehicular, tarifación en tiempo real y arqueo ciego para estacionamiento."`
-2. **Sincronización en `index.html`**:
-   - Reemplazar cualquier etiqueta genérica en `<title>` y `<meta property="og:title">` con `"CORDANO PMS"`.
-3. **Mapeo de Dominios en Cloud Run**:
-   - Para vincular un dominio personalizado propio (ej. `pms.cordano.cl`):
-     1. Acceder a Google Cloud Console > Cloud Run > Dominio personalizado (*Custom Domains*).
-     2. Mapear el servicio al dominio registrado.
-     3. Agregar los registros DNS de tipo `CNAME` y `TXT` provistos por Google en el panel de su proveedor de dominio (ej. NIC Chile o Cloudflare).
+Dot verde de 6px en badge de hero. Indica conexión live.
+
+### 6.3 Hover de botones
+
+```
+CTA Landing: scale(1.03) + transición 200ms
+Module Card: translateY(-3px) + box-shadow
+Nav links: color → textPrimary + background → surfaceRaised
+Toggle dark/light: opacity 0.87 en hover
+```
+
+### 6.4 Loader de login
+
+```
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+```
+
+Spinner `⟳` en font-size 16px, duración 1s lineal.
+
+### 6.5 Contador de plazas animado
+
+```tsx
+// State: setOccupancy cada 3 segundos ±1 plaza
+// Rango: 10–28 plazas ocupadas (demo)
+setInterval(() => setOccupancy(o => Math.min(28, Math.max(10, o + (Math.random() > 0.5 ? 1 : -1)))), 3000)
+```
 
 ---
 
-## 8. Consideraciones Finales para el Nuevo Frontend
+## 7. Dark / Light Mode
 
-- **Aislamiento de Lógica**: La capa de estado (`State Management`) debe estar desacoplada de los componentes visuales para permitir rediseñar botones, tarjetas o modales sin alterar el cálculo matemático de tarifas ni la lógica del arqueo ciego.
-- **Teclado Numérico y Shortcuts**: Para acelerar la pista, implementar atajos de teclado para el cajero (ej. `[F1]` para Registrar Ingreso, `[F2]` para Cobrar Salida, `[ESC]` para Cerrar Modales, `[ENTER]` para Confirmar Cobro).
-- **Compatibilidad con Impresoras Térmicas**: El formato de salida de los comprobantes debe estar diseñado en un ancho estricto de **384px (58mm)** o **576px (80mm)**, con código QR de alto contraste para lectura rápida con escáner de pistola láser.
+### Implementación
+
+```tsx
+// Hook useDarkMode():
+// Detecta prefers-color-scheme del sistema
+// Permite override manual con toggle (navbar)
+// Se suscribe a cambios del sistema con addEventListener
+
+const [isDark, setIsDark] = useState(() =>
+  window.matchMedia('(prefers-color-scheme: dark)').matches
+);
+```
+
+### Estrategia de theming
+
+Se usan variables CSS inline (no clases Tailwind) para todo el contenido de la landing, ya que el tema se aplica dinámicamente en tiempo de ejecución. Esto permite:
+1. Reactividad instantánea al cambiar tema (sin flash)
+2. Compatibilidad con Google AI Studio
+3. Sin dependencia de `document.documentElement.classList`
 
 ---
-*Fin del documento de diseño y arquitectura de CORDANO PMS.*
+
+## 8. Responsive
+
+| Breakpoint | Estrategia |
+|:---|:---|
+| `< 640px` (mobile) | Hero apilado (login arriba, texto abajo), nav simplificada (sin links, solo logo + CTA), matriz en 3 columnas |
+| `640–1024px` (tablet) | Hero 1 columna, módulos 2 columnas |
+| `> 1024px` (desktop) | Hero 2 columnas, módulos 4 columnas |
+
+```css
+/* Mobile override vía @media */
+@media (max-width: 768px) {
+  .hero-grid { grid-template-columns: 1fr !important; }
+  .login-card-container { order: -1; } /* Login primero en mobile */
+}
+```
+
+---
+
+## 9. Magnific AI — Presets para Mejora Visual
+
+### Preset A: UI Screenshots & Dashboard (Cockpit Garita)
+- **Engine**: Faithful / Graphic Design
+- **Creativity**: `0` (nunca deformar números CLP o placas)
+- **Resemblance**: `95`
+- **HDR**: `10`
+- **Fractality**: `0`
+- **Prompt**: `Ultra-sharp enterprise dark mode UI dashboard, crisp vector icons, perfectly legible monospace numbers, flat clean surfaces, 8k resolution, zero compression artifacts, pixel-perfect alignment.`
+
+### Preset B: Recinto Serrano 447 (Vista Arquitectónica)
+- **Engine**: Hard Surface / Architecture
+- **Creativity**: `+3`
+- **Resemblance**: `75`
+- **HDR**: `45`
+- **Fractality**: `35`
+- **Prompt**: `Aerial view of an outdoor parking lot in Iquique Chile, emerald green and slate painted stalls marked 01 to 30, automatic barriers, coastal daylight, hyperrealistic 8k.`
+
+### Preset C: CCTV / LPR Feed
+- **Engine**: Photographic
+- **Creativity**: `+2`
+- **Resemblance**: `80`
+- **HDR**: `30`
+- **Prompt**: `Security CCTV camera view of car entering parking booth, Chilean license plate, industrial gate, realistic lens distortion, timestamp overlay.`
+
+### Preset D: Landing Hero Image
+- **Engine**: Photographic + Structure
+- **Creativity**: `+1`
+- **Resemblance**: `85`
+- **HDR**: `20`
+- **Prompt**: `Modern parking management software landing page screenshot, dark mode UI, emerald accents, clean enterprise design, 4K retina display, no compression.`
+
+---
+
+## 10. Google Stitch — Origen y Referencia
+
+Las pantallas base de este sistema de diseño provienen del proyecto Stitch `projects/10292600008632163693`:
+
+| Pantalla Stitch | Descripción | Aplicación en código |
+|:---|:---|:---|
+| `parkops_split_workstation` | Workstation dividida garita/info | `PosView.tsx`, cockpit split layout |
+| `parkops_matriz_kanban_30plazas` | Matriz 30 plazas Kanban | `AnalyticsView.tsx`, matrix grid |
+| `parkops_terminal_dark_metallic` | Terminal oscura metálica | Preset colores dark mode |
+| `parkops_launchpad_minimalista` | Hub minimalista de accesos | `MenuView.tsx` |
+| `parkops_login_modulos` | Login con módulos laterales | `LandingView.tsx` — Hero + Login panel |
+| `parkops_acceso_informacion` | FAQ + Soporte + Info | `LandingView.tsx` — Sección FAQ |
+| `parkops_terminal_hud_inmersiva` | HUD garita inmersiva | `InicioHub.tsx` |
+| `parkops_matriz_kanban_v2` | Matriz v2 compacta | Slots grid 72px |
+
+---
+
+## 11. Tokens CSS Completos (`:root`)
+
+```css
+:root {
+  /* ── Superficies (Light) ── */
+  --surface-app:          #f8fafc;
+  --surface-base:         #ffffff;
+  --surface-raised:       #f1f5f9;
+  --surface-overlay:      rgba(15, 23, 42, 0.72);
+  --surface-dark-hero:    #0f172a;
+
+  /* ── Bordes ── */
+  --border-subtle:        #e2e8f0;
+  --border-default:       #e2e8f0;
+  --border-strong:        #cbd5e1;
+
+  /* ── Texto ── */
+  --text-primary:         #0f172a;
+  --text-secondary:       #475569;
+  --text-tertiary:        #94a3b8;
+  --text-inverted:        #ffffff;
+
+  /* ── Marca ── */
+  --accent-brand:         #0f172a;
+  --accent-emerald:       #10B981;
+  --accent-emerald-hover: #059669;
+  --accent-warning:       #F59E0B;
+  --accent-danger:        #EF4444;
+  --accent-info:          #3B82F6;
+
+  /* ── Slots (Semántico obligatorio) ── */
+  --slot-libre:           #10B981;
+  --slot-ocupado:         #64748B;
+  --slot-reservado:       #F59E0B;
+  --slot-abonado:         #3B82F6;
+  --slot-pmr:             #06B6D4;
+  --slot-ev:              #8B5CF6;
+  --slot-alerta:          #EF4444;
+  --slot-offline:         #F97316;
+
+  /* ── Radios ── */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-2xl:  24px;
+  --radius-pill: 9999px;
+
+  /* ── Transiciones ── */
+  --ease-spring:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth:  cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-sm:  200ms;
+  --duration-md:  300ms;
+  --duration-lg:  600ms;
+
+  /* ── Sombras ── */
+  --shadow-sm:   0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md:   0 4px 14px rgba(15, 23, 42, 0.08);
+  --shadow-lg:   0 16px 48px rgba(15, 23, 42, 0.10);
+  --shadow-cta:  0 4px 12px rgba(16, 185, 129, 0.30);
+  --shadow-dark: 0 24px 48px rgba(0, 0, 0, 0.40);
+}
+
+/* ── Dark overrides ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface-app:     #09090f;
+    --surface-base:    #111118;
+    --surface-raised:  #17171f;
+    --surface-overlay: rgba(0, 0, 0, 0.75);
+    --border-subtle:   rgba(255, 255, 255, 0.06);
+    --border-default:  rgba(255, 255, 255, 0.08);
+    --border-strong:   rgba(255, 255, 255, 0.14);
+    --text-primary:    #f8fafc;
+    --text-secondary:  #94a3b8;
+    --text-tertiary:   #475569;
+  }
+}
+```
+
+---
+
+## 12. Auditoría de Colores — Reglas Antifraude
+
+| Elemento | Color | Contexto |
+|:---|:---|:---|
+| Descuento autorizado (con PIN) | `#10B981` verde | Fila en bitácora |
+| Recargo / Multa ticket perdido | `#EF4444` rojo | Fila en bitácora |
+| Ticket pagado normal | `#3B82F6` azul | Fila en bitácora |
+| Diferencia de caja OK (≤ $2.000) | `#10B981` verde | Panel arqueo |
+| Diferencia de caja CRÍTICA (> $2.000) | `#EF4444` rojo | Panel arqueo |
+| Turno sin abrir (admin) | `#F59E0B` ámbar | Badge de estado |
+
+---
+
+*Documento generado por Antigravity + Stitch Design System · CORDANO-PMS-2026*
