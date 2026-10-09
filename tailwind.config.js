@@ -43,11 +43,11 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Geist', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Geist', 'Inter', 'system-ui', 'sans-serif'],
-        haptik: ['Geist', 'Inter', 'system-ui', 'sans-serif'],
-        public: ['Geist', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['Geist Mono', 'JetBrains Mono', 'Fira Code', 'ui-monospace', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Inter', 'system-ui', 'sans-serif'],
+        haptik: ['Inter', 'system-ui', 'sans-serif'],
+        public: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         xs:      '0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.03)',

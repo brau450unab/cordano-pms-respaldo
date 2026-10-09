@@ -164,6 +164,12 @@ export const INITIAL_TARIFF_CONFIG: TariffConfig = {
     'Motocicleta': { minuteRate: 25, hourlyRate: 1500, maxDailyRate: 10000 },
     'Furgón / SUV': { minuteRate: 50, hourlyRate: 3000, maxDailyRate: 22000 },
   },
+  subscriptionPlans: [
+    { id: 'mensual', title: 'Mensual', price: '$50.000', desc: 'Por mes' },
+    { id: 'semanal', title: 'Semanal', price: '$15.000', desc: 'Por semana' },
+    { id: 'diurno', title: 'Diurno', price: '$5.000', desc: 'Por día' },
+    { id: 'flota', title: 'Flota Corp.', price: 'A conv.', desc: 'Multivehículo' }
+  ]
 };
 
 const now = new Date();
@@ -344,7 +350,7 @@ export const INITIAL_SHIFT: Shift = {
   id: 'SHIFT-1042',
   operatorId: 'usr-101',
   operatorName: 'Juan Pérez',
-  startTime: hoursAgo(5),
+  startTime: new Date().toISOString(),
   initialCash: 30000, // 30,000 CLP fondo inicial de caja
   status: 'abierto',
   totalTicketsProcessed: 3,

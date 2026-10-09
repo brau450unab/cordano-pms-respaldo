@@ -129,12 +129,20 @@ export interface VehicleRate {
   maxDailyRate: number; // CLP e.g. 15000 CLP
 }
 
+export interface SubscriptionPlan {
+  id: string;
+  title: string;
+  price: string;
+  desc: string;
+}
+
 export interface TariffConfig {
   gracePeriodMinutes: number; // e.g. 10 minutes free
   lostTicketFee: number; // e.g. 10000 CLP
   nightSurchargePercent: number; // e.g. 20%
   weekendSurchargePercent: number; // e.g. 15%
   vehicleRates: Record<VehicleType, VehicleRate>;
+  subscriptionPlans?: SubscriptionPlan[];
 }
 
 export interface ChileanCashBreakdown {
@@ -165,6 +173,19 @@ export interface CashMovement {
   voucherFolio?: string;
 }
 
+
+export interface PendingApproval {
+  id: string;
+  type: 'DISCOUNT' | 'LOST_TICKET' | 'VOID' | 'OTHER';
+  description: string;
+  amount: number;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  operatorId?: string;
+  ticketId?: string;
+  plate?: string;
+}
+
 export interface Shift {
   id: string;
   operatorId: string;
@@ -177,11 +198,16 @@ export interface Shift {
   declaredCard?: number;
   declaredTransfer?: number;
   declaredCashBreakdown?: ChileanCashBreakdown;
+  handoverFundAmount?: number;
   cashMovements?: CashMovement[];
   expectedCash?: number;
   expectedCard?: number;
   expectedTransfer?: number;
+  expectedTotal?: number;
+  totalDifference?: number;
   status: 'abierto' | 'cerrado';
+  hash?: string; // SHA-256 final audit hash
+  pendingApprovals?: PendingApproval[];
   totalTicketsProcessed?: number;
   discrepancyCash?: number;
   discrepancyTotal?: number;

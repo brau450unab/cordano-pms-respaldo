@@ -66,7 +66,7 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
         {/* Header */}
         <div className="p-5 border-b border-[#e2e2e4] flex items-center justify-between bg-[#fbfbfc]">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-slate-800 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-[#FFF5F8] text-[#2D2D44] flex items-center justify-center">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
@@ -92,14 +92,14 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
         <div className="p-5 overflow-y-auto space-y-5">
           {/* Summary Badges */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-4 bg-blue-50/70 border border-blue-200 rounded-2xl flex items-center justify-between">
+            <div className="p-4 bg-[#FFF5F8]/70 border border-blue-200 rounded-2xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <CreditCard className="w-5 h-5 text-slate-800" />
+                <CreditCard className="w-5 h-5 text-[#2D2D44]" />
                 <div>
                   <span className="text-xs font-bold text-blue-900 block">
                     Vouchers POS (Débito/Crédito)
                   </span>
-                  <span className="text-[11px] text-slate-800">
+                  <span className="text-[11px] text-[#2D2D44]">
                     {posTickets.length} transacciones registradas
                   </span>
                 </div>
@@ -109,19 +109,19 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
               </span>
             </div>
 
-            <div className="p-4 bg-slate-800/70 border border-slate-300 rounded-2xl flex items-center justify-between">
+            <div className="p-4 bg-[#2D2D44]/70 border border-slate-300 rounded-2xl flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <Send className="w-5 h-5 text-slate-800" />
+                <Send className="w-5 h-5 text-[#2D2D44]" />
                 <div>
-                  <span className="text-xs font-bold text-slate-800 block">
+                  <span className="text-xs font-bold text-[#2D2D44] block">
                     Transferencias Electrónicas
                   </span>
-                  <span className="text-[11px] text-slate-800">
+                  <span className="text-[11px] text-[#2D2D44]">
                     {transferTickets.length} transferencias validadas
                   </span>
                 </div>
               </div>
-              <span className="tabular-nums font-black text-base text-slate-800">
+              <span className="tabular-nums font-black text-base text-[#2D2D44]">
                 ${totalTransferAmount.toLocaleString('es-CL')} CLP
               </span>
             </div>
@@ -180,7 +180,7 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
                           key={t.id}
                           onClick={() => toggleCheck(t.id)}
                           className={`hover:bg-[#fbfbfc] cursor-pointer transition ${
-                            isChecked ? 'bg-slate-900/40' : ''
+                            isChecked ? 'bg-[#1E1E2F]/40' : ''
                           }`}
                         >
                           <td className="py-2.5 px-3 text-center">
@@ -207,7 +207,7 @@ export const ModalCuadraturaVouchers: React.FC<ModalCuadraturaVouchersProps> = (
                             <span
                               className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
                                 t.paymentMethod === 'transferencia'
-                                  ? 'bg-slate-800 text-slate-800'
+                                  ? 'bg-[#2D2D44] text-[#2D2D44]'
                                   : 'bg-blue-100 text-blue-800'
                               }`}
                             >

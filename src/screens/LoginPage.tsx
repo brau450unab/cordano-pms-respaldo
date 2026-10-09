@@ -146,7 +146,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] font-sans text-slate-900 flex flex-col justify-between selection:bg-slate-900 selection:text-white relative">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans text-[#1E1E2F] flex flex-col justify-between selection:bg-[#1E1E2F] selection:text-white relative">
       
       {/* Millimeter Blueprint Grid Pattern */}
       <div
@@ -161,13 +161,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       <header className="relative z-10 bg-white border-b border-slate-300 py-3.5 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           
-          <div className="flex items-center space-x-2 text-xs tabular-nums font-semibold text-slate-800">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-900 inline-block" />
+          <div className="flex items-center space-x-2 text-xs tabular-nums font-semibold text-[#2D2D44]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#1E1E2F] inline-block" />
             <span>[ PUESTO DE CONTROL GARITA · SERRANO 447 ]</span>
           </div>
 
           <div className="flex items-center space-x-2 tabular-nums text-xs">
-            <span className="font-bold text-slate-900 uppercase">CORDANO PMS</span>
+            <span className="font-bold text-[#1E1E2F] uppercase">CORDANO PMS</span>
             <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
               [ ACCESO OPERACIONAL ]
             </span>
@@ -175,7 +175,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
           <button
             onClick={() => setShowSupportModal(true)}
-            className="text-xs tabular-nums text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-300 bg-slate-50 cursor-pointer"
+            className="text-xs tabular-nums text-slate-600 hover:text-[#1E1E2F] flex items-center gap-1.5 px-2.5 py-1 rounded border border-slate-300 bg-slate-50 cursor-pointer"
           >
             <Headphones className="w-3.5 h-3.5" />
             <span>Soporte</span>
@@ -191,29 +191,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           <div className="w-full md:w-5/12 p-6 bg-slate-50/70 border-b md:border-b-0 md:border-r border-slate-300 flex flex-col justify-between space-y-5">
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                <span className="font-bold text-slate-900 uppercase">[ GARITA SERRANO 447 ]</span>
+                <span className="font-bold text-[#1E1E2F] uppercase">[ GARITA SERRANO 447 ]</span>
                 <span className="text-[10px] text-slate-500">Iquique</span>
               </div>
 
               <div className="border border-dashed border-slate-300 rounded p-3 bg-white space-y-2 text-slate-700">
-                <span className="font-bold text-slate-900 block text-[11px] uppercase">
+                <span className="font-bold text-[#1E1E2F] block text-[11px] uppercase">
                   [ ESPECIFICACIÓN OPERATIVA ]
                 </span>
                 <div className="space-y-1.5 text-[11px] font-sans">
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-800 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2D2D44] shrink-0" />
                     <span>30 Cupos en Zonas A, B y C</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-800 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2D2D44] shrink-0" />
                     <span>Arqueo ciego imparcial de caja</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-800 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2D2D44] shrink-0" />
                     <span>Trazabilidad SSoT Google Sheets</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-800 shrink-0" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#2D2D44] shrink-0" />
                     <span>Validación Anti-passback activa</span>
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <button
                   type="button"
                   onClick={() => handleFastLogin('operador')}
-                  className="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded text-left px-3 text-[11px] flex items-center justify-between text-slate-800 cursor-pointer"
+                  className="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded text-left px-3 text-[11px] flex items-center justify-between text-[#2D2D44] cursor-pointer"
                 >
                   <span>1. Carlos Mendoza (Operador)</span>
                   <span className="font-bold">Entrar →</span>
@@ -235,7 +235,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <button
                   type="button"
                   onClick={() => handleFastLogin('administrador')}
-                  className="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded text-left px-3 text-[11px] flex items-center justify-between text-slate-800 cursor-pointer"
+                  className="w-full py-2 bg-white hover:bg-slate-100 border border-slate-300 rounded text-left px-3 text-[11px] flex items-center justify-between text-[#2D2D44] cursor-pointer"
                 >
                   <span>2. Andrea Valdés (Admin)</span>
                   <span className="font-bold">Entrar →</span>
@@ -258,7 +258,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <span className="font-bold text-slate-500 uppercase text-[10px] block">
                     [ AUTENTICACIÓN CENTRAL ]
                   </span>
-                  <h1 className="font-bold text-lg text-slate-900 mt-0.5 uppercase">
+                  <h1 className="font-bold text-lg text-[#1E1E2F] mt-0.5 uppercase">
                     Ingreso al Sistema CORDANO
                   </h1>
                   <p className="text-[11px] text-slate-600 font-sans mt-0.5">
@@ -268,8 +268,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
                 {/* Error Banner */}
                 {error && (
-                  <div className="p-3 bg-slate-100 border border-slate-400 rounded text-slate-800 text-[11px] flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-slate-900" />
+                  <div className="p-3 bg-slate-100 border border-slate-400 rounded text-[#2D2D44] text-[11px] flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-[#1E1E2F]" />
                     <span>{error}</span>
                   </div>
                 )}
@@ -285,7 +285,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder="ej. carlos.mendoza o 18.342.119-K"
-                    className="w-full bg-white border border-slate-300 rounded p-2 text-xs tabular-nums text-slate-900 focus:outline-none focus:border-slate-800"
+                    className="w-full bg-white border border-slate-300 rounded p-2 text-xs tabular-nums text-[#1E1E2F] focus:outline-none focus:border-slate-800"
                   />
                 </div>
 
@@ -298,7 +298,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-[10px] text-slate-500 hover:text-slate-800"
+                      className="text-[10px] text-slate-500 hover:text-[#2D2D44]"
                     >
                       {showPassword ? 'Ocultar' : 'Mostrar'}
                     </button>
@@ -309,13 +309,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-white border border-slate-300 rounded p-2 text-xs tabular-nums text-slate-900 focus:outline-none focus:border-slate-800"
+                    className="w-full bg-white border border-slate-300 rounded p-2 text-xs tabular-nums text-[#1E1E2F] focus:outline-none focus:border-slate-800"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded font-bold uppercase tracking-wider text-xs transition cursor-pointer flex items-center justify-center space-x-2"
+                  className="w-full py-2.5 bg-[#1E1E2F] hover:bg-[#2D2D44] text-white rounded font-bold uppercase tracking-wider text-xs transition cursor-pointer flex items-center justify-center space-x-2"
                 >
                   <Lock className="w-3.5 h-3.5" />
                   <span>[ INGRESAR AL SISTEMA ]</span>
@@ -333,7 +333,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <span className="font-bold text-slate-500 uppercase text-[10px] block">
                     [ SELECCIÓN DE SESIÓN ]
                   </span>
-                  <h2 className="font-bold text-lg text-slate-900 mt-0.5 uppercase">
+                  <h2 className="font-bold text-lg text-[#1E1E2F] mt-0.5 uppercase">
                     Seleccione Modo de Operación
                   </h2>
                   <p className="text-[11px] text-slate-600 font-sans mt-0.5">
@@ -347,7 +347,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     className="w-full p-3 rounded border border-slate-300 hover:border-slate-800 bg-white hover:bg-slate-50 text-left transition flex items-center justify-between"
                   >
                     <div>
-                      <span className="font-bold block text-slate-900 uppercase">1. Modo Operador de Garita</span>
+                      <span className="font-bold block text-[#1E1E2F] uppercase">1. Modo Operador de Garita</span>
                       <span className="text-[11px] text-slate-600 font-sans">
                         Punto de venta, cobro de tickets y arqueo ciego.
                       </span>
@@ -360,7 +360,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     className="w-full p-3 rounded border border-slate-300 hover:border-slate-800 bg-white hover:bg-slate-50 text-left transition flex items-center justify-between"
                   >
                     <div>
-                      <span className="font-bold block text-slate-900 uppercase">2. Modo Administrador</span>
+                      <span className="font-bold block text-[#1E1E2F] uppercase">2. Modo Administrador</span>
                       <span className="text-[11px] text-slate-600 font-sans">
                         Dashboard gerencial, configuración y bitácora de auditoría.
                       </span>
@@ -394,7 +394,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white border border-slate-400 rounded-xl max-w-sm w-full p-5 space-y-3 tabular-nums text-left shadow-lg text-xs">
             <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-              <span className="font-bold text-slate-900 uppercase">[ AYUDA INGRESO ]</span>
+              <span className="font-bold text-[#1E1E2F] uppercase">[ AYUDA INGRESO ]</span>
               <button onClick={() => setShowSupportModal(false)}>
                 <X className="w-4 h-4 text-slate-500" />
               </button>
@@ -409,7 +409,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setShowSupportModal(false)}
-                className="px-4 py-1.5 bg-slate-900 text-white rounded text-xs font-bold"
+                className="px-4 py-1.5 bg-[#1E1E2F] text-white rounded text-xs font-bold"
               >
                 Cerrar
               </button>

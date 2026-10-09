@@ -43,9 +43,13 @@ export const CierreCajaCiego: React.FC = () => {
     performBlindClose,
     openNewShift,
     registerCashMovement,
-    signShiftCopy
+    signShiftCopy,
+    resolvePendingApproval
   } = useParking();
 
+  // Estado Aprobaciones Diferidas
+  const [adminPinExpress, setAdminPinExpress] = useState<string>('');
+  const [expressError, setExpressError] = useState<string>('');
   // Modales adicionales
   const [isAperturaModalOpen, setIsAperturaModalOpen] = useState(false);
   const [isMovimientoModalOpen, setIsMovimientoModalOpen] = useState(false);
@@ -153,7 +157,10 @@ export const CierreCajaCiego: React.FC = () => {
       transferVal,
       justification,
       cashInputMode === 'denominaciones' ? breakdown : undefined,
-      supervisorPinArg
+      supervisorPinArg,
+      undefined,
+      undefined,
+      parseInt(handoverFundAmount) || 0
     );
 
     setClosedShiftResult(result);
@@ -172,15 +179,6 @@ export const CierreCajaCiego: React.FC = () => {
     if (hasActiveVehicles && !hasCompletedVehicleReview) {
       setErrorMessage('Debe realizar la revisión 1 a 1 de vehículos en el recinto antes del cierre.');
       setIsRevisionVehiculosOpen(true);
-      return;
-    }
-
-    const cashVal = parseInt(declaredCash) || 0;
-    const expected = currentShift.expectedCash || 0;
-    const diffCash = Math.abs(cashVal - expected);
-
-    if (diffCash > cashToleranceClp) {
-      setShowPinRequirementModal(true);
       return;
     }
 
@@ -235,12 +233,76 @@ export const CierreCajaCiego: React.FC = () => {
   const isFlagged = activeShift.isDiscrepancyFlagged || Math.abs(discrepancyCash) > cashToleranceClp;
   const isPerfect = discrepancyTotal === 0;
 
+  const pendingApprovals = currentShift.pendingApprovals?.filter(a => a.status === 'pending') || [];
+  const hasPendingApprovals = pendingApprovals.length > 0 && !isShiftClosed;
+
+  const handleResolvePending = (id: string, status: 'approved' | 'rejected') => {
+    if (adminPinExpress.trim() !== '9988') {
+      setExpressError('PIN de Administrador incorrecto.');
+      return;
+    }
+    setExpressError('');
+    resolvePendingApproval(id, status);
+  };
+
+  if (hasPendingApprovals) {
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto font-sans text-[#1E1E2F] animate-fade-in-up">
+        <div className="bg-white rounded-xl p-6 border-2 border-[#E2498A] shadow-sm flex flex-col items-center text-center">
+          <div className="w-16 h-16 rounded-full bg-[#FFF5F8] text-[#C83472] flex items-center justify-center mb-4">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-bold text-[#1E1E2F] mb-2">Aprobaciones Diferidas Pendientes</h2>
+          <p className="text-sm text-slate-600 max-w-md mb-6">
+            Existen {pendingApprovals.length} transacciones críticas que fueron diferidas (Formato Express) durante el turno. Un administrador debe aprobarlas o rechazarlas antes de proceder con el arqueo de caja.
+          </p>
+          
+          <div className="w-full max-w-md bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">PIN de Administrador (Obligatorio)</label>
+            <input 
+              type="password" 
+              value={adminPinExpress}
+              onChange={(e) => { setAdminPinExpress(e.target.value); setExpressError(''); }}
+              placeholder="••••"
+              maxLength={4}
+              className="w-full h-12 text-center text-2xl tracking-[0.5em] font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-[#E2498A]"
+            />
+            {expressError && <p className="text-[#C83472] text-xs mt-2 font-bold">{expressError}</p>}
+          </div>
+
+          <div className="w-full space-y-3">
+            {pendingApprovals.map(approval => (
+              <div key={approval.id} className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white border border-slate-200 rounded-xl shadow-sm text-left gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${approval.type === 'DISCOUNT' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-[#FFF5F8] text-rose-700 border border-rose-200'}`}>
+                      {approval.type === 'DISCOUNT' ? 'Descuento' : 'Multa/Anulación'}
+                    </span>
+                    <span className="text-xs font-mono text-slate-500">Monto: ${approval.amount.toLocaleString('es-CL')}</span>
+                  </div>
+                  <p className="text-sm font-medium text-[#2D2D44]">{approval.description}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={() => handleResolvePending(approval.id, 'rejected')} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors cursor-pointer">
+                    Rechazar
+                  </button>
+                  <button onClick={() => handleResolvePending(approval.id, 'approved')} className="px-4 py-2 bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold rounded-lg transition-colors cursor-pointer">
+                    Aprobar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className="space-y-6 max-w-4xl mx-auto font-sans text-slate-900">
+    <div className="space-y-6 max-w-4xl mx-auto font-sans text-[#1E1E2F]">
       {/* Title Header */}
       <div className="bg-white rounded-xl p-5 border border-slate-300 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 tabular-nums">
         <div className="flex items-center space-x-3.5">
-          <div className="w-10 h-10 rounded-lg bg-slate-900 text-white flex items-center justify-center border border-slate-900 shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-[#1E1E2F] text-white flex items-center justify-center border border-slate-900 shrink-0">
             <Lock className="w-5 h-5" />
           </div>
           <div>
@@ -252,7 +314,7 @@ export const CierreCajaCiego: React.FC = () => {
                 Tolerancia: ${cashToleranceClp.toLocaleString('es-CL')} CLP
               </span>
             </div>
-            <h1 className="text-base font-bold text-slate-900 tracking-tight mt-0.5">
+            <h1 className="text-base font-bold text-[#1E1E2F] tracking-tight mt-0.5">
               Cierre de Caja Ciego & Arqueo
             </h1>
             <p className="text-xs text-slate-500 font-sans">
@@ -278,7 +340,7 @@ export const CierreCajaCiego: React.FC = () => {
             type="button"
             onClick={() => setIsInstruccionesOpen(true)}
             id="btn-instrucciones-cierre"
-            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
+            className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-[#2D2D44] text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             <span>Instrucciones</span>
@@ -288,7 +350,7 @@ export const CierreCajaCiego: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsMovimientoModalOpen(true)}
-              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
+              className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-[#2D2D44] text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
             >
               <ArrowUpRight className="w-3.5 h-3.5" />
               <span>Sangría / Gasto</span>
@@ -299,8 +361,8 @@ export const CierreCajaCiego: React.FC = () => {
             <span
               className={`inline-block tabular-nums font-bold text-xs px-2.5 py-1 rounded border ${
                 isShiftClosed
-                  ? 'bg-slate-900 text-white border-slate-900'
-                  : 'bg-slate-100 text-slate-800 border-slate-300'
+                  ? 'bg-[#1E1E2F] text-white border-slate-900'
+                  : 'bg-slate-100 text-[#2D2D44] border-slate-300'
               }`}
             >
               {isShiftClosed ? 'TURNO CERRADO' : 'TURNO EN CURSO'}
@@ -313,16 +375,16 @@ export const CierreCajaCiego: React.FC = () => {
       {hasActiveVehicles && !isShiftClosed && (
         <div className="p-4 bg-slate-50 border border-slate-300 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 tabular-nums text-xs">
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 rounded bg-slate-200 text-slate-800 border border-slate-300 flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded bg-slate-200 text-[#2D2D44] border border-slate-300 flex items-center justify-center shrink-0 mt-0.5">
               <Car className="w-4 h-4" />
             </div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-900">
+                <span className="font-bold text-[#1E1E2F]">
                   {activeTicketsInParking.length} Vehículos Aún Dentro del Recinto
                 </span>
                 {hasCompletedVehicleReview ? (
-                  <span className="px-2 py-0.5 bg-slate-200 text-slate-800 border border-slate-400 rounded text-[10px] flex items-center gap-1">
+                  <span className="px-2 py-0.5 bg-slate-200 text-[#2D2D44] border border-slate-400 rounded text-[10px] flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" />
                     <span>Revisión Completada</span>
                   </span>
@@ -342,7 +404,7 @@ export const CierreCajaCiego: React.FC = () => {
             type="button"
             onClick={() => setIsRevisionVehiculosOpen(true)}
             id="btn-revisar-vehiculos-cierre"
-            className="px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+            className="px-3.5 py-2 rounded-lg bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
           >
             <Car className="w-3.5 h-3.5" />
             <span>{hasCompletedVehicleReview ? 'Modificar Revisión' : 'Revisar Vehículos Uno a Uno'}</span>
@@ -357,7 +419,7 @@ export const CierreCajaCiego: React.FC = () => {
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-700 flex items-start space-x-2.5">
               <EyeOff className="w-4 h-4 text-slate-700 shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold uppercase tracking-wide text-slate-900">
+                <p className="font-bold uppercase tracking-wide text-[#1E1E2F]">
                   Formulario 100% Ciego Estricto
                 </p>
                 <p className="font-sans text-slate-500 mt-0.5">
@@ -368,7 +430,7 @@ export const CierreCajaCiego: React.FC = () => {
 
             {/* Toggle de Modo de Ingreso de Efectivo */}
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <span className="font-bold text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+              <span className="font-bold text-[#2D2D44] uppercase tracking-wider flex items-center space-x-1.5">
                 <Coins className="w-4 h-4 text-slate-700" />
                 <span>[ Modalidad de Conteo ]</span>
               </span>
@@ -379,7 +441,7 @@ export const CierreCajaCiego: React.FC = () => {
                   onClick={() => setCashInputMode('total')}
                   className={`px-3 py-1 rounded-md transition cursor-pointer border ${
                     cashInputMode === 'total'
-                      ? 'bg-slate-900 text-white border-slate-900 font-bold'
+                      ? 'bg-[#1E1E2F] text-white border-slate-900 font-bold'
                       : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                   }`}
                 >
@@ -390,7 +452,7 @@ export const CierreCajaCiego: React.FC = () => {
                   onClick={() => setCashInputMode('denominaciones')}
                   className={`px-3 py-1 rounded-md transition cursor-pointer border ${
                     cashInputMode === 'denominaciones'
-                      ? 'bg-slate-900 text-white border-slate-900 font-bold'
+                      ? 'bg-[#1E1E2F] text-white border-slate-900 font-bold'
                       : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                   }`}
                 >
@@ -403,10 +465,10 @@ export const CierreCajaCiego: React.FC = () => {
             {cashInputMode === 'denominaciones' && (
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-300 space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="font-bold text-slate-800 uppercase">
+                  <span className="font-bold text-[#2D2D44] uppercase">
                     Conteo de Monedas & Billetes (CLP)
                   </span>
-                  <span className="font-bold text-slate-900">
+                  <span className="font-bold text-[#1E1E2F]">
                     Total Sumado: ${declaredCash ? parseInt(declaredCash).toLocaleString('es-CL') : '0'} CLP
                   </span>
                 </div>
@@ -421,7 +483,7 @@ export const CierreCajaCiego: React.FC = () => {
                       value={breakdown.coins50 || ''}
                       onChange={(e) => handleUpdateBreakdown('coins50', parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="w-full mt-1 px-2 py-1 text-center font-bold text-xs border border-slate-300 rounded outline-none bg-slate-50 text-slate-900"
+                      className="w-full mt-1 px-2 py-1 text-center font-bold text-xs border border-slate-300 rounded outline-none bg-slate-50 text-[#1E1E2F]"
                     />
                   </div>
                   <div className="bg-white p-2 rounded border border-slate-300">
@@ -432,7 +494,7 @@ export const CierreCajaCiego: React.FC = () => {
                       value={breakdown.coins100 || ''}
                       onChange={(e) => handleUpdateBreakdown('coins100', parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="w-full mt-1 px-2 py-1 text-center font-bold text-xs border border-slate-300 rounded outline-none bg-slate-50 text-slate-900"
+                      className="w-full mt-1 px-2 py-1 text-center font-bold text-xs border border-slate-300 rounded outline-none bg-slate-50 text-[#1E1E2F]"
                     />
                   </div>
                   <div className="bg-white p-2 rounded border border-slate-300">
@@ -443,7 +505,7 @@ export const CierreCajaCiego: React.FC = () => {
                       value={breakdown.coins500 || ''}
                       onChange={(e) => handleUpdateBreakdown('coins500', parseInt(e.target.value) || 0)}
                       placeholder="0"
-                      className="w-full mt-1 px-2 py-1 text-center font-bold text-xs border border-slate-300 rounded outline-none bg-slate-50 text-slate-900"
+                      className="w-full mt-1 px-2 py-1 text-center font-bold text-xs border border-slate-300 rounded outline-none bg-slate-50 text-[#1E1E2F]"
                     />
                   </div>
                 </div>
@@ -465,7 +527,7 @@ export const CierreCajaCiego: React.FC = () => {
                         value={breakdown[b.field] || ''}
                         onChange={(e) => handleUpdateBreakdown(b.field, parseInt(e.target.value) || 0)}
                         placeholder="0"
-                        className="w-full mt-1 px-2 py-1 text-center font-bold text-xs border border-slate-300 rounded outline-none bg-slate-50 text-slate-900"
+                        className="w-full mt-1 px-2 py-1 text-center font-bold text-xs border border-slate-300 rounded outline-none bg-slate-50 text-[#1E1E2F]"
                       />
                     </div>
                   ))}
@@ -478,7 +540,7 @@ export const CierreCajaCiego: React.FC = () => {
               <div className="flex items-center space-x-2 text-xs text-slate-700">
                 <Receipt className="w-4 h-4 text-slate-600 shrink-0" />
                 <div>
-                  <span className="font-bold block text-slate-900">
+                  <span className="font-bold block text-[#1E1E2F]">
                     Cuadratura de Vouchers POS & Transferencias
                   </span>
                   <span className="text-[10px] text-slate-500">
@@ -489,7 +551,7 @@ export const CierreCajaCiego: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsVouchersModalOpen(true)}
-                className="px-3 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer self-start sm:self-auto"
+                className="px-3 py-1 rounded bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer self-start sm:self-auto"
               >
                 <Receipt className="w-3.5 h-3.5" />
                 <span>Revisar Vouchers ({electronicTickets.length})</span>
@@ -510,7 +572,7 @@ export const CierreCajaCiego: React.FC = () => {
                   onChange={(e) => setDeclaredCash(e.target.value)}
                   placeholder="0"
                   required
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 font-bold text-sm text-slate-900 outline-none bg-white focus:border-slate-800"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 font-bold text-sm text-[#1E1E2F] outline-none bg-white focus:border-slate-800"
                 />
               </div>
 
@@ -526,7 +588,7 @@ export const CierreCajaCiego: React.FC = () => {
                   onChange={(e) => setDeclaredCard(e.target.value)}
                   placeholder="0"
                   required
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 font-bold text-sm text-slate-900 outline-none bg-white focus:border-slate-800"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 font-bold text-sm text-[#1E1E2F] outline-none bg-white focus:border-slate-800"
                 />
               </div>
 
@@ -542,7 +604,7 @@ export const CierreCajaCiego: React.FC = () => {
                   onChange={(e) => setDeclaredTransfer(e.target.value)}
                   placeholder="0"
                   required
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 font-bold text-sm text-slate-900 outline-none bg-white focus:border-slate-800"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 font-bold text-sm text-[#1E1E2F] outline-none bg-white focus:border-slate-800"
                 />
               </div>
             </div>
@@ -557,13 +619,13 @@ export const CierreCajaCiego: React.FC = () => {
                 value={justification}
                 onChange={(e) => setJustification(e.target.value)}
                 placeholder="Indique si existió algún inconveniente de vuelto..."
-                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs text-slate-900 outline-none bg-white focus:border-slate-800 font-sans"
+                className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs text-[#1E1E2F] outline-none bg-white focus:border-slate-800 font-sans"
               />
             </div>
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="p-3 bg-slate-100 border border-slate-400 rounded-lg text-slate-900 text-xs font-bold flex items-center space-x-2">
+              <div className="p-3 bg-slate-100 border border-slate-400 rounded-lg text-[#1E1E2F] text-xs font-bold flex items-center space-x-2">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-slate-700" />
                 <span>{errorMessage}</span>
               </div>
@@ -573,7 +635,7 @@ export const CierreCajaCiego: React.FC = () => {
               <button
                 type="submit"
                 id="btn-submit-blind-close"
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition flex items-center space-x-2 cursor-pointer"
+                className="px-5 py-2.5 bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold rounded-lg transition flex items-center space-x-2 cursor-pointer"
               >
                 <Lock className="w-4 h-4" />
                 <span>DECLARAR MONTOS & PROCESAR ARQUEO CIEGO</span>
@@ -591,11 +653,11 @@ export const CierreCajaCiego: React.FC = () => {
                   <span className="text-[10px] font-bold tracking-wider text-slate-700 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded inline-block">
                     CUADRATURA REVELADA (REPORTE Z)
                   </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-slate-300 bg-slate-50 text-slate-800">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-slate-300 bg-slate-50 text-[#2D2D44]">
                     {isFlagged ? 'DESCUADRADO' : isPerfect ? 'CUADRADO PERFECTO' : 'TOLERANCIA OK'}
                   </span>
                 </div>
-                <h2 className="text-base font-bold text-slate-900 mt-1">
+                <h2 className="text-base font-bold text-[#1E1E2F] mt-1">
                   Resumen de Cuadratura & Reportes de Turno
                 </h2>
                 <p className="text-xs text-slate-500 font-sans">
@@ -607,7 +669,7 @@ export const CierreCajaCiego: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsReporteModalOpen(true)}
-                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer"
+                  className="px-3 py-1.5 bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer"
                 >
                   <FileCheck className="w-3.5 h-3.5" />
                   <span>Ver Reporte & Firmas</span>
@@ -616,7 +678,7 @@ export const CierreCajaCiego: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
+                  className="px-3 py-1.5 bg-white hover:bg-slate-50 text-[#2D2D44] text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Imprimir A4</span>
@@ -625,7 +687,7 @@ export const CierreCajaCiego: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => generateShiftReportPDF(activeShift, true)}
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-[#2D2D44] text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer border border-slate-300"
                 >
                   <FileCheck className="w-3.5 h-3.5" />
                   <span>Descargar PDF</span>
@@ -634,7 +696,7 @@ export const CierreCajaCiego: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAperturaModalOpen(true)}
-                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer"
+                  className="px-3 py-1.5 bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold rounded-lg transition flex items-center space-x-1.5 cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Abrir Nuevo Turno</span>
@@ -660,8 +722,8 @@ export const CierreCajaCiego: React.FC = () => {
                     onClick={() => setReportActiveTab(tab.id as any)}
                     className={`py-1.5 px-3 rounded-t-lg transition cursor-pointer flex items-center gap-1.5 border-t border-x ${
                       isActive
-                        ? 'border-slate-400 bg-slate-100 text-slate-900 font-bold'
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
+                        ? 'border-slate-400 bg-slate-100 text-[#1E1E2F] font-bold'
+                        : 'border-transparent text-slate-500 hover:text-[#2D2D44]'
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -677,20 +739,26 @@ export const CierreCajaCiego: React.FC = () => {
                 {/* Discrepancy Banner */}
                 <div className="p-3.5 rounded-lg border border-slate-300 bg-slate-50 flex items-center justify-between">
                   <div className="flex items-center space-x-2.5">
-                    <CheckCircle2 className="w-5 h-5 text-slate-800 shrink-0" />
+                    <CheckCircle2 className="w-5 h-5 text-[#2D2D44] shrink-0" />
                     <div>
-                      <span className="font-bold text-xs block text-slate-900">
-                        {isFlagged
-                          ? 'REPORTE 1: TURNO DESCUADRADO (SUPERÓ TOLERANCIA)'
-                          : isPerfect
-                          ? 'Cuadratura Perfecta (Sin Diferencias)'
-                          : `Descuadre Aceptado dentro de Tolerancia ($${cashToleranceClp.toLocaleString('es-CL')} CLP)`}
+                      <span className="font-bold text-xs block text-[#1E1E2F]">
+                        {user.role === 'administrador' ? (
+                          isFlagged
+                            ? 'REPORTE 1: TURNO DESCUADRADO (SUPERÓ TOLERANCIA)'
+                            : isPerfect
+                            ? 'Cuadratura Perfecta (Sin Diferencias)'
+                            : `Descuadre Aceptado dentro de Tolerancia ($${cashToleranceClp.toLocaleString('es-CL')} CLP)`
+                        ) : (
+                          'REPORTE DE CIERRE GENERADO EXITOSAMENTE'
+                        )}
                       </span>
-                      <span className="text-[11px] text-slate-600">
-                        Diferencia Neta en Caja:{' '}
-                        {discrepancyCash >= 0 ? '+' : ''}
-                        ${discrepancyCash.toLocaleString('es-CL')} CLP
-                      </span>
+                      {user.role === 'administrador' && (
+                        <span className="text-[11px] text-slate-600">
+                          Diferencia Neta en Caja:{' '}
+                          {discrepancyCash >= 0 ? '+' : ''}
+                          ${discrepancyCash.toLocaleString('es-CL')} CLP
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -702,63 +770,83 @@ export const CierreCajaCiego: React.FC = () => {
                       <tr>
                         <th className="py-2 px-3">Canal de Pago</th>
                         <th className="py-2 px-3 text-right">Monto Declarado</th>
-                        <th className="py-2 px-3 text-right">Monto Esperado</th>
-                        <th className="py-2 px-3 text-right">Diferencia</th>
+                        {user.role === 'administrador' && (
+                          <>
+                            <th className="py-2 px-3 text-right">Monto Esperado</th>
+                            <th className="py-2 px-3 text-right">Diferencia</th>
+                          </>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       <tr>
-                        <td className="py-2.5 px-3 font-bold text-slate-900">
+                        <td className="py-2.5 px-3 font-bold text-[#1E1E2F]">
                           Efectivo en Caja
                         </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                        <td className="py-2.5 px-3 text-right font-bold text-[#1E1E2F]">
                           ${(activeShift.declaredCash || 0).toLocaleString('es-CL')}
                         </td>
-                        <td className="py-2.5 px-3 text-right text-slate-600">
-                          ${(activeShift.expectedCash || 0).toLocaleString('es-CL')}
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-900">
-                          ${(activeShift.discrepancyCash || 0).toLocaleString('es-CL')}
-                        </td>
+                        {user.role === 'administrador' && (
+                          <>
+                            <td className="py-2.5 px-3 text-right text-slate-600">
+                              ${(activeShift.expectedCash || 0).toLocaleString('es-CL')}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-bold text-[#1E1E2F]">
+                              ${(activeShift.discrepancyCash || 0).toLocaleString('es-CL')}
+                            </td>
+                          </>
+                        )}
                       </tr>
 
                       <tr>
-                        <td className="py-2.5 px-3 font-bold text-slate-900">
+                        <td className="py-2.5 px-3 font-bold text-[#1E1E2F]">
                           POS Vouchers Débito / Crédito
                         </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                        <td className="py-2.5 px-3 text-right font-bold text-[#1E1E2F]">
                           ${(activeShift.declaredCard || 0).toLocaleString('es-CL')}
                         </td>
-                        <td className="py-2.5 px-3 text-right text-slate-600">
-                          ${(activeShift.expectedCard || 0).toLocaleString('es-CL')}
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-900">$0</td>
+                        {user.role === 'administrador' && (
+                          <>
+                            <td className="py-2.5 px-3 text-right text-slate-600">
+                              ${(activeShift.expectedCard || 0).toLocaleString('es-CL')}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-bold text-[#1E1E2F]">$0</td>
+                          </>
+                        )}
                       </tr>
 
                       <tr>
-                        <td className="py-2.5 px-3 font-bold text-slate-900">
+                        <td className="py-2.5 px-3 font-bold text-[#1E1E2F]">
                           Transferencias Electrónicas
                         </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-900">
+                        <td className="py-2.5 px-3 text-right font-bold text-[#1E1E2F]">
                           ${(activeShift.declaredTransfer || 0).toLocaleString('es-CL')}
                         </td>
-                        <td className="py-2.5 px-3 text-right text-slate-600">
-                          ${(activeShift.expectedTransfer || 0).toLocaleString('es-CL')}
-                        </td>
-                        <td className="py-2.5 px-3 text-right font-bold text-slate-900">$0</td>
+                        {user.role === 'administrador' && (
+                          <>
+                            <td className="py-2.5 px-3 text-right text-slate-600">
+                              ${(activeShift.expectedTransfer || 0).toLocaleString('es-CL')}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-bold text-[#1E1E2F]">$0</td>
+                          </>
+                        )}
                       </tr>
 
                       <tr className="bg-slate-100 font-bold">
-                        <td className="py-2.5 px-3 text-slate-900">TOTAL RECAUDACIÓN</td>
-                        <td className="py-2.5 px-3 text-right text-slate-900">
+                        <td className="py-2.5 px-3 text-[#1E1E2F]">TOTAL RECAUDACIÓN</td>
+                        <td className="py-2.5 px-3 text-right text-[#1E1E2F]">
                           ${totalDeclared.toLocaleString('es-CL')}
                         </td>
-                        <td className="py-2.5 px-3 text-right text-slate-900">
-                          ${totalExpected.toLocaleString('es-CL')}
-                        </td>
-                        <td className="py-2.5 px-3 text-right text-slate-900">
-                          ${(activeShift.discrepancyTotal || 0).toLocaleString('es-CL')}
-                        </td>
+                        {user.role === 'administrador' && (
+                          <>
+                            <td className="py-2.5 px-3 text-right text-[#1E1E2F]">
+                              ${totalExpected.toLocaleString('es-CL')}
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-[#1E1E2F]">
+                              ${(activeShift.discrepancyTotal || 0).toLocaleString('es-CL')}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     </tbody>
                   </table>
@@ -767,7 +855,7 @@ export const CierreCajaCiego: React.FC = () => {
                 {/* Justificación Registrada */}
                 {activeShift.closeJustification && (
                   <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs">
-                    <span className="font-bold text-slate-900 block">Justificación Registrada:</span>
+                    <span className="font-bold text-[#1E1E2F] block">Justificación Registrada:</span>
                     <span className="text-slate-600 mt-0.5 block font-sans">{activeShift.closeJustification}</span>
                   </div>
                 )}
@@ -776,7 +864,7 @@ export const CierreCajaCiego: React.FC = () => {
                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-300 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
                     <div>
-                      <span className="font-bold text-xs text-slate-900 uppercase tracking-wider flex items-center space-x-1.5">
+                      <span className="font-bold text-xs text-[#1E1E2F] uppercase tracking-wider flex items-center space-x-1.5">
                         <Banknote className="w-4 h-4 text-slate-700" />
                         <span>Entrega al Turno Directo (Relevo de Gaveta)</span>
                       </span>
@@ -790,7 +878,7 @@ export const CierreCajaCiego: React.FC = () => {
                         onClick={() => setHandoverFundAmount('0')}
                         className={`px-2.5 py-1 rounded border text-xs font-bold transition cursor-pointer ${
                           handoverFundAmount === '0'
-                            ? 'bg-slate-900 text-white border-slate-900'
+                            ? 'bg-[#1E1E2F] text-white border-slate-900'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                         }`}
                       >
@@ -801,7 +889,7 @@ export const CierreCajaCiego: React.FC = () => {
                         onClick={() => setHandoverFundAmount('30000')}
                         className={`px-2.5 py-1 rounded border text-xs font-bold transition cursor-pointer ${
                           handoverFundAmount === '30000'
-                            ? 'bg-slate-900 text-white border-slate-900'
+                            ? 'bg-[#1E1E2F] text-white border-slate-900'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                         }`}
                       >
@@ -813,7 +901,7 @@ export const CierreCajaCiego: React.FC = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="p-2.5 bg-white border border-slate-300 rounded space-y-0.5">
                       <span className="text-[10px] text-slate-500 block">Efectivo Total Arqueado</span>
-                      <span className="font-bold text-sm text-slate-900">
+                      <span className="font-bold text-sm text-[#1E1E2F]">
                         ${(activeShift.declaredCash || 0).toLocaleString('es-CL')} CLP
                       </span>
                     </div>
@@ -831,7 +919,7 @@ export const CierreCajaCiego: React.FC = () => {
                           step="1000"
                           value={handoverFundAmount}
                           onChange={(e) => setHandoverFundAmount(e.target.value)}
-                          className="w-full font-bold text-sm text-slate-900 bg-transparent outline-none border-b border-slate-400"
+                          className="w-full font-bold text-sm text-[#1E1E2F] bg-transparent outline-none border-b border-slate-400"
                         />
                         <span className="text-[10px] text-slate-500">CLP</span>
                       </div>
@@ -839,7 +927,7 @@ export const CierreCajaCiego: React.FC = () => {
 
                     <div className="p-2.5 bg-white border border-slate-300 rounded space-y-0.5">
                       <span className="text-[10px] text-slate-500 block">Retiro Neto a Caja Fuerte</span>
-                      <span className="font-bold text-sm text-slate-900">
+                      <span className="font-bold text-sm text-[#1E1E2F]">
                         ${Math.max(0, (activeShift.declaredCash || 0) - (parseInt(handoverFundAmount) || 0)).toLocaleString('es-CL')} CLP
                       </span>
                     </div>
@@ -851,7 +939,7 @@ export const CierreCajaCiego: React.FC = () => {
             {/* TAB CONTENT: CONTEO */}
             {reportActiveTab === 'conteo' && (
               <div className="space-y-3">
-                <span className="font-bold text-xs text-slate-800 block">
+                <span className="font-bold text-xs text-[#2D2D44] block">
                   Desglose por denominación registrado al momento del cierre:
                 </span>
                 {activeShift.declaredCashBreakdown ? (
@@ -869,7 +957,7 @@ export const CierreCajaCiego: React.FC = () => {
                       <div key={idx} className="p-2.5 bg-slate-50 border border-slate-300 rounded space-y-0.5">
                         <span className="text-[10px] text-slate-500 block font-bold">{item.label}</span>
                         <div className="flex items-baseline justify-between">
-                          <span className="font-bold text-xs text-slate-900">{item.count || 0} un.</span>
+                          <span className="font-bold text-xs text-[#1E1E2F]">{item.count || 0} un.</span>
                           <span className="font-bold text-xs text-slate-700">
                             ${((item.count || 0) * item.val).toLocaleString('es-CL')}
                           </span>
@@ -888,7 +976,7 @@ export const CierreCajaCiego: React.FC = () => {
             {/* TAB CONTENT: MOVIMIENTOS */}
             {reportActiveTab === 'movimientos' && (
               <div className="space-y-3">
-                <span className="font-bold text-xs text-slate-800 block">
+                <span className="font-bold text-xs text-[#2D2D44] block">
                   Movimientos manuales de caja registrados durante el turno:
                 </span>
                 {activeShift.cashMovements && activeShift.cashMovements.length > 0 ? (
@@ -897,19 +985,19 @@ export const CierreCajaCiego: React.FC = () => {
                       <div key={m.id} className="p-3 bg-white flex items-start justify-between gap-3">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded border border-slate-300 bg-slate-100 text-slate-800">
+                            <span className="text-[10px] font-bold px-1.5 py-0.2 rounded border border-slate-300 bg-slate-100 text-[#2D2D44]">
                               {m.type}
                             </span>
                             <span className="text-[10px] text-slate-500">
                               {new Date(m.timestamp).toLocaleTimeString('es-CL')}
                             </span>
                           </div>
-                          <p className="font-sans text-xs text-slate-800">{m.reason}</p>
+                          <p className="font-sans text-xs text-[#2D2D44]">{m.reason}</p>
                           <span className="text-[10px] text-slate-500 block">
                             Resp: {m.requesterName || m.operatorName} | Aut: {m.authorizerName || m.authorizedBySupervisor || 'Supervisor'}
                           </span>
                         </div>
-                        <div className="text-right font-bold text-slate-900">
+                        <div className="text-right font-bold text-[#1E1E2F]">
                           {m.type === 'INGRESO_MANUAL' ? '+' : '-'}${m.amount.toLocaleString('es-CL')} CLP
                         </div>
                       </div>
@@ -926,13 +1014,13 @@ export const CierreCajaCiego: React.FC = () => {
             {/* TAB CONTENT: VEHICULOS TRASPASADOS */}
             {reportActiveTab === 'vehiculos' && (
               <div className="space-y-3">
-                <span className="font-bold text-xs text-slate-800 block">
+                <span className="font-bold text-xs text-[#2D2D44] block">
                   Resumen de vehículos en recinto al cierre de turno:
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="p-3.5 bg-slate-50 border border-slate-300 rounded-lg space-y-1">
                     <span className="text-slate-500 text-xs block">Vehículos Traspasados al Siguiente Turno:</span>
-                    <span className="text-xl font-bold text-slate-900">
+                    <span className="text-xl font-bold text-[#1E1E2F]">
                       {activeShift.transferredVehiclesCount || 0}
                     </span>
                     <span className="text-[10px] text-slate-500 block font-sans">
@@ -942,7 +1030,7 @@ export const CierreCajaCiego: React.FC = () => {
 
                   <div className="p-3.5 bg-slate-50 border border-slate-300 rounded-lg space-y-1">
                     <span className="text-slate-500 text-xs block">Salidas Forzadas / Cobradas en Cierre:</span>
-                    <span className="text-xl font-bold text-slate-900">
+                    <span className="text-xl font-bold text-[#1E1E2F]">
                       {activeShift.forcedExitVehiclesCount || 0}
                     </span>
                     <span className="text-[10px] text-slate-500 block font-sans">
@@ -958,7 +1046,7 @@ export const CierreCajaCiego: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-xs text-slate-900 uppercase">
+                    <h4 className="font-bold text-xs text-[#1E1E2F] uppercase">
                       [ Actas de Doble Firma ]
                     </h4>
                     <p className="text-xs text-slate-500 font-sans">
@@ -972,7 +1060,7 @@ export const CierreCajaCiego: React.FC = () => {
                       onClick={() => setSelectedSignatureCopy('copia1_caja')}
                       className={`px-2.5 py-1 rounded text-xs font-bold border ${
                         selectedSignatureCopy === 'copia1_caja'
-                          ? 'bg-slate-900 text-white border-slate-900'
+                          ? 'bg-[#1E1E2F] text-white border-slate-900'
                           : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                       }`}
                     >
@@ -984,7 +1072,7 @@ export const CierreCajaCiego: React.FC = () => {
                       onClick={() => setSelectedSignatureCopy('copia2_operador')}
                       className={`px-2.5 py-1 rounded text-xs font-bold border ${
                         selectedSignatureCopy === 'copia2_operador'
-                          ? 'bg-slate-900 text-white border-slate-900'
+                          ? 'bg-[#1E1E2F] text-white border-slate-900'
                           : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                       }`}
                     >
@@ -996,7 +1084,7 @@ export const CierreCajaCiego: React.FC = () => {
                 {selectedSignatureCopy === 'copia1_caja' ? (
                   <div className="p-3.5 bg-slate-50 border border-slate-300 rounded-lg space-y-2">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-[#1E1E2F]">
                         COPIA 1 — PARA LA CAJA DEL RECINTO (AUDITORÍA COMPLETA)
                       </span>
                       <span className="font-bold text-slate-700">
@@ -1010,7 +1098,7 @@ export const CierreCajaCiego: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => signShiftCopy('caja')}
-                        className="px-3.5 py-1.5 rounded bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5" />
                         <span>{activeShift.signedCopy1Caja ? 'Volver a Firmar Copia 1' : 'Firmar Copia 1 (Caja)'}</span>
@@ -1020,7 +1108,7 @@ export const CierreCajaCiego: React.FC = () => {
                 ) : (
                   <div className="p-3.5 bg-slate-50 border border-slate-300 rounded-lg space-y-2">
                     <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-bold text-[#1E1E2F]">
                         COPIA 2 — RESPALDO LEGAL PARA EL OPERADOR
                       </span>
                       <span className="font-bold text-slate-700">
@@ -1034,7 +1122,7 @@ export const CierreCajaCiego: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => signShiftCopy('operador')}
-                        className="px-3.5 py-1.5 rounded bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5" />
                         <span>{activeShift.signedCopy2Operador ? 'Copia 2 Ya Firmada' : 'Firmar Copia 2 (Respaldo)'}</span>
@@ -1051,18 +1139,18 @@ export const CierreCajaCiego: React.FC = () => {
       {/* Modal de Validación con PIN o Notificación WhatsApp si supera tolerancia */}
       <AnimatePresence>
         {showPinRequirementModal && (
-          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 tabular-nums">
+          <div className="fixed inset-0 z-50 bg-[#1E1E2F]/40 backdrop-blur-xs flex items-center justify-center p-4 tabular-nums">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white w-full max-w-md rounded-xl border border-slate-400 p-5 shadow-xl space-y-4 text-slate-900"
+              className="bg-white w-full max-w-md rounded-xl border border-slate-400 p-5 shadow-xl space-y-4 text-[#1E1E2F]"
             >
-              <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 text-slate-800 flex items-center justify-center mx-auto">
+              <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 text-[#2D2D44] flex items-center justify-center mx-auto">
                 <ShieldAlert className="w-5 h-5" />
               </div>
               <div className="text-center space-y-1">
-                <h3 className="font-bold text-sm text-slate-900">
+                <h3 className="font-bold text-sm text-[#1E1E2F]">
                   [ Diferencia Superior a Tolerancia (${cashToleranceClp.toLocaleString('es-CL')} CLP) ]
                 </h3>
                 <p className="text-xs text-slate-500 font-sans leading-relaxed">
@@ -1072,7 +1160,7 @@ export const CierreCajaCiego: React.FC = () => {
 
               {/* Observación obligatoria */}
               <div className="space-y-1 text-left text-xs">
-                <label className="font-bold text-slate-800 block">
+                <label className="font-bold text-[#2D2D44] block">
                   Observación Obligatoria del Descuadre *
                 </label>
                 <textarea
@@ -1087,7 +1175,7 @@ export const CierreCajaCiego: React.FC = () => {
 
               {/* Opción 1: PIN Supervisor */}
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-300 space-y-2 text-xs">
-                <label className="font-bold text-slate-800 block text-center">
+                <label className="font-bold text-[#2D2D44] block text-center">
                   Opción A: PIN Supervisor Presencial (ej: 2026)
                 </label>
                 <div className="relative">
@@ -1104,7 +1192,7 @@ export const CierreCajaCiego: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleConfirmWithPin}
-                  className="w-full py-2 rounded bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition cursor-pointer"
+                  className="w-full py-2 rounded bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs transition cursor-pointer"
                 >
                   Autorizar Cierre con PIN
                 </button>
@@ -1112,7 +1200,7 @@ export const CierreCajaCiego: React.FC = () => {
 
               {/* Opción 2: WhatsApp Notification */}
               <div className="p-3 bg-slate-50 rounded-lg border border-slate-300 space-y-2 text-xs">
-                <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                <div className="flex items-center gap-1.5 font-bold text-[#2D2D44]">
                   <Share2 className="w-4 h-4" />
                   <span>Opción B: Notificar por WhatsApp</span>
                 </div>
@@ -1120,7 +1208,7 @@ export const CierreCajaCiego: React.FC = () => {
                   type="button"
                   onClick={handleConfirmWithWhatsAppNotification}
                   id="btn-close-with-whatsapp-notice"
-                  className="w-full py-2 rounded bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2 rounded bg-white hover:bg-slate-100 text-[#2D2D44] border border-slate-300 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Share2 className="w-4 h-4" />
                   <span>Cerrar y Notificar</span>
@@ -1128,7 +1216,7 @@ export const CierreCajaCiego: React.FC = () => {
               </div>
 
               {errorMessage && (
-                <div className="p-2 bg-slate-100 border border-slate-300 rounded text-slate-800 text-xs font-bold text-center">
+                <div className="p-2 bg-slate-100 border border-slate-300 rounded text-[#2D2D44] text-xs font-bold text-center">
                   {errorMessage}
                 </div>
               )}

@@ -166,7 +166,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
             <div className="bg-white border-2 border-[#1a1c1d] rounded-2xl p-2.5 mb-3 text-center shadow-2xs">
               <p className="text-[10px] text-[#717785] uppercase tracking-widest font-sans font-extrabold">PATENTE VEHÍCULO</p>
               <p className="text-2xl sm:text-3xl font-black text-[#1a1c1d] tracking-widest my-0.5">{ticket.plateNumber}</p>
-              <span className="inline-block bg-[#F1F5F9]/60 text-[#0F172A] text-[11px] px-2.5 py-0.5 rounded-full font-bold font-sans">
+              <span className="inline-block bg-[#F8FAFC]/60 text-[#0F172A] text-[11px] px-2.5 py-0.5 rounded-full font-bold font-sans">
                 {ticket.vehicleType}
               </span>
             </div>
@@ -197,28 +197,28 @@ export const TicketModal: React.FC<TicketModalProps> = ({
 
             {/* Paid / Check-out Details */}
             {ticket.status === 'pagado' && (
-              <div className="mt-3 bg-slate-900 border border-slate-400 rounded-xl p-2.5 space-y-1.5 text-xs text-slate-800">
+              <div className="mt-3 bg-[#1E1E2F] border border-slate-400 rounded-xl p-2.5 space-y-1.5 text-xs text-[#2D2D44]">
                 <div className="flex justify-between font-bold">
                   <span>ESTADO:</span>
-                  <span className="text-slate-800 uppercase font-black">COMPROBANTE PAGADO</span>
+                  <span className="text-[#2D2D44] uppercase font-black">COMPROBANTE PAGADO</span>
                 </div>
                 {ticket.exitTime && (
                   <div className="flex justify-between">
-                    <span className="text-slate-800/80">HORA SALIDA:</span>
+                    <span className="text-[#2D2D44]/80">HORA SALIDA:</span>
                     <span className="font-bold">{new Date(ticket.exitTime).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-slate-800/80">TIEMPO TOTAL:</span>
+                  <span className="text-[#2D2D44]/80">TIEMPO TOTAL:</span>
                   <span>{ticket.durationMinutes} minutos</span>
                 </div>
                 <div className="flex justify-between text-sm font-black border-t border-slate-400 pt-1 text-[#1a1c1d]">
                   <span>TOTAL COBRADO:</span>
-                  <span className="text-slate-800">${ticket.totalAmount?.toLocaleString('es-CL')} CLP</span>
+                  <span className="text-[#2D2D44]">${ticket.totalAmount?.toLocaleString('es-CL')} CLP</span>
                 </div>
                 <div className="flex justify-between text-[11px] text-[#717785]">
                   <span>MEDIO DE PAGO:</span>
-                  <span className="uppercase font-semibold text-slate-800">{ticket.paymentMethod}</span>
+                  <span className="uppercase font-semibold text-[#2D2D44]">{ticket.paymentMethod}</span>
                 </div>
                 <div className="text-[9px] text-zinc-600 bg-white/70 p-1.5 rounded-lg border border-slate-400 text-center font-medium leading-tight">
                   * Comprobante de Control. Boleta Fiscal Electrónica SII emitida en POS Transbank.
@@ -275,7 +275,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4 text-slate-800" />
+                  <Download className="w-4 h-4 text-[#2D2D44]" />
                   <span>Descargar Archivo PDF</span>
                 </>
               )}
@@ -287,7 +287,7 @@ export const TicketModal: React.FC<TicketModalProps> = ({
             <button
               type="button"
               onClick={handleWhatsAppShare}
-              className="flex-1 bg-slate-900 hover:bg-slate-900 text-white font-bold py-2 px-3 rounded-xl transition flex items-center justify-center space-x-1.5 text-xs cursor-pointer shadow-xs"
+              className="flex-1 bg-[#1E1E2F] hover:bg-[#1E1E2F] text-white font-bold py-2 px-3 rounded-xl transition flex items-center justify-center space-x-1.5 text-xs cursor-pointer shadow-xs"
             >
               {copiedWhatsApp ? (
                 <>

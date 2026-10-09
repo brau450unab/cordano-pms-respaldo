@@ -81,6 +81,10 @@ interface ParkingContextType {
   currentShift: Shift;
   tariffConfig: TariffConfig;
   auditLogs: AuditLog[];
+  
+  pendingApprovals: any[];
+  addPendingApproval: (payload: any) => void;
+  resolvePendingApproval: (id: string, status: string) => void;
   isOffline: boolean;
   setIsOffline: React.Dispatch<React.SetStateAction<boolean>>;
   isFirebaseConnected: boolean;
@@ -100,7 +104,7 @@ interface ParkingContextType {
   saveCustomer: (customer: Customer) => void;
   findCustomerByPlate: (plate: string) => Customer | undefined;
   
-  // Agreements (Convenios Mensuales & Convenios Comerciales)
+  // Agreements (Abonados Mensuales & Convenios Comerciales)
   agreements: Agreement[];
   findAgreementByPlate: (plate: string) => Agreement | undefined;
   renewAgreement: (
@@ -166,16 +170,7 @@ interface ParkingContextType {
     authorizerName?: string
   ) => CashMovement;
   registerVehicleEscape: (ticketId: string, notes: string, supervisorPin: string) => boolean;
-  performBlindClose: (
-    declaredCash: number,
-    declaredCard: number,
-    declaredTransfer: number,
-    justification?: string,
-    breakdown?: ChileanCashBreakdown,
-    supervisorPin?: string,
-    handoverInfo?: { transferredVehiclesCount: number; forcedExitVehiclesCount: number },
-    supervisorName?: string
-  ) => Shift;
+  performBlindClose: (...args: any[]) => Shift;
   signShiftCopy: (copyType: 'caja' | 'operador') => void;
   addAuditLog: (action: AuditLog['action'], details: string, severity?: AuditLog['severity'], authorizedBy?: string) => void;
   openNewShift: (initialCash: number, breakdown?: ChileanCashBreakdown) => void;
@@ -235,8 +230,31 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [isOffline, setIsOffline] = useState<boolean>(false);
+  const [isOffline, setIsOffline] = useState<boolean>(typeof navigator !== 'undefined' ? !navigator.onLine : false);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
   const [syncQueueCount, setSyncQueueCount] = useState<number>(0);
+
+  const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
+
+  const addPendingApproval = (payload: any) => {
+    const newApproval = { id: Date.now().toString(), status: 'pending', ...payload };
+    setPendingApprovals(prev => [...prev, newApproval]);
+  };
+
+  const resolvePendingApproval = (id: string, status: string) => {
+    setPendingApprovals(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+  };
+
   const cashToleranceClp = 2000; // Tolerancia estricta de $2.000 CLP según requerimiento de Bloque 6
 
   // Load initial state or localStorage
@@ -573,7 +591,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     addAuditLog(
       'CLIENTE_REGISTRADO',
-      `Nuevo vehículo incorporado a convenio/mensualidad: Patente ${newAgreement.plateNumber} a nombre de ${newAgreement.companyName}. Cuota mensual: $${newAgreement.monthlyFeeClp.toLocaleString('es-CL')} CLP`,
+      `Nuevo vehículo incorporado a convenio/abonado: Patente ${newAgreement.plateNumber} a nombre de ${newAgreement.companyName}. Cuota mensual: $${newAgreement.monthlyFeeClp.toLocaleString('es-CL')} CLP`,
       'info'
     );
 
@@ -818,7 +836,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const diffMs = exit.getTime() - entry.getTime();
     const durationMinutes = Math.max(1, Math.ceil(diffMs / (1000 * 60)));
 
-    // Exención total de cobro por minuto para Convenios Mensuales o Convenios Comerciales
+    // Exención total de cobro por minuto para Abonados Mensuales o Convenios Comerciales
     const hasAgreement = ticket.notes?.includes('CONVENIO') || Boolean(findAgreementByPlate(ticket.plateNumber));
     if (hasAgreement) {
       return {
@@ -1191,7 +1209,8 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const closedShift: Shift = {
       ...currentShift,
-      endTime: new Date().toISOString(),
+      
+        endTime: new Date().toISOString(),
       declaredCash,
       declaredCard,
       declaredTransfer,
@@ -1207,8 +1226,9 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       supervisorName: supervisorName || (supervisorPin ? 'Supervisor Autorizante' : undefined),
       transferredVehiclesCount: handoverInfo?.transferredVehiclesCount ?? 0,
       forcedExitVehiclesCount: handoverInfo?.forcedExitVehiclesCount ?? 0,
+      
       status: 'cerrado',
-      totalTicketsProcessed: paidTickets.length,
+totalTicketsProcessed: paidTickets.length,
       signedCopy1Caja: true,
       signedCopy2Operador: false,
       offlineSyncStatus: isOffline ? 'pending_sync' : 'synced',
@@ -1312,6 +1332,9 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
         setIsOffline,
         isFirebaseConnected,
         syncQueueCount,
+          pendingApprovals,
+          addPendingApproval,
+          resolvePendingApproval,
         cashToleranceClp,
         checklistTasks,
         isChecklistModalOpen,

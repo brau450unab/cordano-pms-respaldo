@@ -5,7 +5,7 @@ import { useParking } from '../../context/ParkingContext';
 interface PlatformNavbarProps {
   currentScreen: AppScreen;
   onNavigate: (screen: AppScreen) => void;
-  shiftTimer: string;
+  shiftTimer?: string;
   operatorName: string;
   onInitiateCashClose: () => void;
   onOpenCommandPalette?: () => void;
@@ -60,23 +60,23 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
   const initials = operatorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
-    <nav className="flex items-center justify-between px-4 py-3 bg-[#2C2C2C] text-[#D1D5DB] sticky top-0 z-50 font-sans border-b border-[#3E3E3E]">
+    <nav className="flex items-center justify-between px-4 py-3 bg-[#2D2D44] text-[#D1D5DB] sticky top-0 z-50 font-sans border-b border-slate-600">
       {/* LEFT: BRAND */}
       <div className="flex items-center gap-3 shrink-0 mr-6">
         <button onClick={() => onNavigate('menu')} className="w-9 h-9 rounded-xl bg-[#E2498A] flex items-center justify-center shadow-sm transition-transform hover:scale-105">
-           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-           </svg>
+           <span className="text-white font-black text-lg">C</span>
         </button>
         <div className="flex flex-col">
-           <span className="font-extrabold text-white text-base tracking-tight leading-none">ParkOps</span>
+           <span className="font-extrabold text-white text-base tracking-tight leading-none">
+             Cordano<span className="text-[#E2498A]">PMS</span>
+           </span>
            <span className="text-[10px] text-gray-400 font-semibold mt-1 tracking-wide">Serrano 447</span>
         </div>
       </div>
 
       {/* CENTER: PILL NAVIGATION */}
       <div className="flex-1 flex justify-center">
-        <div className="flex items-center p-1 bg-[#1E1E1E] rounded-xl border border-[#3E3E3E]">
+        <div className="flex items-center p-1 bg-[#1E1E2F] rounded-xl border border-slate-600">
           {primaryNavItems.map((item) => {
             const active = isActive(item.id);
             return (
@@ -85,8 +85,8 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
                 onClick={() => onNavigate(item.id)}
                 className={`h-9 px-4 flex items-center gap-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
                   active 
-                    ? 'bg-[#3E3E3E] text-white shadow-sm' 
-                    : 'text-[#9CA3AF] hover:text-white hover:bg-[#3E3E3E]/50'
+                    ? 'bg-slate-600 text-white shadow-sm' 
+                    : 'text-[#9CA3AF] hover:text-white hover:bg-slate-600/50'
                 }`}
               >
                 <svg className={`w-4 h-4 ${active ? 'text-white' : 'text-[#6B7280]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,20 +105,20 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
         {/* Search */}
         <button 
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 h-9 px-3 bg-[#1E1E1E] hover:bg-[#3E3E3E] border border-[#3E3E3E] rounded-lg text-sm font-semibold text-[#9CA3AF] transition-colors"
+          className="flex items-center gap-2 h-9 px-3 bg-[#1E1E2F] hover:bg-slate-600 border border-slate-600 rounded-lg text-sm font-semibold text-[#9CA3AF] transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           Buscar
-          <div className="hidden sm:flex items-center justify-center w-5 h-5 ml-2 rounded bg-[#2C2C2C] border border-[#3E3E3E] text-[10px] font-bold text-gray-500">
+          <div className="hidden sm:flex items-center justify-center w-5 h-5 ml-2 rounded bg-[#2D2D44] border border-slate-600 text-[10px] font-bold text-gray-500">
             K
           </div>
         </button>
 
         {/* Timer */}
         {currentShift && (
-          <div className="flex items-center gap-1.5 h-9 px-3 bg-[#1E1E1E] border border-[#3E3E3E] rounded-lg">
+          <div className="flex items-center gap-1.5 h-9 px-3 bg-[#1E1E2F] border border-slate-600 rounded-lg">
             <svg className="w-4 h-4 text-[#E2498A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>

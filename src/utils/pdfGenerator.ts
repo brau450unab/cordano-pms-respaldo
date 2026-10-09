@@ -96,11 +96,16 @@ export const generateShiftClosingPdf = (shift: Shift, download = false) => {
   doc.text(`Cierre: ${shift.endTime ? new Date(shift.endTime).toLocaleString('es-CL') : 'Aún en curso'}`, 14, 40);
   doc.text(`ID Turno: ${shift.id}`, 14, 45);
 
+  const handoverFund = shift.handoverFundAmount || 0;
+  const deliveryCash = (shift.declaredCash || 0) - handoverFund;
+
   autoTable(doc, {
     startY: 55,
     head: [['Concepto', 'Declarado', 'Esperado', 'Diferencia']],
     body: [
-      ['Efectivo', `$${(shift.declaredCash || 0).toLocaleString('es-CL')}`, `$${(shift.expectedCash || 0).toLocaleString('es-CL')}`, `$${(shift.discrepancyCash || 0).toLocaleString('es-CL')}`],
+      ['Total Efectivo Físico', `$${(shift.declaredCash || 0).toLocaleString('es-CL')}`, `$${(shift.expectedCash || 0).toLocaleString('es-CL')}`, `$${(shift.discrepancyCash || 0).toLocaleString('es-CL')}`],
+      ['├─ Fondo Sencillo Traspasado', `$${handoverFund.toLocaleString('es-CL')}`, '-', '-'],
+      ['└─ Efectivo a Entregar', `$${deliveryCash.toLocaleString('es-CL')}`, '-', '-'],
       ['Tarjetas', `$${(shift.declaredCard || 0).toLocaleString('es-CL')}`, `$${(shift.expectedCard || 0).toLocaleString('es-CL')}`, `$${((shift.declaredCard || 0) - (shift.expectedCard || 0)).toLocaleString('es-CL')}`],
       ['Transferencia', `$${(shift.declaredTransfer || 0).toLocaleString('es-CL')}`, `$${(shift.expectedTransfer || 0).toLocaleString('es-CL')}`, `$${((shift.declaredTransfer || 0) - (shift.expectedTransfer || 0)).toLocaleString('es-CL')}`]
     ]

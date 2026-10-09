@@ -29,7 +29,7 @@ export const ModalInstruccionesCierreCiego: React.FC<ModalInstruccionesCierreCie
       step: 1,
       title: 'Revisión y Vaciado de Vehículos en Recinto',
       icon: Car,
-      color: 'bg-blue-50 text-slate-800 border-blue-200',
+      color: 'bg-[#FFF5F8] text-[#2D2D44] border-blue-200',
       description:
         'Revise uno a uno los vehículos que permanecen adentro. Ningún vehículo queda en el aire: determine si se traspasa su custodia al siguiente turno o si se cobra de inmediato.',
     },
@@ -37,7 +37,7 @@ export const ModalInstruccionesCierreCiego: React.FC<ModalInstruccionesCierreCie
       step: 2,
       title: 'Conteo Físico Ciego (Sin Pistas del Sistema)',
       icon: EyeOff,
-      color: 'bg-slate-800 text-slate-800 border-slate-300',
+      color: 'bg-[#2D2D44] text-[#2D2D44] border-slate-300',
       description:
         'Cuente físicamente el dinero en la gaveta. Puede usar el Total Directo o el Desglose por denominación (monedas de $50, $100, $500 y billetes). Luego sume los vouchers del POS y las transferencias confirmadas.',
     },
@@ -45,7 +45,7 @@ export const ModalInstruccionesCierreCiego: React.FC<ModalInstruccionesCierreCie
       step: 3,
       title: 'Validación de Cuadratura y Tolerancia ($2.000 CLP)',
       icon: ShieldAlert,
-      color: 'bg-amber-50 text-slate-800 border-amber-200',
+      color: 'bg-amber-50 text-[#2D2D44] border-amber-200',
       description:
         'El sistema compara su declaración con las transacciones registradas. Si la diferencia es menor o igual a $2.000 CLP, se cierra directamente. Si supera los $2.000 CLP, se exige redactar una observación obligatoria y solicitar el PIN temporal del supervisor.',
     },
@@ -53,7 +53,7 @@ export const ModalInstruccionesCierreCiego: React.FC<ModalInstruccionesCierreCie
       step: 4,
       title: 'Emisión de Reportes y Firma en Dos Copias',
       icon: FileCheck,
-      color: 'bg-slate-900 text-slate-800 border-slate-400',
+      color: 'bg-[#1E1E2F] text-[#2D2D44] border-slate-400',
       description:
         'Se genera el Reporte Financiero Z. Copia 1 va a la caja del recinto y Copia 2 queda como respaldo firmado del operador (mostrando solo sus montos ingresados para protegerlo legalmente). Se envía respaldo automático a WhatsApp y correo.',
     },
@@ -74,7 +74,7 @@ export const ModalInstruccionesCierreCiego: React.FC<ModalInstruccionesCierreCie
               <HelpCircle className="w-6 h-6" />
             </div>
             <div>
-              <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F1F5F9]/60 px-2.5 py-0.5 rounded-full inline-block">
+              <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F8FAFC]/60 px-2.5 py-0.5 rounded-full inline-block">
                 GUÍA OPERACIONAL
               </span>
               <h3 className="text-lg font-black text-[#1D1D1F] tracking-tight mt-0.5">
@@ -106,7 +106,7 @@ export const ModalInstruccionesCierreCiego: React.FC<ModalInstruccionesCierreCie
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="tabular-nums font-bold text-[10px] text-[#0F172A] bg-[#F1F5F9]/40 px-2 py-0.5 rounded">
+                    <span className="tabular-nums font-bold text-[10px] text-[#0F172A] bg-[#F8FAFC]/40 px-2 py-0.5 rounded">
                       PASO {s.step}
                     </span>
                     <h4 className="font-extrabold text-[#1D1D1F] text-xs sm:text-sm">
@@ -121,8 +121,8 @@ export const ModalInstruccionesCierreCiego: React.FC<ModalInstruccionesCierreCie
             );
           })}
 
-          <div className="p-3.5 bg-slate-900 border border-slate-400 rounded-2xl flex items-center gap-2.5 text-slate-800 text-xs">
-            <Smartphone className="w-4 h-4 text-slate-800 shrink-0" />
+          <div className="p-3.5 bg-[#1E1E2F] border border-slate-400 rounded-2xl flex items-center gap-2.5 text-[#2D2D44] text-xs">
+            <Smartphone className="w-4 h-4 text-[#2D2D44] shrink-0" />
             <span>
               <strong>Notificación Instantánea:</strong> Al confirmar el cierre, puede abrir directamente WhatsApp para avisar al Administrador con el arqueo exacto.
             </span>

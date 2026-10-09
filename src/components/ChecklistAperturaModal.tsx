@@ -144,13 +144,13 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
                 onClick={() => toggleChecklistTask(task.id)}
                 className={`w-full p-3 rounded-2xl border text-left flex items-start space-x-3 transition cursor-pointer ${
                   task.completed
-                    ? 'bg-slate-900/40 border-slate-400/50 text-slate-800'
+                    ? 'bg-[#1E1E2F]/40 border-slate-400/50 text-[#2D2D44]'
                     : 'bg-[#111827] border-white/10 hover:border-white/25 text-white'
                 }`}
               >
                 <div className="mt-0.5 shrink-0">
                   {task.completed ? (
-                    <div className="w-5 h-5 rounded-lg bg-slate-900 text-black flex items-center justify-center font-bold text-xs">
+                    <div className="w-5 h-5 rounded-lg bg-[#1E1E2F] text-black flex items-center justify-center font-bold text-xs">
                       <CheckCircle2 className="w-4 h-4" />
                     </div>
                   ) : (
@@ -160,7 +160,7 @@ export const ChecklistAperturaModal: React.FC<ChecklistAperturaModalProps> = ({
                 <div className="flex-1 text-xs">
                   <div className="flex items-center space-x-1.5 font-bold mb-0.5">
                     {getItemIcon(task.id)}
-                    <span className={task.completed ? 'line-through text-slate-800' : 'text-white'}>
+                    <span className={task.completed ? 'line-through text-[#2D2D44]' : 'text-white'}>
                       {task.label}
                     </span>
                   </div>

@@ -1,7 +1,10 @@
 FROM node:20-alpine
 WORKDIR /app
-COPY dist/ ./
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+RUN npm install -g serve
 ENV PORT=8080
-ENV NODE_ENV=production
 EXPOSE 8080
-CMD ["node", "server.cjs"]
+CMD ["serve", "-s", "dist", "-l", "8080"]

@@ -108,9 +108,9 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
       subtitle: 'Rotación Rápida / Corto Plazo',
       count: group0to30.length,
       tickets: group0to30,
-      badgeColor: 'bg-slate-900 text-slate-800 border-slate-400',
+      badgeColor: 'bg-[#1E1E2F] text-[#2D2D44] border-slate-400',
       headerBorder: 'border-slate-400',
-      tagColor: 'text-slate-800 bg-slate-900',
+      tagColor: 'text-[#2D2D44] bg-[#1E1E2F]',
       cardBg: 'bg-white hover:border-slate-400',
     },
     {
@@ -121,7 +121,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
       tickets: group31to120,
       badgeColor: 'bg-blue-100 text-blue-900 border-slate-300',
       headerBorder: 'border-slate-400',
-      tagColor: 'text-slate-800 bg-blue-50',
+      tagColor: 'text-[#2D2D44] bg-[#FFF5F8]',
       cardBg: 'bg-white hover:border-slate-300',
     },
     {
@@ -132,7 +132,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
       tickets: group2to4h,
       badgeColor: 'bg-amber-100 text-amber-900 border-slate-300',
       headerBorder: 'border-amber-500',
-      tagColor: 'text-slate-800 bg-amber-50',
+      tagColor: 'text-[#2D2D44] bg-amber-50',
       cardBg: 'bg-white hover:border-slate-300',
     },
     {
@@ -142,9 +142,9 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
       count: groupOver4h.length,
       tickets: groupOver4h,
       badgeColor: 'bg-rose-100 text-rose-900 border-rose-300 font-black animate-pulse',
-      headerBorder: 'border-rose-600',
-      tagColor: 'text-rose-700 bg-rose-50',
-      cardBg: 'bg-rose-50/40 border-rose-200 hover:border-rose-400',
+      headerBorder: 'border-[#C83472]',
+      tagColor: 'text-rose-700 bg-[#FFF5F8]',
+      cardBg: 'bg-[#FFF5F8]/40 border-rose-200 hover:border-rose-400',
       isAlert: true,
     },
   ];
@@ -160,7 +160,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F1F5F9]/40 px-2.5 py-0.5 rounded-full inline-block">
+                <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F8FAFC]/40 px-2.5 py-0.5 rounded-full inline-block">
                   FASE 3 • MONITOREO OPERACIONAL
                 </span>
                 <span className="text-[10px] tabular-nums text-[#515154] bg-[#f3f3f5] px-2 py-0.5 rounded-full font-bold">
@@ -223,15 +223,15 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
 
           <div className="p-3 bg-[#f9f9fb] rounded-2xl border border-[#e2e2e4]">
             <span className="text-[10px] font-bold text-[#717785] uppercase block">Acumulado en Pista</span>
-            <span className="text-xl font-black tabular-nums text-slate-800 mt-0.5 block">
-              ${totalAccumulatedClp.toLocaleString('es-CL')} <span className="text-xs font-sans text-slate-800 font-semibold">CLP</span>
+            <span className="text-xl font-black tabular-nums text-[#2D2D44] mt-0.5 block">
+              ${totalAccumulatedClp.toLocaleString('es-CL')} <span className="text-xs font-sans text-[#2D2D44] font-semibold">CLP</span>
             </span>
           </div>
 
-          <div className={`p-3 rounded-2xl border ${criticalOver4hCount > 0 ? 'bg-rose-50 border-rose-200 text-rose-900' : 'bg-[#f9f9fb] border-[#e2e2e4]'}`}>
+          <div className={`p-3 rounded-2xl border ${criticalOver4hCount > 0 ? 'bg-[#FFF5F8] border-rose-200 text-rose-900' : 'bg-[#f9f9fb] border-[#e2e2e4]'}`}>
             <span className="text-[10px] font-bold uppercase block flex items-center justify-between">
               <span>Alerta &gt; 4 Horas</span>
-              {criticalOver4hCount > 0 && <AlertTriangle className="w-3 h-3 text-rose-600 animate-pulse" />}
+              {criticalOver4hCount > 0 && <AlertTriangle className="w-3 h-3 text-[#C83472] animate-pulse" />}
             </span>
             <span className={`text-xl font-black tabular-nums mt-0.5 block ${criticalOver4hCount > 0 ? 'text-rose-700' : 'text-[#1D1D1F]'}`}>
               {criticalOver4hCount} <span className="text-xs font-sans font-semibold">vehículos</span>
@@ -252,7 +252,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
               <div>
                 <div className="flex items-center space-x-1.5">
                   <h3 className="font-black text-sm text-[#1D1D1F]">{col.title}</h3>
-                  {col.isAlert && <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />}
+                  {col.isAlert && <AlertTriangle className="w-3.5 h-3.5 text-[#C83472]" />}
                 </div>
                 <p className="text-[10px] text-[#717785] font-semibold">{col.subtitle}</p>
               </div>
@@ -287,13 +287,13 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                           <span className="tabular-nums text-sm font-black bg-[#1D1D1F] text-white px-2.5 py-0.5 rounded-lg tracking-wider">
                             {t.plateNumber}
                           </span>
-                          <span className="text-[10px] font-bold text-[#0F172A] bg-[#F1F5F9]/40 px-2 py-0.5 rounded-md flex items-center space-x-1">
+                          <span className="text-[10px] font-bold text-[#0F172A] bg-[#F8FAFC]/40 px-2 py-0.5 rounded-md flex items-center space-x-1">
                             {renderVehicleIcon(t.vehicleType)}
                             <span className="hidden sm:inline">{t.vehicleType}</span>
                           </span>
                         </div>
 
-                        <span className="tabular-nums text-xs font-extrabold text-[#0F172A] bg-[#F1F5F9]/30 px-2 py-0.5 rounded-lg border border-[#F1F5F9]">
+                        <span className="tabular-nums text-xs font-extrabold text-[#0F172A] bg-[#F8FAFC]/30 px-2 py-0.5 rounded-lg border border-[#F1F5F9]">
                           Slot {t.slotCode}
                         </span>
                       </div>
@@ -314,7 +314,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                           <span className="text-[#717785] text-[11px]">Estimado acumulado:</span>
                           <span className="tabular-nums font-black text-sm text-[#0F172A]">
                             {isGrace ? (
-                              <span className="text-slate-800 text-xs font-bold bg-slate-900 px-1.5 py-0.5 rounded">
+                              <span className="text-[#2D2D44] text-xs font-bold bg-[#1E1E2F] px-1.5 py-0.5 rounded">
                                 Gracia ($0)
                               </span>
                             ) : (
@@ -356,7 +356,7 @@ export const TableroKanbanEstadia: React.FC<TableroKanbanEstadiaProps> = ({ onGo
                           type="button"
                           onClick={() => setTicketForFugaModal(t)}
                           title="Reportar Caso Excepcional / Fuga"
-                          className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 transition cursor-pointer"
+                          className="p-1.5 bg-[#FFF5F8] hover:bg-rose-100 text-rose-700 rounded-xl border border-rose-200 transition cursor-pointer"
                         >
                           <ShieldAlert className="w-3.5 h-3.5" />
                         </button>

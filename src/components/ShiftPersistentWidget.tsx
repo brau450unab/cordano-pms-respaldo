@@ -107,8 +107,8 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
             <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
               <div className="flex items-center space-x-2">
                 <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-900" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1E1E2F] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1E1E2F]" />
                 </span>
                 <span className="font-extrabold text-white tracking-wide">
                   Turno Activo (#{currentShift.id})
@@ -133,7 +133,7 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
                 <span className="text-[10px] font-bold text-[#94A3B8] block uppercase">
                   Recaudación Turno
                 </span>
-                <span className="text-sm tabular-nums font-extrabold text-slate-800">
+                <span className="text-sm tabular-nums font-extrabold text-[#2D2D44]">
                   ${totalRevenue.toLocaleString('es-CL')}
                 </span>
               </div>
@@ -175,19 +175,19 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
                 <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
               </button>
             ) : (
-              <div className="p-2.5 rounded-2xl bg-slate-900/30 border border-slate-400/30 text-slate-800 text-[11px] font-bold flex items-center space-x-2">
-                <ClipboardCheck className="w-4 h-4 text-slate-800" />
+              <div className="p-2.5 rounded-2xl bg-[#1E1E2F]/30 border border-slate-400/30 text-[#2D2D44] text-[11px] font-bold flex items-center space-x-2">
+                <ClipboardCheck className="w-4 h-4 text-[#2D2D44]" />
                 <span>Inspección de Apertura Auditada</span>
               </div>
             )}
 
             {/* Cloud Firestore Status Badge */}
-            <div className="p-2.5 rounded-2xl bg-slate-900/40 border border-slate-400/30 flex items-center justify-between text-xs">
-              <span className="text-slate-800 font-bold flex items-center gap-1.5 text-[11px]">
-                <span className="w-2 h-2 rounded-full bg-slate-900 animate-pulse" />
+            <div className="p-2.5 rounded-2xl bg-[#1E1E2F]/40 border border-slate-400/30 flex items-center justify-between text-xs">
+              <span className="text-[#2D2D44] font-bold flex items-center gap-1.5 text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-[#1E1E2F] animate-pulse" />
                 Cloud Firestore Sync
               </span>
-              <span className="text-slate-800 tabular-nums text-[10px]">GCP #349577440002</span>
+              <span className="text-[#2D2D44] tabular-nums text-[10px]">GCP #349577440002</span>
             </div>
 
             {/* Bottom Actions */}
@@ -222,8 +222,8 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
           className="flex items-center space-x-2 hover:opacity-80 transition cursor-pointer"
         >
           <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-900 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-900" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1E1E2F] opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1E1E2F]" />
           </span>
           <span className="font-extrabold text-white hidden sm:inline">
             Turno Activo
@@ -263,8 +263,8 @@ export const ShiftPersistentWidget: React.FC<ShiftPersistentWidgetProps> = ({
               <span>Offline ({syncQueueCount})</span>
             </span>
           ) : (
-            <span className="flex items-center space-x-1 text-slate-800 font-bold text-[10px]">
-              <Wifi className="w-3 h-3 text-slate-800" />
+            <span className="flex items-center space-x-1 text-[#2D2D44] font-bold text-[10px]">
+              <Wifi className="w-3 h-3 text-[#2D2D44]" />
               <span className="hidden lg:inline">Firestore Sync OK</span>
             </span>
           )}

@@ -57,7 +57,7 @@ export const ModalFugaVehiculo: React.FC<ModalFugaVehiculoProps> = ({
           className="bg-white w-full max-w-md rounded-3xl border border-rose-200 shadow-2xl overflow-hidden"
         >
           {/* Header */}
-          <div className="p-5 bg-rose-600 text-white flex items-center justify-between">
+          <div className="p-5 bg-[#C83472] text-white flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center shadow-xs">
                 <ShieldAlert className="w-5 h-5 text-white" />
@@ -81,7 +81,7 @@ export const ModalFugaVehiculo: React.FC<ModalFugaVehiculoProps> = ({
 
           <form onSubmit={handleConfirm} className="p-5 space-y-4">
             {/* Vehicle Info Box */}
-            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between">
+            <div className="p-3.5 bg-[#FFF5F8] border border-rose-200 rounded-2xl flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
                 <div className="w-9 h-9 rounded-xl bg-white text-rose-700 flex items-center justify-center border border-rose-200 font-bold">
                   <Car className="w-5 h-5" />
@@ -120,7 +120,7 @@ export const ModalFugaVehiculo: React.FC<ModalFugaVehiculoProps> = ({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Ej: Conductor derribó barrera auxiliar / salió pegado a vehículo anterior sin pagar..."
-                className="w-full px-3 py-2 bg-[#f9f9fb] border border-[#c1c6d6] rounded-xl text-xs text-[#1D1D1F] outline-none focus:border-rose-600 focus:bg-white resize-none"
+                className="w-full px-3 py-2 bg-[#f9f9fb] border border-[#c1c6d6] rounded-xl text-xs text-[#1D1D1F] outline-none focus:border-[#C83472] focus:bg-white resize-none"
               />
             </div>
 
@@ -128,7 +128,7 @@ export const ModalFugaVehiculo: React.FC<ModalFugaVehiculoProps> = ({
             <div className="space-y-1.5 p-3.5 bg-[#f9f9fb] rounded-2xl border border-[#e2e2e4]">
               <label className="text-[11px] font-black text-[#1D1D1F] uppercase tracking-wider flex items-center justify-between">
                 <span className="flex items-center space-x-1.5">
-                  <KeyRound className="w-3.5 h-3.5 text-rose-600" />
+                  <KeyRound className="w-3.5 h-3.5 text-[#C83472]" />
                   <span>PIN Autorización Supervisor:</span>
                 </span>
                 <span className="text-[10px] tabular-nums text-[#717785]">Requerido</span>
@@ -138,7 +138,7 @@ export const ModalFugaVehiculo: React.FC<ModalFugaVehiculoProps> = ({
                 value={supervisorPin}
                 onChange={(e) => setSupervisorPin(e.target.value)}
                 placeholder="Ingrese PIN (Ej: 1234 / 2026)"
-                className="w-full px-3 py-2.5 bg-white border border-[#c1c6d6] focus:border-rose-600 rounded-xl text-center tabular-nums font-black text-base outline-none tracking-widest"
+                className="w-full px-3 py-2.5 bg-white border border-[#c1c6d6] focus:border-[#C83472] rounded-xl text-center tabular-nums font-black text-base outline-none tracking-widest"
               />
             </div>
 
@@ -160,7 +160,7 @@ export const ModalFugaVehiculo: React.FC<ModalFugaVehiculoProps> = ({
               </button>
               <button
                 type="submit"
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition shadow-xs cursor-pointer flex items-center justify-center space-x-1.5"
+                className="flex-1 py-2.5 rounded-xl bg-[#C83472] hover:bg-rose-700 text-white text-xs font-black transition shadow-xs cursor-pointer flex items-center justify-center space-x-1.5"
               >
                 <ShieldAlert className="w-4 h-4" />
                 <span>Registrar Fuga</span>

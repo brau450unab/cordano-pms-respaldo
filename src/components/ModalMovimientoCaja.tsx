@@ -134,8 +134,8 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                 type === 'RETIRO_SANGRIA'
                   ? 'bg-amber-600'
                   : type === 'GASTO_MENOR'
-                  ? 'bg-rose-600'
-                  : 'bg-slate-900'
+                  ? 'bg-[#C83472]'
+                  : 'bg-[#1E1E2F]'
               }`}
             >
               {type === 'RETIRO_SANGRIA' ? (
@@ -153,7 +153,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                     ? 'bg-amber-100 text-amber-900'
                     : type === 'GASTO_MENOR'
                     ? 'bg-rose-100 text-rose-900'
-                    : 'bg-slate-900 text-slate-800'
+                    : 'bg-[#1E1E2F] text-[#2D2D44]'
                 }`}
               >
                 BLOQUE 2 • MOVIMIENTO DE CAJA ACTIVA
@@ -183,7 +183,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
               onClick={() => setType('RETIRO_SANGRIA')}
               className={`py-2 px-2 rounded-xl text-[11px] font-extrabold transition cursor-pointer flex items-center justify-center gap-1 ${
                 type === 'RETIRO_SANGRIA'
-                  ? 'bg-white text-slate-800 shadow-xs'
+                  ? 'bg-white text-[#2D2D44] shadow-xs'
                   : 'text-[#717785] hover:text-[#1D1D1F]'
               }`}
             >
@@ -209,7 +209,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
               onClick={() => setType('INGRESO_MANUAL')}
               className={`py-2 px-2 rounded-xl text-[11px] font-extrabold transition cursor-pointer flex items-center justify-center gap-1 ${
                 type === 'INGRESO_MANUAL'
-                  ? 'bg-white text-slate-800 shadow-xs'
+                  ? 'bg-white text-[#2D2D44] shadow-xs'
                   : 'text-[#717785] hover:text-[#1D1D1F]'
               }`}
             >
@@ -315,7 +315,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                   <KeyRound className="w-3.5 h-3.5 text-[#0F172A]" />
                   <span>Código Temporal (Google / MS Authenticator o PIN 2026):</span>
                 </label>
-                <span className="text-[10px] tabular-nums text-slate-800 bg-slate-900 px-2 py-0.5 rounded font-bold">
+                <span className="text-[10px] tabular-nums text-[#2D2D44] bg-[#1E1E2F] px-2 py-0.5 rounded font-bold">
                   Demo TOTP: {simulatedTotp}
                 </span>
               </div>
@@ -345,7 +345,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
 
           {/* Error Message */}
           {errorMessage && (
-            <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 font-bold flex items-center space-x-2">
+            <div className="p-2.5 bg-[#FFF5F8] border border-rose-200 rounded-xl text-rose-700 font-bold flex items-center space-x-2">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -366,8 +366,8 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                 type === 'RETIRO_SANGRIA'
                   ? 'bg-amber-600 hover:bg-amber-700'
                   : type === 'GASTO_MENOR'
-                  ? 'bg-rose-600 hover:bg-rose-700'
-                  : 'bg-slate-900 hover:bg-slate-900'
+                  ? 'bg-[#C83472] hover:bg-rose-700'
+                  : 'bg-[#1E1E2F] hover:bg-[#1E1E2F]'
               }`}
             >
               <Check className="w-4 h-4" />

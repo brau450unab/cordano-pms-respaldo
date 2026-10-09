@@ -118,7 +118,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F1F5F9]/50 px-2 py-0.5 rounded-full inline-block">
+                <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F8FAFC]/50 px-2 py-0.5 rounded-full inline-block">
                   BLOQUE 3 • REVISIÓN 1 A 1 DE RECINTO
                 </span>
                 <span className="text-[11px] tabular-nums font-bold text-[#515154] bg-[#f3f3f5] px-2 py-0.5 rounded-full">
@@ -192,8 +192,8 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
 
           {/* Special Conditions: Night or Convenio */}
           {isNightHour ? (
-            <div className="p-3 bg-slate-800/70 border border-slate-300/80 rounded-2xl flex items-start gap-2.5 text-slate-800">
-              <Moon className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
+            <div className="p-3 bg-[#2D2D44]/70 border border-slate-300/80 rounded-2xl flex items-start gap-2.5 text-[#2D2D44]">
+              <Moon className="w-4 h-4 text-[#2D2D44] shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold block">Horario Nocturno Activo</span>
                 <span>
@@ -203,7 +203,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
             </div>
           ) : (
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-2.5 text-amber-900">
-              <AlertCircle className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-[#2D2D44] shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold block">Acción Obligatoria por Vehículo</span>
                 <span>
@@ -224,7 +224,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
               </span>
             </div>
             {currentDecision && (
-              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-slate-900 text-slate-800 flex items-center gap-1">
+              <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-[#1E1E2F] text-[#2D2D44] flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>
                   {currentDecision.action === 'traspasar' ? 'Traspasado a Siguiente Turno' : 'Cobrado y Egresado'}
@@ -246,7 +246,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                 onClick={() => handleSelectAction('traspasar')}
                 className={`p-4 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${
                   currentDecision?.action === 'traspasar'
-                    ? 'border-[#0F172A] bg-[#F1F5F9]/20'
+                    ? 'border-[#0F172A] bg-[#F8FAFC]/20'
                     : 'border-[#e2e2e4] hover:border-[#0F172A]/50 bg-white'
                 }`}
               >
@@ -272,7 +272,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
               <div
                 className={`p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between ${
                   currentDecision?.action === 'cobrar'
-                    ? 'border-slate-400 bg-slate-900/50'
+                    ? 'border-slate-400 bg-[#1E1E2F]/50'
                     : 'border-[#e2e2e4] bg-white'
                 }`}
               >
@@ -281,7 +281,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                     <span className="font-extrabold text-sm text-[#1D1D1F]">
                       2. Forzar Salida y Cobrar
                     </span>
-                    <ArrowUpRight className="w-4 h-4 text-slate-800" />
+                    <ArrowUpRight className="w-4 h-4 text-[#2D2D44]" />
                   </div>
                   <p className="text-[11px] text-[#515154] leading-relaxed">
                     Si el conductor está presente saliendo en este instante, procese el pago y libere el slot.
@@ -298,7 +298,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                         onClick={() => setSelectedPaymentMethod('efectivo')}
                         className={`py-1 px-1.5 rounded-lg text-[10px] font-bold border transition cursor-pointer flex items-center justify-center gap-1 ${
                           selectedPaymentMethod === 'efectivo'
-                            ? 'bg-slate-900 text-white border-slate-400'
+                            ? 'bg-[#1E1E2F] text-white border-slate-400'
                             : 'bg-[#f3f3f5] text-[#515154] border-[#e2e2e4]'
                         }`}
                       >
@@ -311,7 +311,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                         onClick={() => setSelectedPaymentMethod('tarjeta_debito')}
                         className={`py-1 px-1.5 rounded-lg text-[10px] font-bold border transition cursor-pointer flex items-center justify-center gap-1 ${
                           selectedPaymentMethod === 'tarjeta_debito'
-                            ? 'bg-slate-900 text-white border-blue-600'
+                            ? 'bg-[#1E1E2F] text-white border-blue-600'
                             : 'bg-[#f3f3f5] text-[#515154] border-[#e2e2e4]'
                         }`}
                       >
@@ -324,7 +324,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                         onClick={() => setSelectedPaymentMethod('transferencia')}
                         className={`py-1 px-1.5 rounded-lg text-[10px] font-bold border transition cursor-pointer flex items-center justify-center gap-1 ${
                           selectedPaymentMethod === 'transferencia'
-                            ? 'bg-slate-800 text-white border-slate-300'
+                            ? 'bg-[#2D2D44] text-white border-slate-300'
                             : 'bg-[#f3f3f5] text-[#515154] border-[#e2e2e4]'
                         }`}
                       >
@@ -339,7 +339,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                   <button
                     type="button"
                     onClick={() => handleSelectAction('cobrar')}
-                    className="w-full py-1.5 rounded-xl bg-slate-900 hover:bg-slate-900 text-white font-bold text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1"
+                    className="w-full py-1.5 rounded-xl bg-[#1E1E2F] hover:bg-[#1E1E2F] text-white font-bold text-xs shadow-xs transition cursor-pointer flex items-center justify-center gap-1"
                   >
                     <span>Cobrar ${feeEstimate.totalAmount.toLocaleString('es-CL')}</span>
                   </button>
@@ -380,7 +380,7 @@ export const ModalRevisionVehiculosCierre: React.FC<ModalRevisionVehiculosCierre
                 type="button"
                 onClick={handleFinish}
                 id="btn-finish-vehicle-handover"
-                className="px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-900 text-white font-extrabold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/25"
+                className="px-6 py-2.5 rounded-xl bg-[#1E1E2F] hover:bg-[#1E1E2F] text-white font-extrabold text-xs transition flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-600/25"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Finalizar Revisión ({totalVehicles} Vehículos)</span>

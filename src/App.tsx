@@ -63,28 +63,7 @@ function MainAppContent() {
     }, 3500);
   }, []);
 
-  // Shift Timer with Tabular Numbers
-  const [shiftTimer, setShiftTimer] = useState('00:00:00');
-  useEffect(() => {
-    const updateTimer = () => {
-      if (!currentShift || currentShift.status !== 'abierto') {
-        setShiftTimer('Turno Inactivo');
-        return;
-      }
-      const start = new Date(currentShift.startTime).getTime();
-      const now = Date.now();
-      const diff = Math.max(0, Math.floor((now - start) / 1000));
-      const h = Math.floor(diff / 3600).toString().padStart(2, '0');
-      const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-      const s = Math.floor(diff % 60).toString().padStart(2, '0');
-      setShiftTimer(`${h}:${m}:${s}`);
-    };
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [currentShift?.startTime, currentShift?.status]);
-
-  // Navigate handler that synchronizes browser URL
+// Navigate handler that synchronizes browser URL
   const handleNavigate = useCallback((screen: AppScreen, replace = false) => {
     setCurrentScreen(screen);
     const path = getPathFromScreen(screen);
@@ -312,13 +291,13 @@ function MainAppContent() {
   const effectiveScreen = isLoggedIn ? currentScreen : 'landing';
 
   return (
-    <div className="h-screen w-screen bg-[#FEF9F5] flex flex-col font-sans text-[#2C1338] overflow-hidden selection:bg-[#E57CD8] selection:text-[#2C1338]">
-      {/* Top Application Navbar - Only show if logged in */}
-      {isLoggedIn && (
+    <div className="h-screen w-screen bg-[#F8FAFC] flex flex-col font-sans text-[#1E1E2F] overflow-hidden selection:bg-[#E2498A] selection:text-[#1E1E2F]">
+      {/* Top Application Navbar - Only show if logged in and not on landing */}
+      {isLoggedIn && effectiveScreen !== 'landing' && (
         <PlatformNavbar
           currentScreen={effectiveScreen}
           onNavigate={(screen) => handleNavigate(screen)}
-          shiftTimer={shiftTimer}
+          
           operatorName={user.name}
           onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
@@ -337,7 +316,7 @@ function MainAppContent() {
             <LandingView
               onLoginSuccess={() => handleNavigate('menu')}
               onNavigate={(screen) => handleNavigate(screen)}
-              shiftTimer={shiftTimer}
+              
               onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
               onShowToast={(msg, type) => showToast(msg, type as any)}
             />
@@ -399,7 +378,7 @@ function MainAppContent() {
             )}
 
             {/* 6. Centro de Ayuda & SOPs */}
-            {isLoggedIn && effectiveScreen === 'support' && (
+            {effectiveScreen === 'support' && (
               <SupportView onShowToast={(msg, type) => showToast(msg, type)} />
             )}
 
@@ -478,12 +457,12 @@ function MainAppContent() {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-2xl border shadow-[0_12px_32px_rgba(44,19,56,0.18)] text-[13px] font-medium animate-fade-in-up ${
+            className={`pointer-events-auto flex items-center gap-3 px-4 py-3.5 rounded-2xl border shadow-[0_12px_32px_rgba(30,30,47,0.18)] text-[13px] font-medium animate-fade-in-up ${
               toast.type === 'success'
-                ? 'bg-[#2C1338] text-[#2B9E78] border-[#2B9E78]/40'
+                ? 'bg-[#1E1E2F] text-[#E2498A] border-[#E2498A]/40'
                 : toast.type === 'error'
-                ? 'bg-[#2C1338] text-[#E2498A] border-[#E2498A]/40'
-                : 'bg-[#2C1338] text-[#FEF9F5] border-[#412A4C]'
+                ? 'bg-[#1E1E2F] text-[#E2498A] border-[#E2498A]/40'
+                : 'bg-[#1E1E2F] text-[#F8FAFC] border-[#2D2D44]'
             }`}
           >
             <span className="font-bold text-base shrink-0">

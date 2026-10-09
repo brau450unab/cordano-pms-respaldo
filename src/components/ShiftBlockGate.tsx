@@ -27,14 +27,14 @@ export const ShiftBlockGate: React.FC<ShiftBlockGateProps> = ({
         className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 border border-[#e2e2e4] shadow-xl text-center space-y-6"
       >
         {/* Lock Icon */}
-        <div className="w-16 h-16 rounded-3xl bg-[#F1F5F9]/60 text-[#0F172A] flex items-center justify-center mx-auto shadow-inner border border-[#F1F5F9]">
+        <div className="w-16 h-16 rounded-3xl bg-[#F8FAFC]/60 text-[#0F172A] flex items-center justify-center mx-auto shadow-inner border border-[#F1F5F9]">
           <Lock className="w-8 h-8" />
         </div>
 
         {/* Title & Explanation */}
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold tabular-nums">
-            <AlertCircle className="w-3.5 h-3.5 text-slate-800" />
+            <AlertCircle className="w-3.5 h-3.5 text-[#2D2D44]" />
             <span>CONDICIÓN DE BLOQUEO ACTIVA</span>
           </div>
           <h2 className="text-2xl font-black text-[#1a1c1d] tracking-tight">

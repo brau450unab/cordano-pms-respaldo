@@ -76,7 +76,7 @@ export const AdminAuthModal: React.FC<AdminAuthModalProps> = ({
           </div>
 
           <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start space-x-2">
-            <CheckCircle2 className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-[#2D2D44] shrink-0 mt-0.5" />
             <span className="font-medium">
               <strong>Claves de prueba válidas:</strong> <code className="bg-amber-100 px-1 py-0.5 rounded tabular-nums font-bold">admin123</code> o <code className="bg-amber-100 px-1 py-0.5 rounded tabular-nums font-bold">1234</code>.
             </span>

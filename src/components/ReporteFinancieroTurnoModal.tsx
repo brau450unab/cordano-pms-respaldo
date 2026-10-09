@@ -138,7 +138,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F1F5F9]/60 px-2.5 py-0.5 rounded-full inline-block">
+                <span className="text-[10px] font-extrabold tracking-wider text-[#0F172A] uppercase bg-[#F8FAFC]/60 px-2.5 py-0.5 rounded-full inline-block">
                   BLOQUE 4 • REPORTE FINANCIERO Z
                 </span>
                 <span
@@ -146,7 +146,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                     isFlagged
                       ? 'bg-rose-100 text-rose-800'
                       : isPerfect
-                      ? 'bg-slate-900 text-slate-800'
+                      ? 'bg-[#1E1E2F] text-[#2D2D44]'
                       : 'bg-amber-100 text-amber-800'
                   }`}
                 >
@@ -180,7 +180,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
               {downloadingPdf ? (
                 <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin" />
               ) : (
-                <Download className="w-3.5 h-3.5 text-slate-800" />
+                <Download className="w-3.5 h-3.5 text-[#2D2D44]" />
               )}
               <span className="hidden sm:inline">PDF</span>
             </button>
@@ -288,17 +288,17 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
               <div
                 className={`p-4 rounded-2xl border flex items-center justify-between ${
                   isFlagged
-                    ? 'bg-rose-50 border-rose-200 text-rose-950'
+                    ? 'bg-[#FFF5F8] border-rose-200 text-rose-950'
                     : isPerfect
-                    ? 'bg-slate-900 border-slate-400 text-slate-800'
+                    ? 'bg-[#1E1E2F] border-slate-400 text-[#2D2D44]'
                     : 'bg-amber-50 border-amber-200 text-amber-950'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   {isFlagged ? (
-                    <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0" />
+                    <AlertTriangle className="w-6 h-6 text-[#C83472] shrink-0" />
                   ) : (
-                    <CheckCircle2 className="w-6 h-6 text-slate-800 shrink-0" />
+                    <CheckCircle2 className="w-6 h-6 text-[#2D2D44] shrink-0" />
                   )}
                   <div>
                     <span className="font-extrabold text-sm block">
@@ -339,7 +339,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                       <td className="py-2.5 px-3 text-right text-[#515154]">
                         ${(shift.initialCash || 0).toLocaleString('es-CL')}
                       </td>
-                      <td className="py-2.5 px-4 text-right text-slate-800 font-bold">$0</td>
+                      <td className="py-2.5 px-4 text-right text-[#2D2D44] font-bold">$0</td>
                     </tr>
                     <tr>
                       <td className="py-2.5 px-4 font-sans font-bold text-[#1D1D1F]">
@@ -353,7 +353,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                       </td>
                       <td
                         className={`py-2.5 px-4 text-right font-bold ${
-                          discrepancyCash === 0 ? 'text-slate-800' : 'text-rose-600'
+                          discrepancyCash === 0 ? 'text-[#2D2D44]' : 'text-[#C83472]'
                         }`}
                       >
                         {discrepancyCash >= 0 ? '+' : ''}${discrepancyCash.toLocaleString('es-CL')}
@@ -369,7 +369,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                       <td className="py-2.5 px-3 text-right text-[#515154]">
                         ${(shift.expectedCard || 0).toLocaleString('es-CL')}
                       </td>
-                      <td className="py-2.5 px-4 text-right font-bold text-slate-800">$0</td>
+                      <td className="py-2.5 px-4 text-right font-bold text-[#2D2D44]">$0</td>
                     </tr>
                     <tr>
                       <td className="py-2.5 px-4 font-sans font-bold text-[#1D1D1F]">
@@ -381,7 +381,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                       <td className="py-2.5 px-3 text-right text-[#515154]">
                         ${(shift.expectedTransfer || 0).toLocaleString('es-CL')}
                       </td>
-                      <td className="py-2.5 px-4 text-right font-bold text-slate-800">$0</td>
+                      <td className="py-2.5 px-4 text-right font-bold text-[#2D2D44]">$0</td>
                     </tr>
                     <tr className="bg-[#f9f9fb] font-extrabold text-sm">
                       <td className="py-3 px-4 font-sans text-[#1D1D1F]">TOTAL RECAUDACIÓN TURNO</td>
@@ -393,7 +393,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                       </td>
                       <td
                         className={`py-3 px-4 text-right ${
-                          discrepancyTotal === 0 ? 'text-slate-800' : 'text-rose-600'
+                          discrepancyTotal === 0 ? 'text-[#2D2D44]' : 'text-[#C83472]'
                         }`}
                       >
                         {discrepancyTotal >= 0 ? '+' : ''}${discrepancyTotal.toLocaleString('es-CL')}
@@ -483,7 +483,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                           <span
                             className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                               m.type === 'INGRESO_MANUAL'
-                                ? 'bg-slate-900 text-slate-800'
+                                ? 'bg-[#1E1E2F] text-[#2D2D44]'
                                 : m.type === 'GASTO_MENOR'
                                 ? 'bg-rose-100 text-rose-800'
                                 : 'bg-amber-100 text-amber-800'
@@ -537,7 +537,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
 
                 <div className="p-4 bg-[#f9f9fb] border border-[#e2e2e4] rounded-2xl space-y-1">
                   <span className="text-[#717785] text-xs block font-medium">Salidas Forzadas / Cobradas en Cierre:</span>
-                  <span className="text-2xl tabular-nums font-black text-slate-800">
+                  <span className="text-2xl tabular-nums font-black text-[#2D2D44]">
                     {shift.forcedExitVehiclesCount || 0}
                   </span>
                   <span className="text-[11px] text-[#515154] block mt-1">
@@ -593,7 +593,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                     <span className="font-extrabold text-xs text-[#0F172A] uppercase tracking-wider">
                       COPIA 1 — PARA LA CAJA DEL RECINTO (AUDITORÍA COMPLETA)
                     </span>
-                    <span className="text-[11px] tabular-nums text-slate-800 font-bold">
+                    <span className="text-[11px] tabular-nums text-[#2D2D44] font-bold">
                       {shift.signedCopy1Caja ? '✓ Firmada y Sellada' : 'Pendiente de Firma'}
                     </span>
                   </div>
@@ -621,12 +621,12 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                   </div>
                 </div>
               ) : (
-                <div className="p-5 bg-blue-50/40 border-2 border-blue-200 rounded-2xl space-y-3">
+                <div className="p-5 bg-[#FFF5F8]/40 border-2 border-blue-200 rounded-2xl space-y-3">
                   <div className="flex items-center justify-between border-b border-blue-200 pb-2">
                     <span className="font-extrabold text-xs text-blue-900 uppercase tracking-wider">
                       COPIA 2 — RESPALDO LEGAL PARA EL OPERADOR (PROTECCIÓN LABORAL)
                     </span>
-                    <span className="text-[11px] tabular-nums text-slate-800 font-bold">
+                    <span className="text-[11px] tabular-nums text-[#2D2D44] font-bold">
                       {shift.signedCopy2Operador ? '✓ Firmada por Operador' : 'Pendiente de Firma'}
                     </span>
                   </div>
@@ -656,7 +656,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                   <div className="pt-3 border-t border-blue-200 flex justify-end">
                     <button
                       onClick={() => signShiftCopy('operador')}
-                      className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs hover:bg-slate-900 transition cursor-pointer"
+                      className="px-4 py-2 rounded-xl bg-[#1E1E2F] text-white font-bold text-xs flex items-center gap-1.5 shadow-xs hover:bg-[#1E1E2F] transition cursor-pointer"
                     >
                       <Check className="w-4 h-4" />
                       <span>{shift.signedCopy2Operador ? 'Copia 2 Ya Firmada' : 'Firmar Copia 2 (Respaldo Operador)'}</span>
@@ -697,7 +697,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4 text-slate-800" />
+                  <Download className="w-4 h-4 text-[#2D2D44]" />
                   <span>Descargar PDF</span>
                 </>
               )}
@@ -708,7 +708,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
               type="button"
               onClick={handleWhatsAppSend}
               id="btn-send-whatsapp-report"
-              className="px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-900 text-white font-bold text-xs transition flex items-center gap-2 shadow-xs cursor-pointer"
+              className="px-3.5 py-2.5 rounded-xl bg-[#1E1E2F] hover:bg-[#1E1E2F] text-white font-bold text-xs transition flex items-center gap-2 shadow-xs cursor-pointer"
             >
               <Share2 className="w-4 h-4" />
               <span className="hidden sm:inline">WhatsApp</span>
@@ -720,7 +720,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
               onClick={handleEmailSend}
               className="px-3.5 py-2.5 rounded-xl bg-white border border-[#c1c6d6] hover:bg-[#f3f3f5] text-[#1D1D1F] font-bold text-xs transition flex items-center gap-2 shadow-2xs cursor-pointer"
             >
-              <Mail className="w-4 h-4 text-slate-800" />
+              <Mail className="w-4 h-4 text-[#2D2D44]" />
               <span className="hidden sm:inline">Correo</span>
             </button>
           </div>
@@ -733,7 +733,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                   onClose();
                   onOpenNewShift();
                 }}
-                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-900 text-white font-extrabold text-xs transition flex items-center gap-2 shadow-md cursor-pointer"
+                className="px-5 py-2.5 rounded-xl bg-[#1E1E2F] hover:bg-[#1E1E2F] text-white font-extrabold text-xs transition flex items-center gap-2 shadow-md cursor-pointer"
               >
                 <span>Aperturar Siguiente Turno</span>
               </button>

@@ -71,7 +71,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-[#1E1E2F]/40 backdrop-blur-xs animate-in fade-in duration-150">
       <div
         className="w-full max-w-2xl bg-white border border-slate-300 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
@@ -85,7 +85,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar por patente, ticket o cupo (ej. BBCL10, A-04)..."
-            className="w-full bg-transparent text-slate-900 placeholder-slate-400 text-sm focus:outline-none tabular-nums"
+            className="w-full bg-transparent text-[#1E1E2F] placeholder-slate-400 text-sm focus:outline-none tabular-nums"
           />
           {query && (
             <button
@@ -137,17 +137,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       }}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-md bg-slate-50 border border-dashed border-slate-300 text-slate-800 flex items-center justify-center tabular-nums font-bold text-xs">
+                        <div className="w-9 h-9 rounded-md bg-slate-50 border border-dashed border-slate-300 text-[#2D2D44] flex items-center justify-center tabular-nums font-bold text-xs">
                           {ticket.slotCode || 'P'}
                         </div>
                         <div>
                           <div className="flex items-center space-x-2">
-                            <span className="tabular-nums font-bold text-slate-900 text-sm tracking-wide">
+                            <span className="tabular-nums font-bold text-[#1E1E2F] text-sm tracking-wide">
                               {ticket.plateNumber}
                             </span>
                             <span className="text-[11px] tabular-nums text-slate-500">· {ticket.vehicleType}</span>
                             {ticket.tariffType === 'especial' && (
-                              <span className="text-[10px] tabular-nums text-slate-800 bg-slate-800 px-1.5 py-0.2 rounded border border-slate-300">
+                              <span className="text-[10px] tabular-nums text-[#2D2D44] bg-[#2D2D44] px-1.5 py-0.2 rounded border border-slate-300">
                                 Especial
                               </span>
                             )}
@@ -162,13 +162,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                       <div className="flex items-center space-x-3">
                         <div className="text-right">
-                          <span className="text-xs tabular-nums font-bold text-slate-900 block">
+                          <span className="text-xs tabular-nums font-bold text-[#1E1E2F] block">
                             ${fee.totalAmount.toLocaleString('es-CL')} CLP
                           </span>
                           <span className="text-[10px] tabular-nums text-slate-500">#{ticket.ticketCode}</span>
                         </div>
                         <button
-                          className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs tabular-nums font-semibold flex items-center space-x-1 transition cursor-pointer"
+                          className="px-2.5 py-1.5 rounded-lg bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs tabular-nums font-semibold flex items-center space-x-1 transition cursor-pointer"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (onSelectTicketForCheckout) {
@@ -196,7 +196,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <div className="flex items-center space-x-2">
             <span>Serrano 447, Iquique</span>
             <span>·</span>
-            <span className="font-semibold text-slate-800">30 Cupos Activas</span>
+            <span className="font-semibold text-[#2D2D44]">30 Cupos Activas</span>
           </div>
           <span>Atajos: F1 (Ingreso) · F2 (Cobro) · F3 (Plano)</span>
         </div>

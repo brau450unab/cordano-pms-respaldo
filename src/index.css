@@ -220,3 +220,10 @@
     padding: 0;
   }
 }
+
+/* User Request: Disable Monospace fonts everywhere and replace with Inter but keep tabular behavior */
+.tabular-nums, .pos-mono, [class*="font-mono"] {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: "tnum" 1 !important;
+}

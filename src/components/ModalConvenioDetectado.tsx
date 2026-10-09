@@ -46,8 +46,8 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
 
   // Determine status color and copy
   let statusBadge = {
-    bg: 'bg-slate-900 border-slate-400 text-slate-800',
-    icon: <CheckCircle2 className="w-4 h-4 text-slate-800" />,
+    bg: 'bg-[#1E1E2F] border-slate-400 text-[#2D2D44]',
+    icon: <CheckCircle2 className="w-4 h-4 text-[#2D2D44]" />,
     label: 'Convenio Vigente • Al Día',
     desc: `Vence en ${diffDays} días (${formattedDate}). Registro sin cobro en caja.`
   };
@@ -55,14 +55,14 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
   if (agreement.status === 'por_vencer' || (diffDays >= 0 && diffDays <= 7)) {
     statusBadge = {
       bg: 'bg-amber-50 border-amber-200 text-amber-900',
-      icon: <AlertTriangle className="w-4 h-4 text-slate-800" />,
+      icon: <AlertTriangle className="w-4 h-4 text-[#2D2D44]" />,
       label: 'Suscripción Por Vencer',
       desc: `Vence en ${diffDays} día(s) (${formattedDate}). Recordar renovación a administración.`
     };
   } else if (agreement.status === 'vencido' || diffDays < 0) {
     statusBadge = {
-      bg: 'bg-rose-50 border-rose-200 text-rose-900',
-      icon: <XCircle className="w-4 h-4 text-rose-600" />,
+      bg: 'bg-[#FFF5F8] border-rose-200 text-rose-900',
+      icon: <XCircle className="w-4 h-4 text-[#C83472]" />,
       label: 'Convenio Vencido • En Mora',
       desc: `Venció hace ${Math.abs(diffDays)} día(s) (${formattedDate}). Se permite ingreso y salida excepcional sin PIN.`
     };
@@ -81,7 +81,7 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
           {/* Header Bar */}
           <div className="bg-[#1D1D1F] text-white p-5 sm:p-6 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-slate-900/20 text-slate-700 border border-slate-400/30 flex items-center justify-center shadow-xs">
+              <div className="w-10 h-10 rounded-2xl bg-[#1E1E2F]/20 text-slate-700 border border-slate-400/30 flex items-center justify-center shadow-xs">
                 <Car className="w-5 h-5" />
               </div>
               <div>
@@ -142,19 +142,19 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
               </div>
 
               <div className="bg-[#fcfcfd] p-3.5 rounded-xl border border-[#eef0f2] flex items-start space-x-3">
-                <User className="w-4 h-4 text-slate-800 mt-0.5 shrink-0" />
+                <User className="w-4 h-4 text-[#2D2D44] mt-0.5 shrink-0" />
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#717785] block">Conductor / Contacto</span>
                   <span className="font-extrabold text-[#1a1c1d] block">{agreement.contactName}</span>
                   <span className="text-[10px] text-[#717785] flex items-center gap-1 mt-0.5">
-                    <Phone className="w-3 h-3 text-slate-800" />
+                    <Phone className="w-3 h-3 text-[#2D2D44]" />
                     {agreement.phone}
                   </span>
                 </div>
               </div>
 
               <div className="bg-[#fcfcfd] p-3.5 rounded-xl border border-[#eef0f2] flex items-start space-x-3">
-                <Calendar className="w-4 h-4 text-slate-800 mt-0.5 shrink-0" />
+                <Calendar className="w-4 h-4 text-[#2D2D44] mt-0.5 shrink-0" />
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#717785] block">Modalidad & Vigencia</span>
                   <span className="font-extrabold text-[#1a1c1d] block">{agreement.agreementType}</span>
@@ -163,10 +163,10 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
               </div>
 
               <div className="bg-[#fcfcfd] p-3.5 rounded-xl border border-[#eef0f2] flex items-start space-x-3">
-                <DollarSign className="w-4 h-4 text-slate-800 mt-0.5 shrink-0" />
+                <DollarSign className="w-4 h-4 text-[#2D2D44] mt-0.5 shrink-0" />
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#717785] block">Cuota Mensual Pactada</span>
-                  <span className="font-extrabold text-slate-800 block text-sm">
+                  <span className="font-extrabold text-[#2D2D44] block text-sm">
                     ${agreement.monthlyFeeClp.toLocaleString('es-CL')} CLP
                   </span>
                   <span className="text-[10px] text-[#717785]">Pago fuera de caja de turno</span>
@@ -175,8 +175,8 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
             </div>
 
             {/* Operational Policy Note */}
-            <div className="bg-blue-50/70 border border-blue-100 rounded-2xl p-3.5 text-xs text-blue-900 flex items-start space-x-2.5">
-              <ShieldCheck className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
+            <div className="bg-[#FFF5F8]/70 border border-blue-100 rounded-2xl p-3.5 text-xs text-blue-900 flex items-start space-x-2.5">
+              <ShieldCheck className="w-4 h-4 text-[#2D2D44] shrink-0 mt-0.5" />
               <div className="leading-relaxed">
                 <span className="font-bold block">Política Operativa Cordano PMS:</span>
                 Este vehículo <span className="font-bold">no cancela ticket de ingreso ni salida en caja</span>. 
