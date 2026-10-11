@@ -65,7 +65,7 @@ El POS es el corazón operativo de la garita. Permite el registro ultrarrápido 
 
 **Flujo Práctico:**
 - **Paso 1:** Al acercarse un vehículo, presiona F1, F2 o F3 según el tipo.
-- **Paso 2:** El sistema registra la hora, captura imagen mediante LPR (Genkit/Flash) si está habilitado y bloquea la plaza temporalmente.
+- **Paso 2:** El sistema registra la hora, captura imagen mediante LPR si está habilitado y asigna el cupo físico.
 - **Paso 3:** Al egresar, escanea el ticket (o digita la patente y presiona Enter).
 - **Paso 4:** Cobra el monto exacto sugerido por el Motor de Tarifas.`
     },
@@ -87,8 +87,8 @@ Evitar fugas de capital y manipulación del sistema de ventas. El cajero declara
 - Egresos autorizados (Vales/Descuentos)
 3. **Paso 3 - Cuadratura:** El sistema emite la diferencia (Faltante / Sobrante / Cuadre Perfecto).
 
-**Firmas SHA-256:**
-Cada arqueo se sella criptográficamente para asegurar su inmutabilidad frente a auditorías fiscales o de supervisión. Ningún cajero puede editar un arqueo posterior a su emisión. Si se equivocó al contar, el supervisor debe autorizar un re-arqueo documentado.`
+**Firmas SHA-256 & Reporte Z A4:**
+Cada arqueo se sella criptográficamente para asegurar su inmutabilidad frente a auditorías fiscales o de supervisión. Se emite en formato estándar A4 con dos copias oficiales y espacio para firmas físicas del Operador y Administrador.`
     },
     { 
       id: 3, 
@@ -102,13 +102,69 @@ Cada arqueo se sella criptográficamente para asegurar su inmutabilidad frente a
 
 **Eventos de Excepción:**
 Las excepciones críticas en la garita no pueden ser realizadas por el operador de forma unilateral. Requieren aprobación remota.
-1. **Ticket Perdido:** Cobro obligatorio de $8.000 CLP.
+1. **Ticket Perdido:** Cobro según Ley 20.967 por tiempo efectivo registrado y validación diferida al cierre.
 2. **Fugas:** El vehículo escapa sin pagar rompiendo barrera. El operador marca "Fuga", se captura LPR y se ingresa a lista negra (Alerta Roja).
-3. **Descuentos de Cortesía:** Requiere un Administrador/Supervisor ingresando su PIN (Google Authenticator TOTP de 6 dígitos) y una justificación escrita obligatoria (>10 caracteres).
+3. **Descuentos de Cortesía:** Requiere un Administrador/Supervisor ingresando su PIN (Google Authenticator TOTP de 6 dígitos) y una justificación escrita obligatoria.`
+    },
+    { 
+      id: 4, 
+      title: 'SOP Operativo Garita Serrano 447 (Iquique)', 
+      type: 'Procedimiento Estándar (SOP)', 
+      content: 'Manual de operaciones físicas, capacidad de 30 plazas (Sector A y Sector B) y protocolo de flujo continuo vehicular.',
+      fullContent: `### SOP Operativo Garita Serrano 447 (Iquique)
 
-**Colores de Auditoría:**
-- **Verde:** Descuentos y cortesías debidamente autorizadas.
-- **Rojo:** Recargos por ticket perdido, fugas o anulaciones irregulares.`
+**Recinto Físico:**
+- Ubicación: Serrano 447, Iquique, Región de Tarapacá.
+- Capacidad Total: 30 Plazas vehiculares.
+- Sector A: Cupos 01 al 15 (Acceso frontal y rotación rápida).
+- Sector B: Cupos 16 al 30 (Estacionamiento posterior y convenios mensuales).
+
+**Horario y Tolerancias:**
+- Periodo de Gracia: 15 minutos de cortesía para salidas sin cobro adicional tras validación.
+- Tarifa Estándar: $35 CLP / minuto (Sedán/SUV), $20 CLP / minuto (Motocicletas).
+- Fracción: Cobro por minuto efectivo conforme a Ley 20.967.
+
+**Aprobaciones Express Diferidas:**
+Para evitar atochamientos en garita durante horas punta, las liberaciones extraordinarias pueden justificarse por el cajero y consolidar su PIN de supervisor en lote al momento del Cierre de Turno.`
+    },
+    { 
+      id: 5, 
+      title: 'Perfiles y Permisos: Operador vs. Administrador', 
+      type: 'Arquitectura & Roles', 
+      content: 'Matriz de control de acceso basada en roles (RBAC): permisos de garita, reportería y configuración de tarifas.',
+      fullContent: `### Perfiles y Permisos del Sistema ParkOps Cordano
+
+**Rol 1: Operador de Garita (Cajero)**
+- Registro de ingresos y salidas vehiculares.
+- Emisión de tickets térmicos 80mm con Código QR y Code 128.
+- Apertura de turno con declaración de gaveta y checklist de garita.
+- Arqueo ciego final y entrega de sobre con recaudación en efectivo.
+- Restricción: No puede alterar tarifas, anular transacciones sin PIN ni ver balances globales de otros turnos.
+
+**Rol 2: Administrador / Supervisor**
+- Configuración de tarifas por minuto, mensualidades y recargos.
+- Consulta de Auditoría Z histórica con hashes SHA-256 inmutables.
+- Gestión de Convenios corporativos y cobranza mensual.
+- Aprobación de excepciones con PIN de Supervisor (2026) o Authenticator TOTP.
+- Conmutador en Barra Superior: Permite alternar de rol para supervisión directa en terreno.`
+    },
+    { 
+      id: 6, 
+      title: 'Módulo de Convenios y Vehículos Frecuentes', 
+      type: 'Gestión Corporativa', 
+      content: 'Administración de flotas empresariales, control de acceso por patente y dashboard de cobranzas.',
+      fullContent: `### Módulo de Convenios y Cobranzas Mensuales
+
+**Propósito:**
+Permitir a empresas locales (ZOFRI, sector financiero, comercio de Serrano) abonar planes mensuales para flotas vehiculares autorizadas.
+
+**Funcionalidades Clave:**
+1. **Detección Automática:** Al ingresar una patente suscrita a convenio, el sistema la reconoce y no genera cobro al paso.
+2. **Dashboard de Cobranza:**
+- Control de estado de pagos (Al día vs. Pendiente).
+- Historial de accesos por fecha y hora de la flota.
+- Notificación automática de cobranza por email o WhatsApp corporativo.
+3. **Registro de Flota:** Un solo convenio puede agrupar múltiples patentes vinculadas a la misma razón social.`
     }
   ];
 

@@ -54,7 +54,7 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
   return (
     <div
       id="modal-ticket-preview"
-      className="fixed inset-0 bg-[#1E1E2F]/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in-up"
+      className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in-up"
     >
       <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-[0_20px_50px_rgba(44,19,56,0.2)] w-full max-w-sm overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}

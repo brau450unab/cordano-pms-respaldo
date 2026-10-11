@@ -1,4 +1,4 @@
-import { TariffConfig, ParkingSlot, Ticket, AuditLog, Shift, User, Customer, Agreement } from '../types';
+import { TariffConfig, TariffVersion, ParkingSlot, Ticket, AuditLog, Shift, User, Customer, Agreement } from '../types';
 
 const daysFromNow = (days: number) => {
   const d = new Date();
@@ -153,9 +153,45 @@ export const INITIAL_ADMIN: User = {
   email: 'admin@pmsmatic.cl',
 };
 
+export const INITIAL_SUPERVISOR: User = {
+  id: 'usr-102',
+  name: 'Carlos Miranda (Supervisor)',
+  role: 'supervisor',
+  shiftId: 'SHIFT-1042',
+  email: 'supervisor@pmsmatic.cl',
+};
+
+export const INITIAL_TARIFF_VERSIONS: TariffVersion[] = [
+  {
+    id: 'tar-v1-init',
+    versionNumber: 1,
+    effectiveFrom: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    billingModel: 'PER_MINUTE',
+    taxDocumentType: 39,
+    gracePeriodMinutes: 15,
+    nightSurchargePercent: 20,
+    weekendSurchargePercent: 15,
+    vehicleRates: {
+      'Automóvil': { minuteRate: 40, hourlyRate: 2400, maxDailyRate: 18000 },
+      'Camioneta': { minuteRate: 50, hourlyRate: 3000, maxDailyRate: 22000 },
+      'Motocicleta': { minuteRate: 25, hourlyRate: 1500, maxDailyRate: 10000 },
+      'Furgón / SUV': { minuteRate: 50, hourlyRate: 3000, maxDailyRate: 22000 },
+    },
+    subsequentTrancheRates: {
+      'Automóvil': 400,
+      'Camioneta': 500,
+      'Motocicleta': 250,
+      'Furgón / SUV': 500,
+    },
+    createdBy: 'Administración Cordano PMS',
+    reason: 'Tarifa oficial publicada conforme a Ley N° 20.967'
+  }
+];
+
 export const INITIAL_TARIFF_CONFIG: TariffConfig = {
-  gracePeriodMinutes: 10,
-  lostTicketFee: 12000,
+  billingModel: 'PER_MINUTE',
+  taxDocumentType: 39, // Boleta Electrónica Afecta (19% IVA)
+  gracePeriodMinutes: 15,
   nightSurchargePercent: 20,
   weekendSurchargePercent: 15,
   vehicleRates: {
@@ -164,12 +200,19 @@ export const INITIAL_TARIFF_CONFIG: TariffConfig = {
     'Motocicleta': { minuteRate: 25, hourlyRate: 1500, maxDailyRate: 10000 },
     'Furgón / SUV': { minuteRate: 50, hourlyRate: 3000, maxDailyRate: 22000 },
   },
+  subsequentTrancheRates: {
+    'Automóvil': 400, // Cada 10 minutos adicionales
+    'Camioneta': 500,
+    'Motocicleta': 250,
+    'Furgón / SUV': 500,
+  },
   subscriptionPlans: [
     { id: 'mensual', title: 'Mensual', price: '$50.000', desc: 'Por mes' },
     { id: 'semanal', title: 'Semanal', price: '$15.000', desc: 'Por semana' },
     { id: 'diurno', title: 'Diurno', price: '$5.000', desc: 'Por día' },
     { id: 'flota', title: 'Flota Corp.', price: 'A conv.', desc: 'Multivehículo' }
-  ]
+  ],
+  activeVersionId: 'tar-v1-init',
 };
 
 const now = new Date();

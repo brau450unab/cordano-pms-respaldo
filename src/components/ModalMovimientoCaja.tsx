@@ -119,29 +119,25 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 font-['Manrope',sans-serif]">
+    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 font-['Manrope',sans-serif]">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 12 }}
-        className="bg-white w-full max-w-lg rounded-3xl border border-[#e2e2e4] shadow-2xl overflow-hidden"
+        className="bg-white w-full max-w-2xl rounded-3xl border border-[#e2e2e4] shadow-2xl overflow-hidden"
       >
         {/* Modal Header */}
         <div className="p-5 border-b border-[#e2e2e4] flex items-center justify-between bg-[#fbfbfc]">
           <div className="flex items-center space-x-3">
             <div
               className={`w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-xs shrink-0 ${
-                type === 'RETIRO_SANGRIA'
-                  ? 'bg-amber-600'
-                  : type === 'GASTO_MENOR'
-                  ? 'bg-[#C83472]'
-                  : 'bg-[#1E1E2F]'
+                type === 'RETIRO_SANGRIA' || type === 'GASTO_MENOR'
+                  ? 'bg-rose-600'
+                  : 'bg-emerald-600'
               }`}
             >
-              {type === 'RETIRO_SANGRIA' ? (
+              {type === 'RETIRO_SANGRIA' || type === 'GASTO_MENOR' ? (
                 <ArrowUpRight className="w-6 h-6" />
-              ) : type === 'GASTO_MENOR' ? (
-                <ShoppingBag className="w-5 h-5" />
               ) : (
                 <ArrowDownLeft className="w-6 h-6" />
               )}
@@ -149,20 +145,16 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
             <div>
               <span
                 className={`text-[10px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded-full inline-block ${
-                  type === 'RETIRO_SANGRIA'
-                    ? 'bg-amber-100 text-amber-900'
-                    : type === 'GASTO_MENOR'
-                    ? 'bg-rose-100 text-rose-900'
-                    : 'bg-[#1E1E2F] text-[#2D2D44]'
+                  type === 'RETIRO_SANGRIA' || type === 'GASTO_MENOR'
+                    ? 'bg-rose-100 text-rose-800'
+                    : 'bg-emerald-100 text-emerald-800'
                 }`}
               >
-                BLOQUE 2 • MOVIMIENTO DE CAJA ACTIVA
+                MOVIMIENTO MANUAL DE CAJA
               </span>
               <h3 className="text-base font-extrabold text-[#1D1D1F]">
-                {type === 'RETIRO_SANGRIA'
-                  ? 'Retiro Parcial (Sangría a Bóveda)'
-                  : type === 'GASTO_MENOR'
-                  ? 'Gasto Menor / Egreso Rápido'
+                {type === 'RETIRO_SANGRIA' || type === 'GASTO_MENOR'
+                  ? 'Egreso Manual de Efectivo'
                   : 'Ingreso Manual de Efectivo'}
               </h3>
             </div>
@@ -175,46 +167,33 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
-          {/* Movement Type Selector */}
-          <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#f3f3f5] rounded-2xl border border-[#e2e2e4]">
-            <button
-              type="button"
-              onClick={() => setType('RETIRO_SANGRIA')}
-              className={`py-2 px-2 rounded-xl text-[11px] font-extrabold transition cursor-pointer flex items-center justify-center gap-1 ${
-                type === 'RETIRO_SANGRIA'
-                  ? 'bg-white text-[#2D2D44] shadow-xs'
-                  : 'text-[#717785] hover:text-[#1D1D1F]'
-              }`}
-            >
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              <span>Sangría</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setType('GASTO_MENOR')}
-              className={`py-2 px-2 rounded-xl text-[11px] font-extrabold transition cursor-pointer flex items-center justify-center gap-1 ${
-                type === 'GASTO_MENOR'
-                  ? 'bg-white text-rose-700 shadow-xs'
-                  : 'text-[#717785] hover:text-[#1D1D1F]'
-              }`}
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Gasto Menor</span>
-            </button>
-
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 text-xs">
+          {/* Movement Type Selector: Simplificado a solo Ingreso o Egreso */}
+          <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#f3f3f5] rounded-2xl border border-[#e2e2e4]">
             <button
               type="button"
               onClick={() => setType('INGRESO_MANUAL')}
-              className={`py-2 px-2 rounded-xl text-[11px] font-extrabold transition cursor-pointer flex items-center justify-center gap-1 ${
+              className={`py-3 px-4 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-2 ${
                 type === 'INGRESO_MANUAL'
-                  ? 'bg-white text-[#2D2D44] shadow-xs'
+                  ? 'bg-white text-emerald-700 shadow-sm border border-emerald-200'
                   : 'text-[#717785] hover:text-[#1D1D1F]'
               }`}
             >
-              <ArrowDownLeft className="w-3.5 h-3.5" />
+              <ArrowDownLeft className="w-4 h-4" />
               <span>Ingreso</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setType('RETIRO_SANGRIA')}
+              className={`py-3 px-4 rounded-xl text-xs font-extrabold transition cursor-pointer flex items-center justify-center gap-2 ${
+                type === 'RETIRO_SANGRIA' || type === 'GASTO_MENOR'
+                  ? 'bg-white text-rose-700 shadow-sm border border-rose-200'
+                  : 'text-[#717785] hover:text-[#1D1D1F]'
+              }`}
+            >
+              <ArrowUpRight className="w-4 h-4" />
+              <span>Egreso</span>
             </button>
           </div>
 
@@ -288,57 +267,61 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
             </div>
           </div>
 
-          {/* Bloque 2 Mandate: Quién lo autoriza y acceso con PIN temporal sincronizado (Authenticator) */}
-          <div className="p-3.5 bg-[#fbfbfc] border border-[#e2e2e4] rounded-2xl space-y-3">
-            <div className="space-y-1">
-              <label className="font-bold text-[#1D1D1F] flex items-center justify-between">
-                <span>Quién Autoriza el Movimiento:</span>
-                <span className="text-[10px] text-[#0F172A] font-bold">SUPERVISOR / ADMIN</span>
-              </label>
-              <select
-                value={selectedSupervisor}
-                onChange={(e) => setSelectedSupervisor(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[#c1c6d6] text-xs font-semibold text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white cursor-pointer"
-              >
-                {SUPERVISORS.map((s) => (
-                  <option key={s.id} value={s.name}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* PIN Temporal Sincronizado Authenticator */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="font-bold text-[#1D1D1F] flex items-center gap-1.5">
-                  <KeyRound className="w-3.5 h-3.5 text-[#0F172A]" />
-                  <span>Código Temporal (Google / MS Authenticator o PIN 2026):</span>
-                </label>
-                <span className="text-[10px] tabular-nums text-[#2D2D44] bg-[#1E1E2F] px-2 py-0.5 rounded font-bold">
-                  Demo TOTP: {simulatedTotp}
-                </span>
+          {/* Autorización: En paralelo (Columna izquierda: Autorizador, Columna derecha: Código temporal / PIN) */}
+          <div className="p-4 bg-[#fbfbfc] border border-[#e2e2e4] rounded-2xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Columna Izquierda: Quién Autoriza */}
+              <div className="space-y-1.5 flex flex-col justify-between">
+                <div>
+                  <label className="font-bold text-[#1D1D1F] flex items-center justify-between">
+                    <span>Quién Autoriza el Movimiento:</span>
+                    <span className="text-[10px] text-[#0F172A] font-bold">SUPERVISOR</span>
+                  </label>
+                  <p className="text-[11px] text-[#717785] mt-0.5">Seleccione la jefatura a cargo de validar el arqueo.</p>
+                </div>
+                <select
+                  value={selectedSupervisor}
+                  onChange={(e) => setSelectedSupervisor(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#c1c6d6] text-xs font-semibold text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white cursor-pointer shadow-xs"
+                >
+                  {SUPERVISORS.map((s) => (
+                    <option key={s.id} value={s.name}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="relative">
+
+              {/* Columna Derecha: Código Temporal / TOTP / PIN */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-[#1D1D1F] flex items-center gap-1.5">
+                    <KeyRound className="w-3.5 h-3.5 text-[#0F172A]" />
+                    <span>Código Temporal / PIN:</span>
+                  </label>
+                  <span className="text-[10px] tabular-nums text-[#2D2D44] bg-[#1E1E2F] px-2 py-0.5 rounded font-bold">
+                    Demo: {simulatedTotp}
+                  </span>
+                </div>
                 <input
                   type="password"
                   maxLength={6}
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value)}
-                  placeholder="Ingrese código de 6 dígitos o PIN..."
+                  placeholder="Código o PIN (2026)..."
                   required
-                  className="w-full px-3 py-2.5 text-center tracking-widest rounded-xl border border-[#c1c6d6] tabular-nums font-black text-base text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white transition"
+                  className="w-full px-3 py-2.5 text-center tracking-widest rounded-xl border border-[#c1c6d6] tabular-nums font-black text-sm text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white transition shadow-xs"
                 />
-              </div>
-              <div className="flex items-center justify-between text-[10px] text-[#717785]">
-                <span>Acepta código Authenticator activo o PIN de supervisor (2026)</span>
-                <button
-                  type="button"
-                  onClick={() => setTotpCode(simulatedTotp)}
-                  className="text-[#0F172A] font-bold hover:underline cursor-pointer"
-                >
-                  Usar Demo Code
-                </button>
+                <div className="flex items-center justify-between text-[10px] text-[#717785]">
+                  <span>PIN 2026 o Authenticator</span>
+                  <button
+                    type="button"
+                    onClick={() => setTotpCode(simulatedTotp)}
+                    className="text-[#0F172A] font-bold hover:underline cursor-pointer"
+                  >
+                    Usar Demo Code
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -11,6 +11,7 @@ interface MenuViewProps {
   onNavigate: (screen: AppScreen) => void;
   onOpenPosInSubtab: (subtab: 'entry' | 'exit' | 'history') => void;
   onShowToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
+  onInitiateOpenShift?: () => void;
 }
 
 const CHECKLIST_ITEMS = [
@@ -50,6 +51,7 @@ export const MenuView: React.FC<MenuViewProps> = ({
   onNavigate,
   onOpenPosInSubtab,
   onShowToast,
+  onInitiateOpenShift,
 }) => {
   const [checklist, setChecklist] = useState<boolean[]>([
     true,
@@ -78,9 +80,9 @@ export const MenuView: React.FC<MenuViewProps> = ({
   const freeCount = Math.max(0, totalSlots - occupiedCount);
 
   return (
-    <div id="view-menu" className="p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6 text-[#1E1E2F] animate-fade-in-up">
+    <div id="view-menu" className="p-3 sm:p-6 lg:p-8 2xl:px-12 w-full max-w-[1850px] mx-auto space-y-5 sm:space-y-6 text-[#1E1E2F] animate-fade-in-up pb-20 md:pb-8">
       {/* ── 4 KPI BANNER CARDS (TOGGL TRACK METRICS) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Ocupación */}
         <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs hover:border-[#E2498A]/50 transition-all">
           <div className="text-xs tabular-nums font-bold uppercase text-slate-500 flex items-center justify-between">
@@ -356,10 +358,16 @@ export const MenuView: React.FC<MenuViewProps> = ({
               Marcar todas
             </button>
             <button
-              onClick={() => onShowToast('Apertura de turno firmada y registrada en auditoría.', 'success')}
-              className="px-4 py-2 rounded-full bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold tabular-nums transition-colors shadow-xs cursor-pointer active:scale-[0.98]"
+              onClick={() => {
+                if (onInitiateOpenShift) {
+                  onInitiateOpenShift();
+                } else {
+                  onShowToast('Apertura de turno firmada y registrada en auditoría.', 'success');
+                }
+              }}
+              className="px-4 py-2 rounded-full bg-[#E2498A] hover:bg-[#C83472] text-white text-xs font-bold tabular-nums transition-colors shadow-xs cursor-pointer active:scale-[0.98] flex items-center gap-1.5"
             >
-              Firmar Apertura
+              <span>🚀 Iniciar Turno con Fondo</span>
             </button>
           </div>
         </div>

@@ -78,11 +78,11 @@ export const APP_ROUTES: Record<AppScreen, RouteConfig> = {
   },
   landing: {
     screen: 'landing',
-    path: '/landing',
-    title: 'Menú Principal',
+    path: '/',
+    title: 'Landing Page Principal',
     category: 'Principal',
-    description: 'Menú principal de garita',
-    isPublic: false,
+    description: 'Portal principal y bienvenida de Cordano PMS',
+    isPublic: true,
   },
   inicio: {
     screen: 'inicio',
@@ -180,18 +180,18 @@ export const APP_ROUTES: Record<AppScreen, RouteConfig> = {
 export function getScreenFromPath(pathname: string): AppScreen {
   const cleanPath = pathname.toLowerCase().replace(/\/$/, '') || '/';
 
-  if (cleanPath === '/landing' || cleanPath === '/portal') return 'landing';
-  if (cleanPath === '/' || cleanPath === '/menu' || cleanPath === '/inicio' || cleanPath === '/home' || cleanPath === '/hub') return 'menu';
+  if (cleanPath === '/' || cleanPath === '/landing' || cleanPath === '/portal') return 'landing';
+  if (cleanPath === '/menu' || cleanPath === '/inicio' || cleanPath === '/home' || cleanPath === '/hub') return 'menu';
   if (cleanPath === '/pos' || cleanPath === '/operacion/salida' || cleanPath === '/salida' || cleanPath === '/caja' || cleanPath === '/operacion/ingreso') return 'pos';
   if (cleanPath === '/map' || cleanPath === '/analitica' || cleanPath === '/rendimiento' || cleanPath === '/operacion/layout' || cleanPath === '/layout') return 'map';
   if (cleanPath === '/reports' || cleanPath === '/reportes' || cleanPath === '/reportes/dashboard' || cleanPath === '/reportes/auditoria' || cleanPath === '/reportes/base-datos') return 'reports';
-  if (cleanPath === '/clients' || cleanPath === '/clientes' || cleanPath === '/convenios' || cleanPath === '/convenios' || cleanPath === '/operacion/convenios') return 'clients';
+  if (cleanPath === '/clients' || cleanPath === '/clientes' || cleanPath === '/convenios' || cleanPath === '/operacion/convenios') return 'clients';
   if (cleanPath === '/settings' || cleanPath === '/configuracion' || cleanPath === '/ajustes' || cleanPath === '/configuracion/tarifas' || cleanPath === '/configuracion/sistema') return 'settings';
   if (cleanPath === '/support' || cleanPath === '/ayuda' || cleanPath === '/soporte') return 'support';
   if (cleanPath === '/cierre' || cleanPath === '/operacion/cierre' || cleanPath === '/arqueo') return 'operacion_cierre';
   if (cleanPath === '/login' || cleanPath === '/auth') return 'login';
 
-  return 'menu';
+  return 'landing';
 }
 
 /**

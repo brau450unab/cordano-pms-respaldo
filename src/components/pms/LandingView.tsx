@@ -23,9 +23,56 @@ export const LandingView: React.FC<LandingViewProps> = ({
   
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [contactForm, setContactForm] = useState({ name: '', phone: '', comments: '', plan: [] as string[] });
-  const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    company: '',
+    phone: '',
+    email: '',
+    fleetSize: '1 a 3 vehículos',
+    parkingNeed: 'fijo_reservado',
+    schedule: '24_7',
+    comments: '',
+    plan: [] as string[],
+  });
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState(false);
+  const [activeModuleModal, setActiveModuleModal] = useState<{
+    title: string;
+    badge: string;
+    icon: string;
+    desc: string;
+    details: string[];
+    role: string;
+  } | null>(null);
+
+  // Carrusel de imágenes reales del recinto Serrano 447 (movimiento continuo)
+  const carouselImages = [
+    {
+      url: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=1000&q=80',
+      title: 'Acceso Vehicular & Garita Serrano 447',
+      desc: 'Barrera automatizada y lector LPR de patentes',
+    },
+    {
+      url: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=1000&q=80',
+      title: 'Patio Central de Estacionamiento',
+      desc: '30 plazas pavimentadas con señalética refractaria',
+    },
+    {
+      url: 'https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?auto=format&fit=crop&w=1000&q=80',
+      title: 'Sector Techado Preferencial',
+      desc: 'Espacios protegidos para flotas y convenios corporativos',
+    },
+    {
+      url: 'https://images.unsplash.com/photo-1555652736-e92021d28a10?auto=format&fit=crop&w=1000&q=80',
+      title: 'CCTV y Seguridad Operativa 24/7',
+      desc: 'Monitoreo de perímetro y control de gaveta blindada',
+    },
+    {
+      url: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1000&q=80',
+      title: 'Terminal de Cobro Rápido POS Transbank',
+      desc: 'Emisión térmica inmediata y boletas DTE integradas',
+    },
+  ];
 
   // Intersection Observer for scroll animations
   const observerRefs = useRef<(HTMLElement | null)[]>([]);
@@ -72,19 +119,24 @@ export const LandingView: React.FC<LandingViewProps> = ({
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactForm.name || !contactForm.phone) {
-      onShowToast('Por favor, completa nombre y teléfono', 'error');
+      onShowToast('Por favor, completa al menos tu nombre y teléfono', 'error');
       return;
     }
 
     setIsSubmittingContact(true);
     
     const selectedPlans = tariffConfig.subscriptionPlans?.filter(p => contactForm.plan.includes(p.id)) || [];
-    const selectedServices = selectedPlans.map(p => p.title).join(", ") || "Ninguno específico";
-    const obs = contactForm.comments ? `%0A%0A*Observaciones:* ${contactForm.comments}` : "";
+    const selectedServices = selectedPlans.map(p => p.title).join(", ") || "Ninguno seleccionado";
     
-    const text = `Hola, mi nombre es ${contactForm.name}. Me interesa obtener información sobre los siguientes servicios: *${selectedServices}*. Mi teléfono de contacto es: ${contactForm.phone}.${obs}`;
-    const encodedText = encodeURIComponent(text);
-    const waUrl = `https://wa.me/56900000000?text=${encodedText}`; 
+    const companyText = contactForm.company ? `*Empresa / Razón Social:* ${contactForm.company}%0A` : "";
+    const emailText = contactForm.email ? `*Email:* ${contactForm.email}%0A` : "";
+    const fleetText = `*Dimensión Flota:* ${contactForm.fleetSize}%0A`;
+    const needText = `*Modalidad Requerida:* ${contactForm.parkingNeed === 'fijo_reservado' ? 'Plazas Fijas Reservadas' : contactForm.parkingNeed === 'flotante' ? 'Abono Flotante Rotativo' : contactForm.parkingNeed === 'techado' ? 'Espacios Techados Exclusivos' : 'Mixto'}%0A`;
+    const scheduleText = `*Horario Operativo:* ${contactForm.schedule === '24_7' ? 'Continuo 24/7' : contactForm.schedule === 'oficina' ? 'Lunes a Viernes (Horario Oficina)' : contactForm.schedule === 'nocturno' ? 'Nocturno / Fin de semana' : 'Personalizado'}%0A`;
+    const obs = contactForm.comments ? `*Observaciones / Requisitos:* ${contactForm.comments}` : "";
+    
+    const text = `*SOLICITUD DE CONVENIO CORPORATIVO - SERRANO 447*%0A%0A*Contacto:* ${contactForm.name}%0A*Teléfono / WhatsApp:* ${contactForm.phone}%0A${companyText}${emailText}${fleetText}${needText}${scheduleText}*Planes de Interés:* ${selectedServices}%0A%0A${obs}`;
+    const waUrl = `https://wa.me/56900000000?text=${text}`; 
 
     setTimeout(() => {
       setIsSubmittingContact(false);
@@ -95,7 +147,17 @@ export const LandingView: React.FC<LandingViewProps> = ({
       
       setTimeout(() => {
          setContactSuccess(false);
-         setContactForm({ name: '', phone: '', comments: '', plan: [] });
+         setContactForm({
+           name: '',
+           company: '',
+           phone: '',
+           email: '',
+           fleetSize: '1 a 3 vehículos',
+           parkingNeed: 'fijo_reservado',
+           schedule: '24_7',
+           comments: '',
+           plan: [],
+         });
       }, 5000);
     }, 1200);
   };
@@ -117,46 +179,220 @@ export const LandingView: React.FC<LandingViewProps> = ({
   ];
 
   const renderFormContent = () => (
-    <form onSubmit={handleContactSubmit} className="space-y-6 animate-fade-in-up">
-      <div>
-        <h4 className="font-black text-xl mb-1">Solicitud de Convenios</h4>
-        <p className="text-slate-500 text-sm mb-5">Completa tus datos y selecciona los planes de interés. Te contactaremos por WhatsApp.</p>
+    <form onSubmit={handleContactSubmit} className="space-y-6 animate-fade-in-up font-sans">
+      {/* Header del Formulario */}
+      <div className="border-b border-slate-100 pb-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF5F8] border border-[#E2498A]/30 text-[#E2498A] text-xs font-bold mb-2">
+          <span>PROGRAMA CORPORATIVO &amp; FLOTAS SERRANO 447</span>
+        </div>
+        <h4 className="font-extrabold text-2xl text-slate-900 tracking-tight">
+          Formulario de Calificación Comercial
+        </h4>
+        <p className="text-slate-600 text-sm mt-1">
+          Ingresa los antecedentes de tu empresa o flota para cotizar un convenio a medida con facturación mensual consolidada.
+        </p>
+      </div>
+
+      {/* Bloque 1: Identificación y Contacto */}
+      <div className="space-y-4">
+        <h5 className="text-xs font-black uppercase tracking-wider text-[#E2498A] flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#E2498A]"></span>
+          1. Datos de la Empresa y Contacto Directo
+        </h5>
         
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Nombre Completo *</label>
-              <input required type="text" placeholder="Ej. Juan Pérez" value={contactForm.name} onChange={e => setContactForm({...contactForm, name: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E2498A] focus:ring-4 focus:ring-[#E2498A]/10 transition-all" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500 uppercase">Teléfono / WhatsApp *</label>
-              <input required type="text" placeholder="Ej. +56 9 1234 5678" value={contactForm.phone} onChange={e => setContactForm({...contactForm, phone: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:border-[#E2498A] focus:ring-4 focus:ring-[#E2498A]/10 transition-all" />
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Nombre y Apellido del Encargado *
+            </label>
+            <input
+              required
+              type="text"
+              placeholder="Ej. Rodrigo Tapia Valdés"
+              value={contactForm.name}
+              onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Empresa / Razón Social o Institución
+            </label>
+            <input
+              type="text"
+              placeholder="Ej. Minera del Norte S.A. / Rent-a-Car"
+              value={contactForm.company}
+              onChange={e => setContactForm({ ...contactForm, company: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Teléfono Celular / WhatsApp *
+            </label>
+            <input
+              required
+              type="text"
+              placeholder="Ej. +56 9 8765 4321"
+              value={contactForm.phone}
+              onChange={e => setContactForm({ ...contactForm, phone: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all font-mono"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Correo Electrónico Corporativo
+            </label>
+            <input
+              type="email"
+              placeholder="Ej. contacto@empresa.cl"
+              value={contactForm.email}
+              onChange={e => setContactForm({ ...contactForm, email: e.target.value })}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
+            />
           </div>
         </div>
       </div>
 
-      <div>
-        <h5 className="text-sm font-black text-slate-800 mb-3">Selecciona los Planes de Interés</h5>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-           {dynamicPricingOptions.map(opt => (
-              <div key={opt.id} onClick={() => togglePlan(opt.id)} className={`cursor-pointer border-2 rounded-xl p-3 transition-all flex flex-col items-center text-center ${contactForm.plan.includes(opt.id) ? 'border-[#E2498A] bg-[#FFF5F8] text-[#1E1E2F]' : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300'}`}>
-                 <span className="font-black text-[13px] mb-1">{opt.title}</span>
-                 <span className={`text-sm font-black tabular-nums ${contactForm.plan.includes(opt.id) ? 'text-[#E2498A]' : 'text-slate-800'}`}>{opt.price}</span>
-                 <span className="text-[9px] uppercase font-bold opacity-70">{opt.desc}</span>
-              </div>
-           ))}
+      {/* Bloque 2: Perfil Operativo y Necesidades de Flota */}
+      <div className="space-y-4 pt-2 border-t border-slate-100">
+        <h5 className="text-xs font-black uppercase tracking-wider text-[#E2498A] flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-[#E2498A]"></span>
+          2. Requerimientos de Espacio y Uso
+        </h5>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Cantidad de Vehículos / Patentes
+            </label>
+            <select
+              value={contactForm.fleetSize}
+              onChange={e => setContactForm({ ...contactForm, fleetSize: e.target.value })}
+              className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
+            >
+              <option value="1 a 3 vehículos">1 a 3 vehículos (Pequeña flota)</option>
+              <option value="4 a 8 vehículos">4 a 8 vehículos (Empresa mediana)</option>
+              <option value="9 a 15 vehículos">9 a 15 vehículos (Gran flota corporativa)</option>
+              <option value="16+ vehículos">Más de 16 vehículos (Sector exclusivo)</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Tipo de Asignación de Plazas
+            </label>
+            <select
+              value={contactForm.parkingNeed}
+              onChange={e => setContactForm({ ...contactForm, parkingNeed: e.target.value })}
+              className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
+            >
+              <option value="fijo_reservado">Plazas Fijas Numeradas (A-01 a A-15)</option>
+              <option value="flotante">Abono Flotante Rotativo (Disponibilidad)</option>
+              <option value="techado">Sector Techado Preferencial</option>
+              <option value="mixto">Mixto (Fijo + Rotativo)</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Franja Horaria Operativa
+            </label>
+            <select
+              value={contactForm.schedule}
+              onChange={e => setContactForm({ ...contactForm, schedule: e.target.value })}
+              className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
+            >
+              <option value="24_7">Acceso Continuo 24 Horas / 7 Días</option>
+              <option value="oficina">Horario Comercial (08:00 a 20:00)</option>
+              <option value="nocturno">Custodia Nocturna y Fin de Semana</option>
+              <option value="rotativo_turnos">Turnos Rotativos Mineros / Industriales</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-xs font-bold text-slate-500 uppercase">Observaciones Adicionales</label>
-        <textarea rows={2} placeholder="¿Algún detalle de tu empresa o flota?" value={contactForm.comments} onChange={e => setContactForm({...contactForm, comments: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-[#E2498A] focus:ring-4 focus:ring-[#E2498A]/10 transition-all resize-none"></textarea>
+      {/* Bloque 3: Selección de Planes */}
+      <div className="space-y-3 pt-2 border-t border-slate-100">
+        <div className="flex items-center justify-between">
+          <h5 className="text-xs font-black uppercase tracking-wider text-[#E2498A] flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#E2498A]"></span>
+            3. Planes de Referencia para Cotizar
+          </h5>
+          <span className="text-[11px] font-bold text-slate-500">
+            {contactForm.plan.length > 0 ? `${contactForm.plan.length} plan(es) seleccionado(s)` : 'Selecciona al menos uno'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {dynamicPricingOptions.map(opt => {
+            const isSelected = contactForm.plan.includes(opt.id);
+            return (
+              <div
+                key={opt.id}
+                onClick={() => togglePlan(opt.id)}
+                className={`cursor-pointer border-2 rounded-2xl p-3.5 transition-all flex flex-col items-center text-center select-none ${
+                  isSelected
+                    ? 'border-[#E2498A] bg-[#FFF5F8] text-[#1E1E2F] shadow-sm ring-2 ring-[#E2498A]/20'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                <span className="font-extrabold text-sm mb-1">{opt.title}</span>
+                <span className={`text-base font-black tabular-nums font-mono ${isSelected ? 'text-[#E2498A]' : 'text-slate-800'}`}>
+                  {opt.price}
+                </span>
+                <span className="text-[10px] uppercase font-bold text-slate-500 mt-1">
+                  {opt.desc}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <button type="submit" disabled={isSubmittingContact || contactForm.plan.length === 0} className="w-full h-14 bg-[#E2498A] text-white rounded-xl text-base font-black shadow-lg hover:bg-[#C83472] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-         {isSubmittingContact ? "Enviando..." : "Enviar Información por WhatsApp"}
-      </button>
+      {/* Bloque 4: Requerimientos especiales y facturación */}
+      <div className="space-y-1.5 pt-2 border-t border-slate-100">
+        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+          Detalles Específicos de Operación, Facturación o RUT de Empresa
+        </label>
+        <textarea
+          rows={3}
+          placeholder="Indica si requieres factura con orden de compra, control de TAG/código de barra, fechas estimadas de inicio o requerimientos de seguridad..."
+          value={contactForm.comments}
+          onChange={e => setContactForm({ ...contactForm, comments: e.target.value })}
+          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all resize-none"
+        ></textarea>
+      </div>
+
+      {/* Botón de Envío */}
+      <div className="pt-2">
+        <button
+          type="submit"
+          disabled={isSubmittingContact || contactForm.plan.length === 0}
+          className="w-full h-14 bg-[#E2498A] text-white rounded-2xl text-base font-black shadow-xl hover:bg-[#C83472] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide cursor-pointer"
+        >
+          {isSubmittingContact ? (
+            <>
+              <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              <span>Generando Ficha de Solicitud...</span>
+            </>
+          ) : (
+            <>
+              <span>Solicitar Cotización y Enviar Ficha por WhatsApp</span>
+              <span className="text-xl">💬</span>
+            </>
+          )}
+        </button>
+        <p className="text-center text-[11px] text-slate-500 font-semibold mt-2.5">
+          Atención ejecutiva directa • Respuesta promedio en menos de 15 minutos en horario hábil
+        </p>
+      </div>
     </form>
   );
 
@@ -304,94 +540,137 @@ export const LandingView: React.FC<LandingViewProps> = ({
            </div>
         </section>
   
-        {/* MÓDULOS DEL SISTEMA */}
-        <section id="funcionalidades" ref={addToRefs} className="py-16 bg-slate-50 relative opacity-0 translate-y-10 transition-all duration-700 ease-out border-y border-slate-100">
-           <div className="max-w-[1300px] mx-auto px-6">
-              <div className="text-center mb-12">
-                 <h2 className="text-[#E2498A] font-black text-sm tracking-wider uppercase mb-2">Módulos del Sistema</h2>
-                 <h3 className="text-3xl lg:text-4xl font-black text-[#1E1E2F]">Control total en una sola plataforma</h3>
+        {/* 2. CARRUSEL DE IMÁGENES DEL RECINTO SERRANO 447 (MOVIMIENTO CONTINUO) */}
+        <section id="galeria" ref={addToRefs} className="py-16 bg-slate-900 text-white relative opacity-0 translate-y-10 transition-all duration-700 ease-out overflow-hidden border-y border-slate-800">
+           <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+              <div>
+                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-[#E2498A] text-xs font-black tracking-wider uppercase mb-2">
+                    <span className="w-2 h-2 rounded-full bg-[#E2498A] animate-ping" />
+                    RECINTO OPERATIVO EN VIVO
+                 </div>
+                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+                    Infraestructura &amp; Seguridad Serrano 447
+                 </h2>
+                 <p className="text-slate-400 text-sm mt-1">
+                    Conoce las instalaciones físicas: garita de control, pavimentación, cámaras y áreas techadas.
+                 </p>
               </div>
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-400">
+                 <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                 <span>Recinto 100% Operativo • Iquique Centro</span>
+              </div>
+           </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {/* 1. POS Ágil */}
-                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
-                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+           {/* Track del Carrusel Animado Infinito */}
+           <div className="relative w-full overflow-hidden">
+              <div className="flex gap-6 animate-carousel-infinite hover:[animation-play-state:paused] w-max py-2">
+                 {[...carouselImages, ...carouselImages].map((img, idx) => (
+                    <div 
+                      key={idx} 
+                      className="w-[320px] sm:w-[420px] lg:w-[480px] shrink-0 bg-[#1E1E2F] rounded-3xl overflow-hidden border border-slate-700/80 shadow-2xl group transition-transform duration-300 hover:scale-[1.02]"
+                    >
+                       <div className="h-56 sm:h-64 relative overflow-hidden">
+                          <img 
+                            src={img.url} 
+                            alt={img.title} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#1E1E2F] via-transparent to-transparent opacity-80" />
+                          <span className="absolute top-4 left-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[10px] font-mono font-bold text-white border border-white/20">
+                             SECTOR {idx % 2 === 0 ? 'A' : 'B'} • CORDANO
+                          </span>
+                       </div>
+                       <div className="p-5 space-y-1">
+                          <h4 className="font-extrabold text-base text-white group-hover:text-[#E2498A] transition-colors">
+                             {img.title}
+                          </h4>
+                          <p className="text-xs text-slate-400 font-medium">
+                             {img.desc}
+                          </p>
+                       </div>
                     </div>
-                    <h4 className="font-black text-lg text-[#1E1E2F] mb-2">POS Ágil</h4>
-                    <p className="text-sm text-slate-500 font-medium">Atajos F1-F9, lector de patentes y emisión térmica automática para operación ultra veloz.</p>
-                 </div>
-
-                 {/* 2. Control de Turnos */}
-                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-blue-100 text-[#E2498A] rounded-xl flex items-center justify-center mb-4">
-                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <h4 className="font-black text-lg text-[#1E1E2F] mb-2">Control de Turnos</h4>
-                    <p className="text-sm text-slate-500 font-medium">Aperturas con saldo inicial, registro exacto de jornadas y cierre de caja ciego con firma SHA-256.</p>
-                 </div>
-
-                 {/* 3. Reportes */}
-                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4">
-                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                    <h4 className="font-black text-lg text-[#1E1E2F] mb-2">Reportes y Auditoría</h4>
-                    <p className="text-sm text-slate-500 font-medium">Historial detallado de tickets, ingresos, evasiones y exportación de balances en un clic.</p>
-                 </div>
-
-                 {/* 4. Contratos Mensuales */}
-                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center mb-4">
-                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                    </div>
-                    <h4 className="font-black text-lg text-[#1E1E2F] mb-2">Contratos Mensuales</h4>
-                    <p className="text-sm text-slate-500 font-medium">Gestión de abonados, facturación recurrente, flotas y control de acceso preferencial.</p>
-                 </div>
-
-                 {/* 5. Supervisión Remota */}
-                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-xl flex items-center justify-center mb-4">
-                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                    </div>
-                    <h4 className="font-black text-lg text-[#1E1E2F] mb-2">Supervisión en Tiempo Real</h4>
-                    <p className="text-sm text-slate-500 font-medium">Matriz de ocupación semaforizada en vivo para monitorear plazas desde cualquier dispositivo.</p>
-                 </div>
-
-                 {/* 6. Aprobaciones TOTP */}
-                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                    <div className="w-12 h-12 bg-[#E2498A]/10 text-[#E2498A] rounded-xl flex items-center justify-center mb-4">
-                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    </div>
-                    <h4 className="font-black text-lg text-[#1E1E2F] mb-2">Aprobaciones Remotas</h4>
-                    <p className="text-sm text-slate-500 font-medium">Autoriza descuentos, anulaciones o tickets perdidos remotamente con seguridad TOTP.</p>
-                 </div>
+                 ))}
               </div>
            </div>
         </section>
 
         {/* CONVENIOS */}
-      <section id="convenios" ref={addToRefs} className="py-24 bg-white relative opacity-0 translate-y-10 transition-all duration-700 ease-out">
-         <div className="max-w-[1000px] mx-auto px-6">
-            <div className="bg-[#1E1E2F] rounded-[3rem] p-8 lg:p-16 shadow-2xl flex flex-col lg:flex-row gap-16 items-center text-white relative overflow-hidden">
-               <div className="absolute bottom-0 left-0 -translate-x-1/3 translate-y-1/3 text-[#E2498A] opacity-20">
-                  <svg viewBox="0 0 200 200" className="w-[500px] h-[500px]"><path fill="currentColor" d="M38.1,-48.9C49.9,-40.4,60.5,-28.5,65.4,-14.2C70.3,0.1,69.5,16.8,61.9,29.9C54.3,43,39.9,52.5,24.6,58.4C9.3,64.3,-6.9,66.6,-22.4,63.1C-37.9,59.6,-52.7,50.3,-61.7,37.1C-70.7,23.9,-73.9,6.8,-69.5,-8.3C-65.1,-23.4,-53.1,-36.5,-40,-44.8C-26.9,-53.1,-13.4,-56.6,0.3,-57.1C14.1,-57.5,26.3,-57.4,38.1,-48.9Z" transform="translate(100 100)"/></svg>
+      <section id="convenios" ref={addToRefs} className="py-20 lg:py-28 bg-slate-50/60 relative opacity-0 translate-y-10 transition-all duration-700 ease-out border-b border-slate-100">
+         <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-12">
+            <div className="bg-[#1E1E2F] rounded-[2.5rem] sm:rounded-[3rem] p-6 sm:p-10 lg:p-14 shadow-2xl flex flex-col xl:flex-row gap-10 lg:gap-14 items-stretch text-white relative overflow-hidden border border-[#2D2D44]">
+               {/* Gráfico decorativo de fondo */}
+               <div className="absolute bottom-0 left-0 -translate-x-1/4 translate-y-1/4 text-[#E2498A] opacity-15 pointer-events-none">
+                  <svg viewBox="0 0 200 200" className="w-[600px] h-[600px]"><path fill="currentColor" d="M38.1,-48.9C49.9,-40.4,60.5,-28.5,65.4,-14.2C70.3,0.1,69.5,16.8,61.9,29.9C54.3,43,39.9,52.5,24.6,58.4C9.3,64.3,-6.9,66.6,-22.4,63.1C-37.9,59.6,-52.7,50.3,-61.7,37.1C-70.7,23.9,-73.9,6.8,-69.5,-8.3C-65.1,-23.4,-53.1,-36.5,-40,-44.8C-26.9,-53.1,-13.4,-56.6,0.3,-57.1C14.1,-57.5,26.3,-57.4,38.1,-48.9Z" transform="translate(100 100)"/></svg>
                </div>
 
-               <div className="flex-1 space-y-6 relative z-10">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white border border-white/20 text-sm font-bold">Para Empresas</div>
-                  <h2 className="text-4xl font-black">Convenios y Flotas</h2>
-                  <p className="text-slate-400 font-medium text-lg leading-relaxed">
-                     Solicita un convenio para tu empresa. Planes de abonados fijos, techados o flota flotante con facturación consolidada a fin de mes.
-                  </p>
+               {/* Columna Izquierda: Información de Convenios con Alto Contraste */}
+               <div className="xl:w-[38%] space-y-7 relative z-10 flex flex-col justify-between">
+                  <div className="space-y-5">
+                     <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-white border border-white/20 text-xs font-black tracking-wide uppercase">
+                        <span className="w-2 h-2 rounded-full bg-[#E2498A]"></span>
+                        SOLUCIONES EMPRESARIALES & FLOTAS
+                     </div>
+                     
+                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.1]">
+                        Convenios y Estacionamiento para <span className="text-[#E2498A]">Empresas</span>
+                     </h2>
+                     
+                     <p className="text-slate-300 font-medium text-base sm:text-lg leading-relaxed">
+                        Asegura plazas exclusivas para tu equipo, proveedores o clientes en Serrano 447, Iquique. Gestión simplificada con facturación mensual consolidada, control de patentes y seguridad 24/7.
+                     </p>
+
+                     {/* Beneficios clave con contraste nítido */}
+                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-3.5 pt-2">
+                        <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                           <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 font-black text-sm">
+                              ✓
+                           </div>
+                           <div>
+                              <h4 className="text-sm font-extrabold text-white">Factura Exenta / Afecta Mensual</h4>
+                              <p className="text-xs text-slate-400 mt-0.5">Un solo pago a fin de mes con detalle de ingresos por vehículo.</p>
+                           </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                           <div className="w-8 h-8 rounded-xl bg-[#E2498A]/20 text-[#E2498A] flex items-center justify-center shrink-0 font-black text-sm">
+                              🛡️
+                           </div>
+                           <div>
+                              <h4 className="text-sm font-extrabold text-white">Plazas Numeradas y Techadas</h4>
+                              <p className="text-xs text-slate-400 mt-0.5">Reserva garantizada Sector A o B sin esperas ni congestión.</p>
+                           </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/10">
+                           <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 font-black text-sm">
+                              ⚡
+                           </div>
+                           <div>
+                              <h4 className="text-sm font-extrabold text-white">Acceso Automatizado</h4>
+                              <p className="text-xs text-slate-400 mt-0.5">Lectura rápida de patente en garita y validación en 3 segundos.</p>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Datos del recinto */}
+                  <div className="p-4 rounded-2xl bg-white/[0.07] border border-white/10 flex items-center justify-between text-xs font-bold text-slate-300">
+                     <span>📍 Serrano 447, Iquique</span>
+                     <span className="text-[#E2498A]">Capacidad: 30 Plazas</span>
+                  </div>
                </div>
                
-               <div className="flex-1 w-full bg-white rounded-[2rem] p-8 relative z-10 text-[#1E1E2F] shadow-xl">
+               {/* Columna Derecha: Tarjeta Blanca del Formulario Completo */}
+               <div className="xl:w-[62%] bg-white rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-9 lg:p-10 relative z-10 text-[#1E1E2F] shadow-2xl border border-slate-100 flex flex-col justify-center">
                   {contactSuccess ? (
-                     <div className="absolute inset-0 bg-emerald-500 rounded-[2rem] flex flex-col items-center justify-center text-white p-8 text-center">
-                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mb-4"><svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"/></svg></div>
-                        <h4 className="text-2xl font-black">¡Solicitud Enviada!</h4>
-                        <p className="mt-2 text-emerald-50 font-medium">El administrador se contactará a la brevedad.</p>
+                     <div className="min-h-[460px] bg-emerald-500 rounded-[2rem] flex flex-col items-center justify-center text-white p-8 text-center animate-fade-in">
+                        <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-5 text-3xl font-black">
+                           ✓
+                        </div>
+                        <h4 className="text-3xl font-black tracking-tight">¡Solicitud Generada Exitosamente!</h4>
+                        <p className="mt-2 text-emerald-50 font-medium max-w-md text-base">
+                           Se ha abierto el canal directo de WhatsApp con la ficha técnica detallada. Nuestro equipo ejecutivo te responderá a la brevedad.
+                        </p>
                      </div>
                   ) : (
                      renderFormContent()
@@ -401,8 +680,281 @@ export const LandingView: React.FC<LandingViewProps> = ({
          </div>
       </section>
 
+        {/* 4. MÓDULOS DEL SISTEMA (UBICADO DEBAJO DE CONVENIOS CON POP-UP INTERACTIVO) */}
+        <section id="funcionalidades" ref={addToRefs} className="py-20 bg-slate-50 relative opacity-0 translate-y-10 transition-all duration-700 ease-out border-b border-slate-200">
+           <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-12">
+              <div className="text-center mb-12">
+                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF5F8] border border-[#E2498A]/30 text-[#E2498A] text-xs font-bold uppercase mb-2">
+                    ARQUITECTURA DE SOFTWARE CORDANO PMS
+                 </div>
+                 <h2 className="text-3xl lg:text-4xl font-black text-[#1E1E2F]">
+                    Módulos Operativos del Sistema
+                 </h2>
+                 <p className="text-slate-500 text-sm sm:text-base mt-2 max-w-2xl mx-auto font-medium">
+                    Haz clic en cualquiera de los módulos para conocer en detalle su flujo operativo, lógica de negocio y roles autorizados.
+                 </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {/* 1. POS Ágil */}
+                 <div 
+                   onClick={() => setActiveModuleModal({
+                     title: 'Garita y Punto de Venta (POS)',
+                     badge: 'Operación Diaria',
+                     icon: '⚡',
+                     desc: 'Terminal de garita keyboard-first para control de entrada y salida con atajos F1-F9.',
+                     details: [
+                       'Ingreso por patente con cálculo de dígito verificador y asignación de tarifas (Sedán, SUV, Moto).',
+                       'Emisión inmediata de comprobante térmico en 80mm con código de barras Code 128 y QR dinámico.',
+                       'Cálculo de cobro al egreso por tiempo efectivo y tolerancia de 15 minutos sin fricción.',
+                       'Integración con pagos en efectivo, Transbank POS débito/crédito y transferencias bancarias.'
+                     ],
+                     role: 'Operador de Garita (Cajero)',
+                   })}
+                   className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-[#E2498A] transition-all cursor-pointer group flex flex-col justify-between"
+                 >
+                    <div>
+                       <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 text-xl font-bold group-hover:scale-110 transition-transform">
+                          ⚡
+                       </div>
+                       <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-extrabold text-lg text-[#1E1E2F] group-hover:text-[#E2498A] transition-colors">POS Garita</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Ver Ficha</span>
+                       </div>
+                       <p className="text-xs text-slate-500 font-medium leading-relaxed">Atajos F1-F9, lector de patentes, impresión térmica 80mm y cálculo de cobro en 3 segundos.</p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#E2498A]">
+                       <span>Explorar funcionalidad</span>
+                       <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                 </div>
+
+                 {/* 2. Control de Turnos & Arqueo Ciego */}
+                 <div 
+                   onClick={() => setActiveModuleModal({
+                     title: 'Control de Turnos & Arqueo Ciego',
+                     badge: 'Seguridad Contable',
+                     icon: '🔒',
+                     desc: 'Gestión estricta de fondos y arqueo ciego para evitar fugas de capital en garita.',
+                     details: [
+                       'Apertura obligatoria declarando fondo inicial de gaveta ($50.000 CLP) con checklist de arranque.',
+                       'Bloqueo preventivo de la terminal POS cuando no existe turno abierto activo.',
+                       'Cierre ciego definitivo: el cajero declara lo físico sin ver el balance esperado por el sistema.',
+                       'Sellado inmutable con firma hash SHA-256 y reporte Z de dos copias estándar A4.'
+                     ],
+                     role: 'Operador y Supervisor de Garita',
+                   })}
+                   className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-[#E2498A] transition-all cursor-pointer group flex flex-col justify-between"
+                 >
+                    <div>
+                       <div className="w-12 h-12 bg-blue-100 text-[#E2498A] rounded-2xl flex items-center justify-center mb-4 text-xl font-bold group-hover:scale-110 transition-transform">
+                          🔒
+                       </div>
+                       <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-extrabold text-lg text-[#1E1E2F] group-hover:text-[#E2498A] transition-colors">Control de Turnos</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Ver Ficha</span>
+                       </div>
+                       <p className="text-xs text-slate-500 font-medium leading-relaxed">Aperturas con fondo en efectivo, arqueo ciego sin bucle y cierre definitivo certificado con SHA-256.</p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#E2498A]">
+                       <span>Explorar funcionalidad</span>
+                       <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                 </div>
+
+                 {/* 3. Reportes & Auditoría */}
+                 <div 
+                   onClick={() => setActiveModuleModal({
+                     title: 'Auditoría & Reportes Financieros',
+                     badge: 'Fiscal & DTE',
+                     icon: '📊',
+                     desc: 'Control y fiscalización en tiempo real de boletas, ingresos y trazabilidad de cajas.',
+                     details: [
+                       'Libro diario de cobros DTE por turno, fecha y medio de pago (Efectivo/POS/Transferencia).',
+                       'Registro de excepciones y trazabilidad de tickets extraviados conforme a Ley 20.967.',
+                       'Exportación de balances en hoja A4 corporativa con firmas físicas de cajero y supervisor.',
+                       'Historial inalterable de auditoría para peritajes administrativos y control contable.'
+                     ],
+                     role: 'Administrador y Supervisor Contable',
+                   })}
+                   className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-[#E2498A] transition-all cursor-pointer group flex flex-col justify-between"
+                 >
+                    <div>
+                       <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-4 text-xl font-bold group-hover:scale-110 transition-transform">
+                          📊
+                       </div>
+                       <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-extrabold text-lg text-[#1E1E2F] group-hover:text-[#E2498A] transition-colors">Auditoría &amp; Reportes</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Ver Ficha</span>
+                       </div>
+                       <p className="text-xs text-slate-500 font-medium leading-relaxed">Libro de cobros, trazabilidad de excepciones PIN y emisión de Reporte Z corporativo A4.</p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#E2498A]">
+                       <span>Explorar funcionalidad</span>
+                       <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                 </div>
+
+                 {/* 4. Convenios y Facturación de Flotas */}
+                 <div 
+                   onClick={() => setActiveModuleModal({
+                     title: 'Convenios Comerciales & Flotas',
+                     badge: 'B2B Recurrente',
+                     icon: '🤝',
+                     desc: 'Gestión integral de abonados mensuales, flotas corporativas y control de cobranza.',
+                     details: [
+                       'Diseño de tarjetas de convenio con edición rápida en ventana modal.',
+                       'Registro multivehículo con facturación periódica y cobro individualizado por patente.',
+                       'Historial detallado de entradas y salidas exclusivas de vehículos de convenios.',
+                       'Panel de cobranza con estado de deuda, último pago y notificaciones directas.'
+                     ],
+                     role: 'Administración Comercial',
+                   })}
+                   className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-[#E2498A] transition-all cursor-pointer group flex flex-col justify-between"
+                 >
+                    <div>
+                       <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-4 text-xl font-bold group-hover:scale-110 transition-transform">
+                          🤝
+                       </div>
+                       <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-extrabold text-lg text-[#1E1E2F] group-hover:text-[#E2498A] transition-colors">Convenios y Flotas</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Ver Ficha</span>
+                       </div>
+                       <p className="text-xs text-slate-500 font-medium leading-relaxed">Gestión de abonados, facturación mensual consolidada, control de pagos y registro de flota.</p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#E2498A]">
+                       <span>Explorar funcionalidad</span>
+                       <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                 </div>
+
+                 {/* 5. Matriz 2D y Ocupación */}
+                 <div 
+                   onClick={() => setActiveModuleModal({
+                     title: 'Plano 2D & Matriz de Ocupación',
+                     badge: 'Telemetría Patio',
+                     icon: '🗺️',
+                     desc: 'Monitoreo semaforizado en vivo de las 30 plazas de Serrano 447.',
+                     details: [
+                       'Distribución física: Sector A (plazas 01 a 15) y Sector B (plazas 16 a 30).',
+                       'Indicador visual en verde distintivo para espacios libres y oscuro para ocupados.',
+                       'Información instantánea al hacer clic en cada plaza: patente, tiempo transcurrido y tarifa acumulada.',
+                       'Paso directo a cobro de salida con un solo clic sobre la plaza ocupada.'
+                     ],
+                     role: 'Operador y Supervisor en Vivo',
+                   })}
+                   className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-[#E2498A] transition-all cursor-pointer group flex flex-col justify-between"
+                 >
+                    <div>
+                       <div className="w-12 h-12 bg-cyan-100 text-cyan-600 rounded-2xl flex items-center justify-center mb-4 text-xl font-bold group-hover:scale-110 transition-transform">
+                          🗺️
+                       </div>
+                       <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-extrabold text-lg text-[#1E1E2F] group-hover:text-[#E2498A] transition-colors">Plano 2D Serrano 447</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Ver Ficha</span>
+                       </div>
+                       <p className="text-xs text-slate-500 font-medium leading-relaxed">Matriz de ocupación con plazas libres en verde, duración en tiempo real y despacho directo a cobro.</p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#E2498A]">
+                       <span>Explorar funcionalidad</span>
+                       <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                 </div>
+
+                 {/* 6. Aprobaciones TOTP Remotas */}
+                 <div 
+                   onClick={() => setActiveModuleModal({
+                     title: 'Aprobaciones de Seguridad & PIN Supervisor',
+                     badge: 'Antifraude',
+                     icon: '🛡️',
+                     desc: 'Control antifraude de anulaciones, descuentos y cobros de contingencia.',
+                     details: [
+                       'Aprobación express diferida: el cajero libera el vehículo con justificación sin trabar la fila.',
+                       'Validación en bloque con PIN de supervisor o código TOTP al momento del cierre de turno.',
+                       'Control de excepciones de caja: sangrías y gastos menores con clave de doble factor.',
+                       'Auditoría criptográfica de cada anulación con fecha, hora y responsable.'
+                     ],
+                     role: 'Supervisor y Administrador Central',
+                   })}
+                   className="bg-white p-7 rounded-3xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-[#E2498A] transition-all cursor-pointer group flex flex-col justify-between"
+                 >
+                    <div>
+                       <div className="w-12 h-12 bg-[#E2498A]/10 text-[#E2498A] rounded-2xl flex items-center justify-center mb-4 text-xl font-bold group-hover:scale-110 transition-transform">
+                          🛡️
+                       </div>
+                       <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-extrabold text-lg text-[#1E1E2F] group-hover:text-[#E2498A] transition-colors">Seguridad &amp; TOTP</h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">Ver Ficha</span>
+                       </div>
+                       <p className="text-xs text-slate-500 font-medium leading-relaxed">Autorizaciones antifraude mediante códigos temporales de Google Authenticator y PIN supervisor.</p>
+                    </div>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#E2498A]">
+                       <span>Explorar funcionalidad</span>
+                       <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </section>
+
+        {/* MODAL POP-UP INFORMATIVO DE MÓDULOS */}
+        {activeModuleModal && (
+          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in font-sans">
+             <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 border border-slate-200 shadow-2xl space-y-5 animate-fade-in-up">
+                <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+                   <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-[#FFF5F8] text-[#E2498A] flex items-center justify-center text-2xl font-black shrink-0">
+                         {activeModuleModal.icon}
+                      </div>
+                      <div>
+                         <span className="text-[10px] font-black uppercase tracking-wider text-[#E2498A]">
+                            {activeModuleModal.badge} • PERFIL: {activeModuleModal.role}
+                         </span>
+                         <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                            {activeModuleModal.title}
+                         </h3>
+                      </div>
+                   </div>
+                   <button 
+                     onClick={() => setActiveModuleModal(null)}
+                     className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 font-bold flex items-center justify-center text-sm cursor-pointer transition"
+                   >
+                      ✕
+                   </button>
+                </div>
+
+                <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                   {activeModuleModal.desc}
+                </p>
+
+                <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                   <h5 className="text-xs font-black uppercase tracking-wider text-slate-800 mb-2">
+                      Capacidades y Lógica Operativa:
+                   </h5>
+                   <ul className="space-y-2">
+                      {activeModuleModal.details.map((item, idx) => (
+                         <li key={idx} className="flex items-start gap-2 text-xs font-medium text-slate-700">
+                            <span className="text-emerald-500 font-black">✓</span>
+                            <span>{item}</span>
+                         </li>
+                      ))}
+                   </ul>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                   <button 
+                     onClick={() => setActiveModuleModal(null)}
+                     className="px-6 py-2.5 bg-[#1E1E2F] hover:bg-slate-900 text-white rounded-xl text-xs font-black transition cursor-pointer"
+                   >
+                      Entendido, Cerrar
+                   </button>
+                </div>
+             </div>
+          </div>
+        )}
+
       {/* FAQ BUSCADOR */}
-      <section id="faq" ref={addToRefs} className="py-24 bg-slate-50 relative overflow-hidden opacity-0 translate-y-10 transition-all duration-700 ease-out">
+      <section id="faq" ref={addToRefs} className="py-24 bg-white relative overflow-hidden opacity-0 translate-y-10 transition-all duration-700 ease-out border-b border-slate-100">
          <div className="absolute right-0 bottom-0 pointer-events-none opacity-5 text-[#E2498A] translate-x-1/2 translate-y-1/2">
             <svg viewBox="0 0 200 200" className="w-[600px] h-[600px]"><path fill="currentColor" d="M37.6,-57.4C50.2,-50.2,63,-42.6,71.3,-31.3C79.6,-20,83.4,-5,81.1,9.4C78.9,23.8,70.5,37.6,60.1,49.2C49.7,60.8,37.3,70.2,23.3,74.7C9.3,79.2,-6.3,78.8,-21.7,75.1C-37.1,71.4,-52.3,64.3,-62.3,52.8C-72.3,41.2,-77.1,25.2,-79.1,9.4C-81,-6.3,-80.1,-21.7,-72.6,-33.5C-65,-45.3,-50.9,-53.4,-37.6,-59.9C-24.3,-66.4,-12.1,-71.2,-0.2,-70.9C11.7,-70.6,25,-64.6,37.6,-57.4Z" transform="translate(100 100)" /></svg>
          </div>

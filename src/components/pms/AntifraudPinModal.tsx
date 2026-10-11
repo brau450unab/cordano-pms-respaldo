@@ -74,7 +74,7 @@ export const AntifraudPinModal: React.FC<AntifraudPinModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#1E1E2F]/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in-up">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in-up">
       <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-[0_20px_50px_rgba(44,19,56,0.2)] w-full max-w-md overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#E2E8F0]">
@@ -85,7 +85,7 @@ export const AntifraudPinModal: React.FC<AntifraudPinModalProps> = ({
               }`}
             />
             <span className="text-[13px] font-bold uppercase tracking-[0.07em] tabular-nums text-[#1E1E2F] truncate">
-              {isDiscount ? 'Autorización Descuento Comercial' : 'Recargo por Ticket Extraviado'}
+              {isDiscount ? 'Autorización Descuento Comercial' : 'Justificación Extravío de Ticket (Ley 20.967)'}
             </span>
           </div>
           <button
@@ -102,12 +102,12 @@ export const AntifraudPinModal: React.FC<AntifraudPinModalProps> = ({
             className={`pl-4 pr-3 py-3 rounded-2xl border text-[12px] leading-relaxed ${
               isDiscount
                 ? 'border-l-4 border-l-[#E2498A] border border-[#E2498A]/30 bg-[#E2498A]/10 text-[#1E1E2F]'
-                : 'border-l-4 border-l-[#E2498A] border border-[#E2498A]/30 bg-[#E2498A]/10 text-[#1E1E2F]'
+                : 'border-l-4 border-l-amber-500 border border-amber-200 bg-amber-50 text-amber-900'
             }`}
           >
             {isDiscount
-              ? 'Regla Antifraude (Verde): Exige PIN individual de Operador (ej. 1234) y justificación escrita mayor a 10 caracteres.'
-              : 'Regla Antifraude (Rojo): Exige PIN de Administrador (ej. 9988). Aplica multa reglamentaria de $8.000 CLP por ticket extraviado previa acreditación de padrón.'}
+              ? 'Regla Antifraude: Exige PIN individual de Operador (ej. 1234) y justificación escrita mayor a 10 caracteres.'
+              : 'Ley N° 20.967: Prohíbe multas fijas. Se liquida exclusivamente el tiempo efectivo calculado por patente en el sistema. Ingrese justificación para registro de auditoría.'}
           </div>
 
           {error && (

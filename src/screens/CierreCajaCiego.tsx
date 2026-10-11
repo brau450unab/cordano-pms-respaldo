@@ -165,6 +165,12 @@ export const CierreCajaCiego: React.FC = () => {
 
     setClosedShiftResult(result);
     setShowPinRequirementModal(false);
+
+    try {
+      generateShiftReportPDF(result, true);
+    } catch (err) {
+      console.error('Error generating shift close PDF automatically:', err);
+    }
   };
 
   const handlePerformClose = (e: React.FormEvent) => {

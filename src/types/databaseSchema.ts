@@ -100,7 +100,7 @@ export interface DBTicket {
   id_version_tarifa_aplicada: string;
   es_operacion_offline: boolean;
 
-  // C. Check-out (Salida) & Cálculos
+  // C. Check-out (Salida) & Cálculos (Ley N° 20.967: Sin multas punitivas)
   fecha_hora_salida?: string;
   id_usuario_cobro?: string;
   id_turno_salida?: string;
@@ -109,25 +109,27 @@ export interface DBTicket {
   minutos_facturables?: number;
   monto_base_calculado?: number;
   monto_descuento_aplicado?: number;
-  monto_multa_ticket_perdido?: number;
+  es_ticket_extraviado_resuelto_por_patente?: boolean; // Art. 15 A Ley 20.967: liquidado por búsqueda de patente
   monto_total_cobrado?: number;
 }
 
-// 7. Tabla: Motor de Tarifas y Versiones (TariffVersions)
+// 7. Tabla: Motor de Tarifas y Versiones Inmutables (TariffVersions)
 export interface DBTariffVersion {
-  id_version_tarifa: string;
-  nombre_version: string; // 'Tarifa Estándar v3 - Iquique'
+  id_version_tarifa: string; // UUID inmutable e.g. TARIFF-v2026-001
+  nombre_version: string; // 'Tarifa Regulada Ley 20.967 - Serrano 447'
   tipo_vehiculo: VehicleCategory;
-  precio_por_minuto: number; // CLP
-  minutos_gracia: number; // Ej: 10 min
+  modelo_cobro: 'POR_MINUTO' | 'TRAMOS_30_10'; // Primer tramo 30 min + tramos de 10 min
+  precio_por_minuto: number; // CLP (ej. 35 CLP/min)
+  precio_primer_tramo_30min?: number; // CLP (ej. 1.050 CLP)
+  precio_tramo_subsiguiente_10min?: number; // CLP (ej. 350 CLP)
+  minutos_gracia: number; // Gracia legal obligatoria (10 a 15 min)
   cobra_desde_minuto_cero: boolean;
-  monto_multa_ticket_perdido: number; // Ej: 12.000 CLP
-  regla_redondeo: 'Minuto hacia arriba' | '$10' | '$50' | '$100';
+  regla_redondeo: 'Truncamiento legal pro-consumidor (Art. 15 A)' | 'Por minuto efectivo sin redondeo al alza';
   dias_aplicables: string[];
   hora_desde: string; // '00:00'
   hora_hasta: string; // '23:59'
   multiplicador_recargo: number; // 1.0 (normal), 1.2 (+20% nocturno)
-  fecha_inicio_vigencia: string;
+  fecha_inicio_vigencia: string; // ISO 8601
   es_activa: boolean;
   id_admin_creador: string;
 }
