@@ -24,7 +24,8 @@ import {
   ChecklistItem,
   TariffType,
   Agreement,
-  TariffVersion
+  TariffVersion,
+  UserPermissions
 } from '../types';
 import {
   INITIAL_OPERATOR,
@@ -37,7 +38,8 @@ import {
   INITIAL_SHIFT,
   INITIAL_AUDIT_LOGS,
   INITIAL_CUSTOMERS,
-  INITIAL_AGREEMENTS
+  INITIAL_AGREEMENTS,
+  ROLE_PERMISSIONS,
 } from '../data/mockData';
 import { calculateStayFeeLey20967 } from '../services/tariffEngine';
 import { emitFiscalDte, generateDailySalesReportRVD, DailySalesReportRVD } from '../services/fiscal/siiBillingService';
@@ -74,7 +76,9 @@ const DEFAULT_CHECKLIST_TASKS: ChecklistItem[] = [
 
 interface ParkingContextType {
   user: User;
+  setUser: React.Dispatch<React.SetStateAction<User>>;
   setUserRole: (role: 'operador' | 'supervisor' | 'administrador') => void;
+  hasPermission: (permission: keyof UserPermissions) => boolean;
   isLoggedIn: boolean;
   setIsLoggedIn: (loggedIn: boolean) => void;
   logout: () => void;
@@ -196,16 +200,35 @@ interface ParkingContextType {
 const ParkingContext = createContext<ParkingContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  SLOTS: 'pms_matic_slots',
-  TICKETS: 'pms_matic_tickets',
-  SHIFT: 'pms_matic_shift',
-  TARIFF: 'pms_matic_tariff',
-  AUDIT: 'pms_matic_audit',
-  CUSTOMERS: 'pms_matic_customers',
-  CHECKLIST: 'pms_matic_checklist',
-  AGREEMENTS: 'pms_matic_agreements',
+  SLOTS: 'cordano_slots_v3',
+  TICKETS: 'cordano_tickets_v3',
+  SHIFT: 'cordano_shift_v3',
+  TARIFF: 'cordano_tariff_v3',
+  AUDIT: 'cordano_audit_v3',
+  CUSTOMERS: 'cordano_customers_v3',
+  CHECKLIST: 'cordano_checklist_v3',
+  AGREEMENTS: 'cordano_agreements_v3',
   KEYBOARD_SHORTCUTS: 'cordano_keyboard_shortcuts_enabled',
 };
+
+// Limpieza automática de datos demo de versiones anteriores en localStorage
+if (typeof window !== 'undefined' && !localStorage.getItem('cordano_demo_data_purged_v3')) {
+  try {
+    localStorage.removeItem('pms_matic_slots');
+    localStorage.removeItem('pms_matic_tickets');
+    localStorage.removeItem('pms_matic_shift');
+    localStorage.removeItem('pms_matic_audit');
+    localStorage.removeItem('pms_matic_customers');
+    localStorage.removeItem('pms_matic_agreements');
+    localStorage.removeItem('pms_matic_shift_history');
+    localStorage.removeItem('pms_matic_offline_shifts');
+    localStorage.removeItem('pms_matic_user_role');
+    localStorage.removeItem('pms_matic_is_logged_in');
+    localStorage.setItem('cordano_demo_data_purged_v3', 'true');
+  } catch (e) {
+    console.warn('Limpieza de caché de demostración completada:', e);
+  }
+}
 
 export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [keyboardShortcutsEnabled, setKeyboardShortcutsEnabledState] = useState<boolean>(() => {
@@ -219,14 +242,9 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   const [user, setUser] = useState<User>(() => {
-    const savedRole = localStorage.getItem('pms_matic_user_role');
-    if (savedRole === 'administrador') return INITIAL_ADMIN;
-    if (savedRole === 'supervisor') return INITIAL_SUPERVISOR;
-    return INITIAL_OPERATOR;
+    return INITIAL_ADMIN;
   });
-  const [isLoggedIn, setIsLoggedInState] = useState<boolean>(() => {
-    return localStorage.getItem('pms_matic_is_logged_in') === 'true';
-  });
+  const [isLoggedIn, setIsLoggedInState] = useState<boolean>(false);
 
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
 
@@ -385,7 +403,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(true);
 
-  // Helper para persistencia asíncrona en Firestore
+  // Helper para persistencia asíncrona en Firestore con cola de contingencia Outbox
   const persistToFirestore = async (collectionName: string, docId: string, data: any) => {
     try {
       const cleanData = JSON.parse(JSON.stringify(data));
@@ -393,16 +411,21 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       setIsFirebaseConnected(true);
     } catch (err: any) {
       setIsFirebaseConnected(false);
+      // Encolar automáticamente en IndexedDB para sincronizar al volver la red
+      cordanoOfflineDB.enqueueSyncItem(collectionName, docId, data, 'UPDATE').catch(console.warn);
     }
   };
 
-  // Listeners en tiempo real para sincronización multidispotivo (tickets, slots, convenios)
+  // Listeners en tiempo real para sincronización multidispotivo (tickets, slots, convenios, turnos, auditoría)
   useEffect(() => {
     let unsubTickets: (() => void) | undefined;
     let unsubSlots: (() => void) | undefined;
     let unsubAgreements: (() => void) | undefined;
+    let unsubShifts: (() => void) | undefined;
+    let unsubAuditLogs: (() => void) | undefined;
 
     try {
+      // 1. Sincronización de tickets
       unsubTickets = onSnapshot(
         collection(db, COLLECTIONS.TICKETS),
         (snapshot) => {
@@ -421,6 +444,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
       );
 
+      // 2. Sincronización de las 30 plazas de Serrano 447
       unsubSlots = onSnapshot(
         collection(db, COLLECTIONS.SLOTS),
         (snapshot) => {
@@ -438,6 +462,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
       );
 
+      // 3. Sincronización de convenios y abonados
       unsubAgreements = onSnapshot(
         collection(db, COLLECTIONS.AGREEMENTS),
         (snapshot) => {
@@ -459,14 +484,79 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
           setIsFirebaseConnected(false);
         }
       );
+
+      // 4. Sincronización de turnos de caja
+      unsubShifts = onSnapshot(
+        collection(db, COLLECTIONS.SHIFTS),
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const remoteShifts: Shift[] = [];
+            snapshot.forEach((d) => remoteShifts.push(d.data() as Shift));
+            if (remoteShifts.length > 0) {
+              remoteShifts.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+              const activeRemote = remoteShifts.find((s) => s.status === 'abierto') || remoteShifts[0];
+              if (activeRemote) {
+                setCurrentShift(activeRemote);
+              }
+            }
+          }
+        },
+        () => {
+          setIsFirebaseConnected(false);
+        }
+      );
+
+      // 5. Sincronización de bitácora de auditoría inmutable
+      unsubAuditLogs = onSnapshot(
+        collection(db, COLLECTIONS.AUDIT_LOGS),
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const remoteLogs: AuditLog[] = [];
+            snapshot.forEach((d) => remoteLogs.push(d.data() as AuditLog));
+            if (remoteLogs.length > 0) {
+              remoteLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+              setAuditLogs(remoteLogs);
+            }
+          }
+        },
+        () => {
+          setIsFirebaseConnected(false);
+        }
+      );
     } catch {
       setIsFirebaseConnected(false);
+    }
+
+    // Manejador de reconexión de red para procesar transacciones encoladas offline
+    const handleOnline = () => {
+      setIsFirebaseConnected(true);
+      cordanoOfflineDB.replayOutboxQueue(db).then((synced) => {
+        if (synced > 0) {
+          console.info(`[Cordano Outbox] ${synced} transacciones offline sincronizadas exitosamente con Firestore.`);
+        }
+      }).catch(console.warn);
+    };
+
+    const handleOffline = () => {
+      setIsFirebaseConnected(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Intentar replay inicial en arranque si hay conexión
+    if (typeof navigator !== 'undefined' && navigator.onLine) {
+      cordanoOfflineDB.replayOutboxQueue(db).catch(console.warn);
     }
 
     return () => {
       unsubTickets?.();
       unsubSlots?.();
       unsubAgreements?.();
+      unsubShifts?.();
+      unsubAuditLogs?.();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
@@ -491,13 +581,23 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const setUserRole = (role: 'operador' | 'supervisor' | 'administrador') => {
     localStorage.setItem('pms_matic_user_role', role);
-    if (role === 'administrador') {
-      setUser(INITIAL_ADMIN);
-    } else if (role === 'supervisor') {
-      setUser(INITIAL_SUPERVISOR);
-    } else {
-      setUser(INITIAL_OPERATOR);
+    setUser({
+      ...INITIAL_ADMIN,
+      role,
+      permissions: ROLE_PERMISSIONS[role],
+    });
+  };
+
+  const hasPermission = (permission: keyof UserPermissions): boolean => {
+    if (!user) return false;
+    if (user.permissions && typeof user.permissions[permission] === 'boolean') {
+      return user.permissions[permission];
     }
+    if (user.role === 'administrador') return true;
+    if (permission === 'canOperatePos' || permission === 'canOpenCloseShift' || permission === 'canManageClients') {
+      return user.role === 'operador';
+    }
+    return false;
   };
 
   const addAuditLog = (
@@ -518,6 +618,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
     setAuditLogs((prev) => [newLog, ...prev]);
     persistToFirestore(COLLECTIONS.AUDIT_LOGS, newLog.id, newLog);
+    cordanoOfflineDB.saveAuditLog(newLog).catch(console.warn);
 
     if (isOffline) {
       setSyncQueueCount((c) => c + 1);
@@ -1336,13 +1437,14 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     );
   };
 
-  const openNewShift = (initialCash: number, breakdown?: ChileanCashBreakdown) => {
+  const openNewShift = (initialCash: number = 50000, breakdown?: ChileanCashBreakdown) => {
+    const validatedInitialCash = initialCash > 0 ? initialCash : 50000;
     const newShift: Shift = {
       id: `SHIFT-${Math.floor(1000 + Math.random() * 9000)}`,
       operatorId: user.id,
       operatorName: user.name,
       startTime: new Date().toISOString(),
-      initialCash,
+      initialCash: validatedInitialCash,
       initialCashBreakdown: breakdown,
       cashMovements: [],
       status: 'abierto',
@@ -1359,7 +1461,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     addAuditLog(
       'APERTURA_TURNO',
-      `Nuevo turno iniciado (${newShift.id}) por ${user.name} con fondo inicial de $${initialCash.toLocaleString('es-CL')} CLP`
+      `Nuevo turno iniciado (${newShift.id}) por ${user.name} con fondo inicial de $ ${validatedInitialCash.toLocaleString('es-CL')} CLP`
     );
   };
 
@@ -1394,7 +1496,9 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     <ParkingContext.Provider
       value={{
         user,
+        setUser,
         setUserRole,
+        hasPermission,
         isLoggedIn,
         setIsLoggedIn,
         logout,

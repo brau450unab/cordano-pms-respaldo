@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppScreen } from '../../types';
 import { useParking } from '../../context/ParkingContext';
 
@@ -11,6 +11,8 @@ interface PlatformNavbarProps {
   onInitiateOpenShift?: () => void;
   onOpenCommandPalette?: () => void;
   onLogout?: () => void;
+  activeMobileTab?: 'plano' | 'cronologia' | 'supervision';
+  onSelectMobileTab?: (tab: 'plano' | 'cronologia' | 'supervision') => void;
 }
 
 export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
@@ -22,23 +24,108 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
   onInitiateOpenShift,
   onOpenCommandPalette,
   onLogout,
+  activeMobileTab = 'plano',
+  onSelectMobileTab,
 }) => {
-  const { currentShift, user, tickets, setUserRole } = useParking();
+  const { currentShift, user, tickets, slots, setUserRole } = useParking();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [internalTimer, setInternalTimer] = useState('00:00:00');
   const [isAdminAuthModalOpen, setIsAdminAuthModalOpen] = useState(false);
   const [adminPasswordInput, setAdminPasswordInput] = useState('');
   const [adminAuthError, setAdminAuthError] = useState<string | null>(null);
   const [targetRole, setTargetRole] = useState<'operador' | 'supervisor' | 'administrador'>('administrador');
-  const avatarRef = useRef<HTMLDivElement>(null);
 
   const isShiftActive = !!currentShift && currentShift.status === 'abierto';
 
-  const shiftRevenue = tickets
-    .filter((t) => t.status === 'pagado')
-    .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+  const occupiedCount = slots ? slots.filter((s) => s.status === 'ocupado').length : tickets.filter((t) => t.status === 'activo').length;
+  const freeCount = Math.max(0, 30 - occupiedCount);
+
+  const activeVehicles = useMemo(() => {
+    return tickets.filter((t) => t.status === 'activo');
+  }, [tickets]);
+
+  const overstayVehicles = useMemo(() => {
+    return activeVehicles.filter((t) => {
+      const dur = (Date.now() - new Date(t.entryTime).getTime()) / 60000;
+      return dur >= 120;
+    });
+  }, [activeVehicles]);
+
+  const paidTickets = useMemo(() => {
+    return tickets.filter((t) => t.status === 'pagado');
+  }, [tickets]);
+
+  const shiftRevenue = useMemo(() => {
+    return paidTickets.reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+  }, [paidTickets]);
+
+  const revenueByMethod = useMemo(() => {
+    const cash = paidTickets
+      .filter((t) => t.paymentMethod === 'efectivo')
+      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+    const pos = paidTickets
+      .filter((t) => t.paymentMethod === 'tarjeta_debito' || t.paymentMethod === 'tarjeta_credito')
+      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+    const transfer = paidTickets
+      .filter((t) => t.paymentMethod === 'transferencia' || t.paymentMethod === 'convenio')
+      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+    return { cash, pos, transfer };
+  }, [paidTickets]);
+
+  // Hourly vehicles arrivals
+  const hourlyVehicles = useMemo(() => {
+    const hoursMap: Record<string, number> = {
+      '08:00': 0,
+      '10:00': 0,
+      '12:00': 0,
+      '14:00': 0,
+      '16:00': 0,
+      '18:00': 0,
+      '20:00': 0,
+    };
+    tickets.forEach((t) => {
+      const d = new Date(t.entryTime);
+      const h = d.getHours();
+      if (h < 10) hoursMap['08:00']++;
+      else if (h < 12) hoursMap['10:00']++;
+      else if (h < 14) hoursMap['12:00']++;
+      else if (h < 16) hoursMap['14:00']++;
+      else if (h < 18) hoursMap['16:00']++;
+      else if (h < 20) hoursMap['18:00']++;
+      else hoursMap['20:00']++;
+    });
+    return Object.entries(hoursMap).map(([hour, count]) => ({
+      hour,
+      count: Math.max(count, Math.round(activeVehicles.length * 0.3)),
+    }));
+  }, [tickets, activeVehicles]);
+
+  // Recent timeline events
+  const recentMovements = useMemo(() => {
+    const list: { id: string; type: 'INGRESO' | 'SALIDA'; plate: string; time: string; slotCode?: string; }[] = [];
+    tickets.forEach((t) => {
+      list.push({
+        id: `in-${t.id}`,
+        type: 'INGRESO',
+        plate: t.plateNumber,
+        time: new Date(t.entryTime).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+        slotCode: t.slotCode || 'Patio',
+      });
+      if (t.status === 'pagado' && t.exitTime) {
+        list.push({
+          id: `out-${t.id}`,
+          type: 'SALIDA',
+          plate: t.plateNumber,
+          time: new Date(t.exitTime).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+          slotCode: t.slotCode || 'Patio',
+        });
+      }
+    });
+    return list.slice(-5).reverse();
+  }, [tickets]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -63,23 +150,22 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
     }
   }, [isShiftActive, currentShift?.startTime]);
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
-        setIsAvatarMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  
 
-  const primaryNavItems: { id: AppScreen; label: string; icon: string }[] = [
+  const rawNavItems: { id: AppScreen; label: string; icon: string; requiresAdmin?: boolean }[] = [
     { id: 'pos',     label: 'Garita POS', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
     { id: 'menu',    label: 'Dashboard',  icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
     { id: 'map',     label: 'Plano 2D',   icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
     { id: 'clients', label: 'Convenios',  icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-    { id: 'reports', label: 'Auditoría',  icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+    { id: 'reports', label: 'Auditoría',  icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', requiresAdmin: true },
   ];
+
+  const primaryNavItems = rawNavItems.filter((item) => {
+    if (item.requiresAdmin) {
+      return user?.role === 'administrador' || user?.role === 'supervisor';
+    }
+    return true;
+  });
 
   const isActive = (id: AppScreen) =>
     currentScreen === id ||
@@ -104,10 +190,25 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
           </div>
           <div className="flex flex-col">
              <span className="font-extrabold text-white text-sm sm:text-base tracking-tight leading-none group-hover:text-pink-300 transition-colors">
-               Cordano<span className="text-[#E2498A]">PMS</span>
+               Cordano<span className="text-[#E2498A]"> Parking Ops</span>
              </span>
              <span className="text-[9px] sm:text-[10px] text-gray-400 font-semibold mt-0.5 tracking-wide hidden xs:inline">Serrano 447</span>
           </div>
+
+          {/* Role Indicator Badge */}
+          {user?.role === 'administrador' ? (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-950 text-purple-300 border border-purple-700/80">
+              👁️ Supervisión Admin
+            </span>
+          ) : user?.role === 'supervisor' ? (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-700/80">
+              🛡️ Supervisor
+            </span>
+          ) : (
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-950 text-pink-300 border border-pink-700/80">
+              👷 Operador Garita
+            </span>
+          )}
         </div>
 
         {/* CENTER: PILL NAVIGATION (Ocupa libremente el espacio disponible de manera equilibrada y sin barra de scroll) */}
@@ -197,434 +298,605 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
             {currentTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
           </div>
 
-          {/* Avatar Dropdown */}
-          <div className="relative" ref={avatarRef}>
-            <button 
-              onClick={() => setIsAvatarMenuOpen(!isAvatarMenuOpen)}
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E2498A] text-white flex items-center justify-center font-bold text-xs shadow-sm hover:ring-2 hover:ring-[#E2498A]/50 transition-all focus:outline-none cursor-pointer"
-              title="Abrir menú de usuario y control de turno"
-            >
-              {initials}
-            </button>
-            
-            {isAvatarMenuOpen && (
-              <div className="absolute top-11 sm:top-12 right-0 w-80 max-w-[92vw] bg-white rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.22)] border border-slate-200 py-3 z-50 animate-fade-in-up text-slate-800">
-                
-                {/* Header Operador (Sin Serrano 447 al lado del nombre según indicación) */}
-                <div className="px-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-                   <div className="flex items-center gap-3">
-                     <div className="w-10 h-10 rounded-full bg-[#E2498A] text-white flex items-center justify-center font-black text-sm shadow-sm shrink-0">
-                       {initials}
-                     </div>
-                     <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-extrabold text-gray-900 leading-tight truncate">{operatorName}</span>
-                        <span className="text-xs font-semibold text-gray-500">{user?.role === 'administrador' ? 'Administrador' : user?.role === 'supervisor' ? 'Supervisor' : 'Operador Garita'}</span>
-                     </div>
-                   </div>
-                </div>
-
-                {/* ── WIDGET PERSISTENTE DE TURNO INTEGRADO EN MENÚ AVATAR (Requerimiento Directo) ── */}
-                <div className="p-3 mx-3 my-2.5 rounded-xl bg-[#1E1E2F] text-white border border-slate-700 space-y-2.5 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider font-bold">
-                      Control de Turno
-                    </span>
-                    {isShiftActive ? (
-                      <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-emerald-950 text-emerald-300 border border-emerald-800">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        ACTIVO
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-black bg-amber-950 text-amber-300 border border-amber-800">
-                        🔒 CERRADO
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Timer & Folio */}
-                  <div className="flex items-baseline justify-between pt-1 border-t border-slate-700/60">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-gray-400 font-semibold">Tiempo en Turno:</span>
-                      <span className="text-lg font-mono font-black text-white tabular-nums tracking-wide">
-                        {isShiftActive ? (shiftTimer || internalTimer) : '--:--:--'}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-gray-400 font-semibold">Folio Turno:</span>
-                      <div className="text-xs font-mono font-bold text-pink-400">
-                        {currentShift?.id ? currentShift.id.slice(-8) : 'N/A'}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Datos Financieros en Vivo */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/60 text-[11px] font-mono">
-                    <div className="bg-[#2D2D44] p-2 rounded-lg">
-                      <div className="text-[10px] text-gray-400">Fondo Inicial:</div>
-                      <div className="font-bold text-white tabular-nums">
-                        ${(currentShift?.initialCash || 50000).toLocaleString('es-CL')}
-                      </div>
-                    </div>
-                    <div className="bg-[#2D2D44] p-2 rounded-lg">
-                      <div className="text-[10px] text-gray-400">Recaudación:</div>
-                      <div className="font-bold text-emerald-400 tabular-nums">
-                        ${shiftRevenue.toLocaleString('es-CL')}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Botón de Acción Principal del Turno */}
-                  <div className="pt-1">
-                    {isShiftActive ? (
-                      <button
-                        onClick={() => { onInitiateCashClose(); setIsAvatarMenuOpen(false); }}
-                        className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <span>Arqueo Ciego &amp; Cerrar Turno</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => { 
-                          if (onInitiateOpenShift) onInitiateOpenShift(); 
-                          setIsAvatarMenuOpen(false); 
-                        }}
-                        className="w-full py-2 px-3 rounded-lg bg-[#E2498A] hover:bg-[#C83472] text-white text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98"
-                      >
-                        <span>🚀 Aperturar Turno con Fondo</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Accesos Rápidos de Configuración y Soporte */}
-                <div className="px-2 space-y-0.5">
-                  {/* Selector RBAC de 3 Roles: Operador, Supervisor, Administrador */}
-                  <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 px-1">
-                      Perfil Operacional (RBAC)
-                    </span>
-                    <div className="grid grid-cols-3 gap-1 text-[11px] font-bold">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setUserRole('operador');
-                          setIsAvatarMenuOpen(false);
-                        }}
-                        className={`py-1.5 px-2 rounded-lg transition-all cursor-pointer text-center ${
-                          user?.role === 'operador'
-                            ? 'bg-[#E2498A] text-white shadow-xs'
-                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}
-                      >
-                        Operador
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (user?.role === 'operador') {
-                            setTargetRole('supervisor');
-                            setAdminAuthError(null);
-                            setAdminPasswordInput('');
-                            setIsAdminAuthModalOpen(true);
-                            setIsAvatarMenuOpen(false);
-                          } else {
-                            setUserRole('supervisor');
-                            setIsAvatarMenuOpen(false);
-                          }
-                        }}
-                        className={`py-1.5 px-2 rounded-lg transition-all cursor-pointer text-center ${
-                          user?.role === 'supervisor'
-                            ? 'bg-purple-600 text-white shadow-xs'
-                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}
-                      >
-                        Supervisor
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (user?.role !== 'administrador') {
-                            setTargetRole('administrador');
-                            setAdminAuthError(null);
-                            setAdminPasswordInput('');
-                            setIsAdminAuthModalOpen(true);
-                            setIsAvatarMenuOpen(false);
-                          } else {
-                            setIsAvatarMenuOpen(false);
-                          }
-                        }}
-                        className={`py-1.5 px-2 rounded-lg transition-all cursor-pointer text-center ${
-                          user?.role === 'administrador'
-                            ? 'bg-slate-800 text-white shadow-xs'
-                            : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
-                        }`}
-                      >
-                        Admin
-                      </button>
-                    </div>
-                  </div>
-
-                  {user?.role === 'administrador' && (
-                    <button onClick={() => { onNavigate('settings'); setIsAvatarMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 text-xs font-bold transition-colors cursor-pointer">
-                      <svg className="w-4 h-4 text-[#E2498A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                      Ajustes de Plataforma (Admin)
-                    </button>
-                  )}
-                  <button onClick={() => { onNavigate('support'); setIsAvatarMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 text-xs font-bold transition-colors cursor-pointer">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    Centro de Soporte &amp; SOPs
-                  </button>
-                </div>
-
-                {/* Cerrar Sesión */}
-                <div className="pt-2 px-2 border-t border-gray-100 mt-1">
-                  <button 
-                    onClick={() => { if(onLogout) onLogout(); setIsAvatarMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-50 text-red-600 text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                    Cerrar Sesión
-                  </button>
-                </div>
-              </div>
-            )}
-            {/* Dynamic Mobile Menu Hamburger Button */}
-            <button 
-              type="button"
-              onClick={() => setIsMobileDrawerOpen(!isMobileDrawerOpen)}
-              className="md:hidden flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#1E1E2F] hover:bg-slate-700 border border-slate-600 text-white transition-colors cursor-pointer"
-              title="Abrir menú dinámico de navegación"
-              aria-label="Abrir menú"
-            >
-              {isMobileDrawerOpen ? (
-                <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
-          </div>
+          {/* Avatar Button (Sándwich Lateral Drawer Trigger) */}
+          <button 
+            type="button"
+            onClick={() => setIsMobileDrawerOpen(true)}
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E2498A] text-white flex items-center justify-center font-bold text-xs shadow-sm hover:ring-2 hover:ring-[#E2498A]/50 transition-all focus:outline-none cursor-pointer active:scale-95 shrink-0"
+            title="Abrir panel lateral de supervisión"
+            aria-label="Abrir panel lateral de supervisión"
+          >
+            {initials}
+          </button>
         </div>
       </nav>
 
-      {/* ── MENÚ DINÁMICO MÓVIL (DRAWER LATERAL PARA SUPERVISORES EN SMARTPHONES) ── */}
+      {/* ── PANEL LATERAL DESLIZANTE TIPO SÁNDWICH DE SUPERVISIÓN ── */}
       {isMobileDrawerOpen && (
-        <div className="md:hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex justify-end animate-fade-in font-sans">
+        <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md flex justify-end animate-fade-in font-sans">
           {/* Backdrop click close */}
-          <div className="flex-1" onClick={() => setIsMobileDrawerOpen(false)} />
+          <div 
+            className="flex-1 cursor-pointer" 
+            onClick={() => setIsMobileDrawerOpen(false)} 
+            aria-label="Cerrar panel lateral"
+          />
 
-          <div className="w-[85vw] max-w-sm bg-[#1E1E2F] text-white h-full flex flex-col border-l border-slate-700 shadow-2xl animate-slide-in-right overflow-y-auto">
-            {/* Drawer Header */}
-            <div className="p-4 border-b border-slate-700/80 flex items-center justify-between bg-[#2D2D44]">
+          <div className="w-[92vw] max-w-md sm:w-[440px] bg-[#1E1E2F] text-white h-full flex flex-col border-l border-slate-700 shadow-2xl animate-slide-in-right overflow-y-auto">
+            {/* 1. Header con botón de cierre de 44px */}
+            <div className="p-4 border-b border-slate-700/80 flex items-center justify-between bg-[#2D2D44] sticky top-0 z-20">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#E2498A] flex items-center justify-center text-white font-black text-sm shadow-sm">
+                <div className="w-9 h-9 rounded-xl bg-[#E2498A] flex items-center justify-center text-white font-black text-sm shadow-sm">
                   C
                 </div>
                 <div>
                   <h3 className="font-extrabold text-sm tracking-tight text-white leading-none">
-                    Cordano<span className="text-[#E2498A]">PMS</span>
+                    Cordano<span className="text-[#E2498A]"> Parking Ops</span>
                   </h3>
-                  <span className="text-[10px] text-gray-400 font-medium">Modo Supervisión Móvil</span>
+                  <span className="text-[10px] text-pink-300 font-bold uppercase tracking-wider">Supervisión en Vivo</span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsMobileDrawerOpen(false)}
-                className="w-8 h-8 rounded-xl bg-[#1E1E2F] hover:bg-slate-700 text-gray-300 flex items-center justify-center text-sm font-bold transition-colors cursor-pointer"
+                className="w-10 h-10 rounded-xl bg-[#1E1E2F] hover:bg-slate-700 text-gray-300 flex items-center justify-center text-base font-bold transition-colors cursor-pointer active:scale-95"
+                aria-label="Cerrar panel de supervisión"
               >
                 ✕
               </button>
             </div>
 
-            {/* Supervisor Identity Card */}
-            <div className="p-4 border-b border-slate-700/60 bg-[#1E1E2F] space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-[#E2498A] text-white flex items-center justify-center font-black text-base shadow-sm shrink-0">
-                  {initials}
+            {/* Contenido scrolleable con padding inferior para evitar solapamientos */}
+            <div className="flex-1 p-4 space-y-4 pb-28">
+              {/* 2. Tarjeta del Supervisor & Conmutador RBAC */}
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-[#E2498A] text-white flex items-center justify-center font-black text-base shadow-sm shrink-0">
+                    {initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-extrabold text-white truncate">{operatorName}</div>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
+                        {user?.role === 'administrador' ? '👑 Administrador' : user?.role === 'supervisor' ? '🛡️ Supervisor' : '👷 Operador Garita'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-extrabold text-white truncate">{operatorName}</div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-700 text-slate-300">
-                      {user?.role === 'administrador' ? '👑 Administrador' : '👷 Operador Garita'}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (user?.role === 'administrador') {
+                      setUserRole('operador');
+                    } else {
+                      setIsAdminAuthModalOpen(true);
+                    }
+                    setIsMobileDrawerOpen(false);
+                  }}
+                  className="w-full min-h-[44px] py-2 px-3 rounded-xl bg-[#2D2D44] hover:bg-slate-700 border border-slate-600 text-xs font-bold text-pink-300 transition-colors flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                >
+                  <span>🔄</span>
+                  <span>Cambiar a {user?.role === 'administrador' ? 'Operador Garita' : 'Administrador'}</span>
+                </button>
+              </div>
+
+              {/* 3. Indicadores del Turno */}
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
+                    Control de Turno
+                  </span>
+                  {isShiftActive ? (
+                    <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-emerald-950 text-emerald-300 border border-emerald-800">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      ACTIVO
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-amber-950 text-amber-300 border border-amber-800">
+                      🔒 CERRADO
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800">
+                    <span className="text-[10px] text-gray-400 block font-sans">Tiempo en Turno</span>
+                    <span className="text-base font-black text-white tabular-nums">
+                      {isShiftActive ? (shiftTimer || internalTimer) : '--:--:--'}
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800">
+                    <span className="text-[10px] text-gray-400 block font-sans">Folio Turno</span>
+                    <span className="text-xs font-black text-pink-300 truncate block mt-1">
+                      {currentShift?.id || 'TRN-2026-ACT'}
                     </span>
                   </div>
                 </div>
-              </div>
 
-              {/* Conmutador Rápido de Rol */}
-              <button
-                type="button"
-                onClick={() => {
-                  if (user?.role === 'administrador') {
-                    setUserRole('operador');
-                  } else {
-                    setIsAdminAuthModalOpen(true);
-                  }
-                  setIsMobileDrawerOpen(false);
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-[#2D2D44] hover:bg-slate-700 border border-slate-600 text-xs font-bold text-pink-300 transition-colors flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>🔄</span>
-                <span>Cambiar a {user?.role === 'administrador' ? 'Operador' : 'Administrador'}</span>
-              </button>
-            </div>
-
-            {/* Shift Live Telemetry */}
-            <div className="p-4 border-b border-slate-700/60 bg-[#252538] space-y-2">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-gray-400">Estado Turno:</span>
-                {isShiftActive ? (
-                  <span className="text-emerald-400 font-bold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    ACTIVO ({shiftTimer || internalTimer})
+                <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-gray-400 block font-sans">Fondo Inicial Gaveta</span>
+                    <span className="text-sm font-black text-amber-400 font-mono tabular-nums">
+                      $ 50.000 CLP
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800/80">
+                    Sencillo Validado
                   </span>
-                ) : (
-                  <span className="text-amber-400 font-bold">🔒 CERRADO</span>
-                )}
-              </div>
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-gray-400">Recaudación:</span>
-                <span className="text-white font-extrabold tabular-nums">${shiftRevenue.toLocaleString('es-CL')}</span>
-              </div>
-            </div>
+                </div>
 
-            {/* Navigation Links */}
-            <div className="p-3 space-y-1 flex-1">
-              <div className="text-[10px] uppercase font-mono font-bold tracking-wider text-gray-400 px-3 py-1">
-                Módulos del Sistema
-              </div>
-
-              {[
-                { id: 'pos' as AppScreen, label: 'Supervisión Garita & Patio', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', badge: 'Principal' },
-                { id: 'menu' as AppScreen, label: 'Dashboard Operativo', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
-                { id: 'map' as AppScreen, label: 'Plano 2D Interactivo', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
-                { id: 'clients' as AppScreen, label: 'Convenios & Flotas', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-                { id: 'reports' as AppScreen, label: 'Auditoría & Cierres Z', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-                { id: 'support' as AppScreen, label: 'Centro de Soporte & SOPs', icon: 'M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z' },
-                { id: 'settings' as AppScreen, label: 'Ajustes del Sistema', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
-              ].map((item) => {
-                const active = isActive(item.id);
-                return (
+                {isShiftActive ? (
                   <button
-                    key={item.id}
+                    type="button"
                     onClick={() => {
-                      onNavigate(item.id);
+                      onNavigate('operacion_cierre');
                       setIsMobileDrawerOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between p-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      active
-                        ? 'bg-[#E2498A] text-white shadow-md'
-                        : 'text-gray-300 hover:bg-[#2D2D44] hover:text-white'
-                    }`}
+                    className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-98"
                   >
-                    <div className="flex items-center gap-3">
-                      <svg className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon} />
-                      </svg>
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge && (
-                      <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-white/20 text-white font-mono font-bold">
-                        {item.badge}
-                      </span>
-                    )}
+                    <span>🔒</span>
+                    <span>Arqueo Ciego / Cerrar Turno</span>
                   </button>
-                );
-              })}
-            </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onInitiateOpenShift) onInitiateOpenShift();
+                      setIsMobileDrawerOpen(false);
+                    }}
+                    className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-98"
+                  >
+                    <span>🚀</span>
+                    <span>Iniciar Turno con Fondo $50.000</span>
+                  </button>
+                )}
+              </div>
 
-            {/* Drawer Footer Actions */}
-            <div className="p-4 border-t border-slate-700/80 bg-[#1E1E2F] space-y-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (onOpenCommandPalette) onOpenCommandPalette();
-                  setIsMobileDrawerOpen(false);
-                }}
-                className="w-full py-2.5 px-3 rounded-xl bg-[#2D2D44] hover:bg-slate-700 text-gray-300 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <span>Buscar Patente o Folio</span>
-              </button>
+              {/* 4. Indicadores de Vehículos en Patio (30 cupos Serrano 447) */}
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
+                    Control de Patio Serrano 447
+                  </span>
+                  <span className="text-[10px] font-bold text-[#E2498A]">30 Plazas</span>
+                </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (onLogout) onLogout();
-                  setIsMobileDrawerOpen(false);
-                }}
-                className="w-full py-2 px-3 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-800/80 text-rose-300 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-              >
-                <span>🚪</span>
-                <span>Cerrar Sesión</span>
-              </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 rounded-xl bg-[#1E1E2F] border border-slate-800 text-center">
+                    <span className="text-2xl font-black text-white font-mono tabular-nums">{occupiedCount}</span>
+                    <span className="text-[11px] text-gray-400 block font-semibold">Ocupados</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[#1E1E2F] border border-slate-800 text-center">
+                    <span className="text-2xl font-black text-emerald-400 font-mono tabular-nums">{freeCount}</span>
+                    <span className="text-[11px] text-gray-400 block font-semibold">Libres</span>
+                  </div>
+                </div>
+
+                {/* Barra de Ocupación */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[11px] font-mono text-gray-400">
+                    <span>Ocupación Global</span>
+                    <span className="text-pink-300 font-bold">{Math.round((occupiedCount / 30) * 100)}%</span>
+                  </div>
+                  <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                    <div 
+                      className="h-full bg-[#E2498A] rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, Math.round((occupiedCount / 30) * 100))}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-gray-400 pt-1 font-mono">
+                    <span>Sector A (01–15): {Math.min(15, occupiedCount)}</span>
+                    <span>Sector B (16–30): {Math.max(0, occupiedCount - 15)}</span>
+                  </div>
+                </div>
+
+                {overstayVehicles.length > 0 && (
+                  <div className="p-2.5 rounded-xl bg-amber-950/60 border border-amber-800/80 text-amber-200 text-xs flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span><strong>{overstayVehicles.length}</strong> vehículos con sobreestadía (+2 hrs)</span>
+                  </div>
+                )}
+              </div>
+
+              {/* 5. Gráfico de Vehículos Ingresados por Hora */}
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
+                    Ingreso de Vehículos por Hora
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-mono">Hoy</span>
+                </div>
+
+                <div className="h-28 pt-4 flex items-end justify-between gap-1 border-b border-slate-700 pb-2">
+                  {(() => {
+                    const maxVal = Math.max(...hourlyVehicles.map((h) => h.count), 1);
+                    return hourlyVehicles.map((item) => {
+                      const barHeight = Math.max(12, Math.round((item.count / maxVal) * 100));
+                      return (
+                        <div key={item.hour} className="flex-1 flex flex-col items-center gap-1">
+                          <span className="text-[9px] font-mono font-bold text-pink-300 tabular-nums">
+                            {item.count}
+                          </span>
+                          <div className="w-full max-w-[20px] bg-slate-800 rounded-t h-20 flex items-end">
+                            <div 
+                              className="w-full bg-[#E2498A] hover:bg-[#C83472] rounded-t transition-all duration-300"
+                              style={{ height: `${barHeight}%` }}
+                              title={`${item.count} vehículos a las ${item.hour}`}
+                            />
+                          </div>
+                          <span className="text-[8px] font-mono text-gray-400 truncate w-full text-center">
+                            {item.hour.split(':')[0]}h
+                          </span>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
+              {/* 6. Cronograma de Movimientos en Vivo */}
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
+                    Cronograma de Movimientos
+                  </span>
+                  <span className="text-[10px] text-emerald-400 font-bold">En Vivo</span>
+                </div>
+
+                {recentMovements.length === 0 ? (
+                  <div className="p-3 text-center text-xs text-gray-400">
+                    Sin movimientos recientes registrados en el turno.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {recentMovements.map((mov) => (
+                      <div 
+                        key={mov.id}
+                        className="flex items-center justify-between p-2 rounded-xl bg-[#1E1E2F] border border-slate-800 text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-extrabold ${
+                            mov.type === 'INGRESO' 
+                              ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' 
+                              : 'bg-rose-950 text-rose-300 border border-rose-800'
+                          }`}>
+                            {mov.type}
+                          </span>
+                          <span className="font-mono font-extrabold text-white">{mov.plate}</span>
+                          <span className="text-[10px] text-gray-400 font-mono">({mov.slotCode})</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-gray-400 tabular-nums">{mov.time}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 7. Registro de Transacciones del Día (Solo Administrador / Supervisor para Arqueo Ciego) */}
+              {(user?.role === 'administrador' || user?.role === 'supervisor') ? (
+                <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
+                      Registro de Dineros del Día
+                    </span>
+                    <span className="text-xs font-mono font-black text-pink-300 tabular-nums">
+                      ${shiftRevenue.toLocaleString('es-CL')}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    {/* Efectivo */}
+                    <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span>💵</span>
+                        <div>
+                          <span className="text-white font-bold block">Efectivo Recaudado</span>
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            Gaveta con fondo: ${(revenueByMethod.cash + 50000).toLocaleString('es-CL')}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="font-mono font-extrabold text-emerald-400 tabular-nums">
+                        ${revenueByMethod.cash.toLocaleString('es-CL')}
+                      </span>
+                    </div>
+
+                    {/* POS Transbank */}
+                    <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span>💳</span>
+                        <div>
+                          <span className="text-white font-bold block">Transbank / POS</span>
+                          <span className="text-[10px] text-gray-400 font-mono">Tarjetas Débito &amp; Crédito</span>
+                        </div>
+                      </div>
+                      <span className="font-mono font-extrabold text-sky-400 tabular-nums">
+                        ${revenueByMethod.pos.toLocaleString('es-CL')}
+                      </span>
+                    </div>
+
+                    {/* Transferencias / Convenios */}
+                    <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span>📄</span>
+                        <div>
+                          <span className="text-white font-bold block">Convenios &amp; Transferencias</span>
+                          <span className="text-[10px] text-gray-400 font-mono">Abonados corporativos</span>
+                        </div>
+                      </div>
+                      <span className="font-mono font-extrabold text-purple-400 tabular-nums">
+                        ${revenueByMethod.transfer.toLocaleString('es-CL')}
+                      </span>
+                    </div>
+
+                    <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-gray-400">
+                      <span>Tickets liquidados hoy:</span>
+                      <span className="text-white font-bold">{paidTickets.length} operaciones</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
+                      Arqueo de Turno
+                    </span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800">
+                      MODALIDAD CIEGA
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    La recaudación acumulada se audita tras el cierre definitivo de gaveta. Declare el total físico de efectivo y comprobantes en <strong>Arqueo Ciego</strong>.
+                  </p>
+                </div>
+              )}
+
+              {/* 8. Accesos Rápidos a la Plataforma (Botones de >= 48px, sin solapamiento) */}
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-2">
+                <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider block mb-1">
+                  Accesos a la Plataforma
+                </span>
+
+                {[
+                  { id: 'pos' as AppScreen, label: 'Garita POS (Cobro & Tickets)', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', badge: 'Principal' },
+                  { id: 'menu' as AppScreen, label: 'Dashboard Operativo', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+                  { id: 'map' as AppScreen, label: 'Plano 2D Interactivo', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
+                  { id: 'clients' as AppScreen, label: 'Convenios & Flotas', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+                  { id: 'reports' as AppScreen, label: 'Auditoría & Cierres Z', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', requiresAdmin: true },
+                  { id: 'support' as AppScreen, label: 'Centro de Soporte & SOPs', icon: 'M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z' },
+                  { id: 'settings' as AppScreen, label: (user?.role === 'administrador' || user?.role === 'supervisor') ? 'Ajustes del Sistema & Presets' : 'Ajustes de Garita & Hardware', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z', requiresAdmin: false },
+                ]
+                  .filter((item) => !item.requiresAdmin || (user?.role === 'administrador' || user?.role === 'supervisor'))
+                  .map((item) => {
+                    const active = isActive(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          onNavigate(item.id);
+                          setIsMobileDrawerOpen(false);
+                        }}
+                        className={`w-full min-h-[48px] flex items-center justify-between p-3 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-98 ${
+                          active
+                            ? 'bg-[#E2498A] text-white shadow-md'
+                            : 'text-gray-200 hover:bg-[#2D2D44] hover:text-white bg-[#1E1E2F] border border-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <svg className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-pink-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon} />
+                          </svg>
+                          <span>{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-white/20 text-white font-mono font-bold">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+              </div>
+
+              {/* 9. Footer: Buscar & Cerrar Sesión */}
+              <div className="space-y-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onOpenCommandPalette) onOpenCommandPalette();
+                    setIsMobileDrawerOpen(false);
+                  }}
+                  className="w-full min-h-[48px] py-2.5 px-3 rounded-xl bg-[#2D2D44] hover:bg-slate-700 text-gray-300 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer active:scale-98"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>Buscar Patente o Folio</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onLogout) onLogout();
+                    setIsMobileDrawerOpen(false);
+                  }}
+                  className="w-full min-h-[48px] py-2 px-3 rounded-xl bg-rose-950/60 hover:bg-rose-900 border border-rose-800/80 text-rose-300 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer active:scale-98"
+                >
+                  <span>🚪</span>
+                  <span>Cerrar Sesión</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── DOCK INFERIOR TÁCTIL DE SUPERVISIÓN (ERGONOMÍA MÓVIL) ── */}
+      {/* ── DOCK INFERIOR TÁCTIL RESPONSIVO Y ADAPTADO AL ROL ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1E1E2F]/95 border-t border-slate-700/80 px-2 py-1.5 flex items-center justify-around shadow-2xl backdrop-blur-md">
-        <button
-          type="button"
-          onClick={() => onNavigate('pos')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            isActive('pos') ? 'text-[#E2498A] font-black' : 'text-gray-400 font-medium hover:text-white'
-          }`}
-        >
-          <svg className={`w-5 h-5 ${isActive('pos') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('pos') ? "2.5" : "2"} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
-          <span className="text-[10px] mt-0.5 whitespace-nowrap">Patio 2D</span>
-        </button>
+        {user?.role === 'operador' ? (
+          <>
+            {/* Operador Tab 1: Garita POS */}
+            <button
+              type="button"
+              onClick={() => onNavigate('pos')}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isActive('pos')
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Ir a Garita POS"
+            >
+              <svg className={`w-5 h-5 ${isActive('pos') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('pos') ? "2.5" : "2"} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Garita POS</span>
+            </button>
 
-        <button
-          type="button"
-          onClick={() => onNavigate('pos')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            isActive('menu') ? 'text-[#E2498A] font-black' : 'text-gray-400 font-medium hover:text-white'
-          }`}
-        >
-          <svg className={`w-5 h-5 ${isActive('menu') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-[10px] mt-0.5 whitespace-nowrap">Cronología</span>
-        </button>
+            {/* Operador Tab 2: Patio 2D */}
+            <button
+              type="button"
+              onClick={() => onNavigate('map')}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isActive('map')
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Ver plano de patio 2D"
+            >
+              <svg className={`w-5 h-5 ${isActive('map') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('map') ? "2.5" : "2"} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Patio 2D</span>
+            </button>
 
-        <button
-          type="button"
-          onClick={() => onNavigate('reports')}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            isActive('reports') ? 'text-[#E2498A] font-black' : 'text-gray-400 font-medium hover:text-white'
-          }`}
-        >
-          <svg className={`w-5 h-5 ${isActive('reports') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-[10px] mt-0.5 whitespace-nowrap">Finanzas</span>
-        </button>
+            {/* Operador Tab 3: Arqueo Ciego */}
+            <button
+              type="button"
+              onClick={() => onNavigate('operacion_cierre')}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isActive('operacion_cierre')
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Arqueo ciego y cierre de turno"
+            >
+              <svg className={`w-5 h-5 ${isActive('operacion_cierre') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('operacion_cierre') ? "2.5" : "2"} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Arqueo Ciego</span>
+            </button>
 
-        <button
-          type="button"
-          onClick={() => setIsMobileDrawerOpen(true)}
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all cursor-pointer ${
-            isMobileDrawerOpen ? 'text-[#E2498A] font-black' : 'text-gray-400 font-medium hover:text-white'
-          }`}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-          <span className="text-[10px] mt-0.5 whitespace-nowrap">Menú</span>
-        </button>
+            {/* Operador Tab 4: Menú */}
+            <button
+              type="button"
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isMobileDrawerOpen || (!isActive('pos') && !isActive('map') && !isActive('operacion_cierre'))
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Abrir menú de opciones"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Menú</span>
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Supervisor Tab 1: Supervisión */}
+            <button
+              type="button"
+              onClick={() => onNavigate('menu')}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isActive('menu')
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Ver supervisión gerencial"
+            >
+              <svg className={`w-5 h-5 ${isActive('menu') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('menu') ? "2.5" : "2"} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Supervisión</span>
+            </button>
+
+            {/* Supervisor Tab 2: Patio 2D */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onSelectMobileTab) onSelectMobileTab('plano');
+                onNavigate('pos');
+              }}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isActive('pos') && activeMobileTab === 'plano'
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Ver plano de patio 2D"
+            >
+              <svg className={`w-5 h-5 ${isActive('pos') && activeMobileTab === 'plano' ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('pos') && activeMobileTab === 'plano' ? "2.5" : "2"} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Patio 2D</span>
+            </button>
+
+            {/* Supervisor Tab 3: Cronología */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onSelectMobileTab) onSelectMobileTab('cronologia');
+                onNavigate('pos');
+              }}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isActive('pos') && activeMobileTab === 'cronologia'
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Ver cronología de movimientos"
+            >
+              <svg className={`w-5 h-5 ${isActive('pos') && activeMobileTab === 'cronologia' ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('pos') && activeMobileTab === 'cronologia' ? "2.5" : "2"} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Cronología</span>
+            </button>
+
+            {/* Supervisor Tab 4: Reportes Z */}
+            <button
+              type="button"
+              onClick={() => onNavigate('reports')}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isActive('reports')
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Ver cortes Z y auditoría"
+            >
+              <svg className={`w-5 h-5 ${isActive('reports') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('reports') ? "2.5" : "2"} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Cortes Z</span>
+            </button>
+
+            {/* Supervisor Tab 5: Menú */}
+            <button
+              type="button"
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
+                isMobileDrawerOpen || (!isActive('menu') && !isActive('pos') && !isActive('reports'))
+                  ? 'text-[#E2498A] font-black'
+                  : 'text-gray-400 font-medium hover:text-white'
+              }`}
+              aria-label="Abrir menú de opciones"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Menú</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* ── MODAL DE VERIFICACIÓN DE CLAVE PARA ELEVACIÓN A ADMINISTRADOR (RBAC) ── */}

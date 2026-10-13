@@ -28,10 +28,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
     isOffline,
     setIsOffline,
     user: activeUser,
+    setUserRole,
     checklistTasks,
     keyboardShortcutsEnabled,
     setKeyboardShortcutsEnabled,
   } = useParking();
+
+  const isAdmin = activeUser?.role === 'administrador';
+
+  // Hardware de Garita & Alertas (Cajero Operador)
+  const [printerPaperSize, setPrinterPaperSize] = useState<'80mm' | '58mm'>('80mm');
+  const [audioBeepAlerts, setAudioBeepAlerts] = useState<boolean>(true);
 
   // Active section on left sidebar
   const [activeSection, setActiveSection] = useState<SettingsSection>('generales');
@@ -46,17 +53,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
   const [preventScreenOff, setPreventScreenOff] = useState<boolean>(true);
 
   // 2. Ajustes de Cuenta State
-  const [accountName, setAccountName] = useState<string>(activeUser.name || 'Braulio AM');
+  const [accountName, setAccountName] = useState<string>(activeUser.name || 'Braulio Cordano');
   const [accountAvatar, setAccountAvatar] = useState<string>('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150');
-  const [accountEmail, setAccountEmail] = useState<string>(activeUser.email || 'operaciones@cordano.cl');
-  const [notificationEmail, setNotificationEmail] = useState<string>('reportes@cordano.cl');
+  const [accountEmail, setAccountEmail] = useState<string>(activeUser.email || 'braulio@automatizable.cl');
+  const [notificationEmail, setNotificationEmail] = useState<string>('braulio@automatizable.cl');
 
   // 3. Personal (Usuarios) State
   const [usersList, setUsersList] = useState<SystemUser[]>([
     {
-      id: 'usr-1',
-      name: 'Braulio AM',
-      email: 'operaciones@cordano.cl',
+      id: 'usr-admin-braulio',
+      name: 'Braulio Cordano',
+      email: 'braulio@automatizable.cl',
       role: 'administrador',
       canViewReports: true,
       canOverrideRates: true,
@@ -65,22 +72,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
       status: 'activo',
     },
     {
-      id: 'usr-2',
-      name: 'Operador Garita 01',
-      email: 'garita1@cordano.cl',
+      id: 'usr-op-cajero',
+      name: 'Cajero Garita',
+      email: 'cajero@cordano.cl',
       role: 'operador',
       canViewReports: false,
       canOverrideRates: false,
-      canManageUsers: false,
-      status: 'activo',
-    },
-    {
-      id: 'usr-3',
-      name: 'Supervisor Serrano 447',
-      email: 'supervisor@cordano.cl',
-      role: 'administrador',
-      canViewReports: true,
-      canOverrideRates: true,
       canManageUsers: false,
       status: 'activo',
     },
@@ -169,11 +166,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
 
   function getSectionTitle(section: SettingsSection): string {
     switch (section) {
-      case 'generales': return 'Ajustes Generales';
-      case 'cuenta': return 'Ajustes de Cuenta';
-      case 'personal': return 'Personal & Usuarios';
-      case 'pos': return 'Punto de Venta (POS) & Turnos';
-      case 'tarifas': return 'Tarifario CLP & Operación';
+      case 'generales': return isAdmin ? 'Ajustes Generales del Sistema' : 'Ajustes de Garita & Pantalla';
+      case 'cuenta': return isAdmin ? 'Ajustes de Cuenta & Supervisión' : 'Mi Perfil de Operador';
+      case 'personal': return 'Personal & Gestión de Usuarios';
+      case 'pos': return isAdmin ? 'Punto de Venta (POS) & Políticas de Turno' : 'Hardware & Terminal de Garita';
+      case 'tarifas': return isAdmin ? 'Tarifario CLP & Regulación Legal (Ley 20.967)' : 'Tarifario Oficial Vigente (Solo Consulta)';
     }
   }
 
@@ -211,89 +208,87 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
     onShowToast(`Usuario ${newUser.name} creado correctamente.`, 'success');
   };
 
-  // ── RBAC GUARD: Bloqueo de acceso para Operadores (Principio de Menor Privilegio) ──
-  if (activeUser?.role !== 'administrador') {
-    return (
-      <div id="view-settings-restricted" className="p-4 sm:p-8 max-w-4xl mx-auto min-h-[70vh] flex items-center justify-center font-sans">
-        <div className="w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-8 sm:p-12 text-center space-y-6 animate-fade-in-up">
-          <div className="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto text-4xl shadow-xs">
-            🛡️
-          </div>
-          <div className="space-y-2 max-w-lg mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-mono font-bold">
-              <span>RBAC CONTROL • NIVEL: OPERADOR</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1E1E2F] tracking-tight">
-              Módulo Restringido a Administradores
-            </h2>
-            <p className="text-sm text-slate-500 leading-relaxed">
-              El panel de configuraciones, alteración de matrices tarifarias y credenciales tributarias del SII exige credenciales con rol de <strong>Supervisor o Administrador</strong> para prevenir descalces operativos.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left text-xs space-y-2 text-slate-600">
-            <div className="flex justify-between">
-              <span className="font-semibold text-slate-400">Usuario Activo:</span>
-              <span className="font-bold text-slate-800">{activeUser?.name || 'Operador'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold text-slate-400">Rol Detectado:</span>
-              <span className="font-mono font-bold text-amber-600 uppercase">OPERADOR (GARITA POS)</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold text-slate-400">Recinto Operativo:</span>
-              <span className="font-medium text-slate-700">Serrano 447, Iquique</span>
-            </div>
-          </div>
-
-          <p className="text-[11px] text-slate-400">
-            Si requiere modificar las tarifas legales o usuarios, solicite el relevo o autentíquese con una cuenta administradora desde el menú de usuario.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Secciones disponibles según el rol (Arquitectura RBAC: Operador vs Administrador)
+  const availableSections: { id: SettingsSection; label: string; icon: string; adminOnly?: boolean }[] = isAdmin
+    ? [
+        { id: 'generales', label: 'Ajustes Generales del Sistema', icon: '⚙' },
+        { id: 'cuenta', label: 'Ajustes de Cuenta & Supervisión', icon: '👤' },
+        { id: 'personal', label: 'Personal & Gestión de Usuarios', icon: '👥', adminOnly: true },
+        { id: 'pos', label: 'Punto de Venta (POS) & Políticas', icon: '🖥' },
+        { id: 'tarifas', label: 'Tarifario CLP & Regulación Legal', icon: '💰' },
+      ]
+    : [
+        { id: 'generales', label: 'Ajustes de Garita & Pantalla', icon: '⚙' },
+        { id: 'pos', label: 'Hardware & Terminal de Garita', icon: '🖥' },
+        { id: 'cuenta', label: 'Mi Perfil de Operador', icon: '👤' },
+        { id: 'tarifas', label: 'Tarifario Oficial (Consulta)', icon: '💰' },
+      ];
 
   return (
     <div id="view-settings" className="p-4 sm:p-6 lg:p-8 w-full max-w-[1850px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-12 space-y-6 text-[#1E1E2F] animate-fade-in-up font-sans">
-      {/* ── HEADER ── */}
+      {/* ── HEADER ROLE-ADAPTIVE ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E2E8F0] pb-4 gap-3">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF5F8] border border-[#E2498A]/30 text-[#E2498A] text-xs font-bold mb-2">
-            <span>PANEL CENTRALIZADO DE CONFIGURACIÓN</span>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF5F8] border border-[#E2498A]/30 text-[#E2498A] text-xs font-bold">
+              <span>CONFIGURACIÓN CORDANO PARKING OPS</span>
+            </div>
+            {isAdmin ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-300 text-xs font-black">
+                <span>👑</span> MODO ADMINISTRADOR · CONTROL COMPLETO
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-100 text-[#C83472] border border-[#E2498A]/40 text-xs font-black">
+                <span>👷</span> MODO CAJERO OPERADOR · AJUSTES DE GARITA
+              </span>
+            )}
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1E1E2F]">
-            Ajustes del Sistema &amp; Parámetros
+            {isAdmin ? 'Ajustes del Sistema & Parámetros Globales' : 'Configuración de Estación & Hardware de Garita'}
           </h2>
           <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
-            Recinto Serrano 447, Iquique • Infraestructura Cloud Run `us-west1`
+            Recinto Serrano 447, Iquique • {isAdmin ? 'Gestión central de tarifas, usuarios y políticas de turno' : 'Preferencias de pantalla, atajos de garita y terminal térmico'}
           </p>
         </div>
 
-        {isDirty && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold animate-pulse">
-            <span>⚠ Cambios sin guardar</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Conmutador rápido de rol para verificar ambas arquitecturas */}
+          <button
+            type="button"
+            onClick={() => {
+              const newRole = isAdmin ? 'operador' : 'administrador';
+              setUserRole(newRole);
+              if (newRole === 'operador' && activeSection === 'personal') {
+                setActiveSection('generales');
+              }
+              onShowToast(`Perfil conmutado a ${newRole === 'operador' ? 'Cajero Operador' : 'Administrador'}.`, 'info');
+            }}
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all border border-slate-300 flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            title="Conmutar rol para verificar la vista"
+          >
+            <span>🔄</span>
+            <span>Ver como {isAdmin ? 'Operador Garita' : 'Administrador'}</span>
+          </button>
+
+          {isDirty && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-800 text-xs font-bold animate-pulse">
+              <span>⚠ Cambios sin guardar</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ── CENTRALIZED SINGLE-VIEW LAYOUT: LEFT SIDEBAR + RIGHT CONTENT ── */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* LEFT VERTICAL SIDEBAR */}
         <aside className="md:col-span-3 bg-white rounded-2xl border border-slate-200 shadow-xs p-3 space-y-1">
-          {[
-            { id: 'generales', label: 'Ajustes Generales', icon: '⚙' },
-            { id: 'cuenta', label: 'Ajustes de Cuenta', icon: '👤' },
-            { id: 'personal', label: 'Personal & Usuarios', icon: '👥' },
-            { id: 'pos', label: 'Punto de Venta (POS)', icon: '🖥' },
-            { id: 'tarifas', label: 'Tarifario CLP & Reglas', icon: '💰' },
-          ].map((item) => {
+          {availableSections.map((item) => {
             const active = activeSection === item.id;
             return (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => handleSelectSection(item.id as SettingsSection)}
+                onClick={() => handleSelectSection(item.id)}
                 className={`w-full text-left px-3.5 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
                   active
                     ? 'bg-[#1E1E2F] text-white shadow-xs'
@@ -340,14 +335,26 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
               {getSectionTitle(activeSection)}
             </h3>
 
-            <button
-              type="button"
-              onClick={() => handleSaveCurrentSection()}
-              className="px-5 py-2.5 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-2"
-            >
-              <span>💾</span>
-              <span>Guardar Cambios</span>
-            </button>
+            {activeSection === 'tarifas' && !isAdmin ? (
+              <span className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs flex items-center gap-1.5 border border-slate-200 select-none">
+                <span>🔒</span>
+                <span>Tarifas Protegidas (Solo Admin)</span>
+              </span>
+            ) : activeSection === 'personal' && !isAdmin ? (
+              <span className="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-500 font-bold text-xs flex items-center gap-1.5 border border-slate-200 select-none">
+                <span>🔒</span>
+                <span>Módulo Restringido</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleSaveCurrentSection()}
+                className="px-5 py-2.5 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer flex items-center gap-2"
+              >
+                <span>💾</span>
+                <span>Guardar Cambios</span>
+              </button>
+            )}
           </div>
 
           {/* ── 1. AJUSTES GENERALES ── */}
@@ -552,96 +559,182 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
 
           {/* ── 3. PERSONAL & USUARIOS ── */}
           {activeSection === 'personal' && (
-            <div className="space-y-5 text-xs">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-slate-800 text-sm">Usuarios con Acceso al Sistema</h4>
-                  <p className="text-slate-500 text-[11px]">Gestione roles de cajero/operario y permisos especiales de administración</p>
+            !isAdmin ? (
+              <div className="p-8 text-center rounded-3xl bg-slate-50 border border-slate-200 space-y-4 animate-fade-in-up">
+                <div className="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 border border-purple-200 text-3xl flex items-center justify-center mx-auto shadow-xs">
+                  👥
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsCreateUserModalOpen(true)}
-                  className="px-4 py-2 rounded-xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
-                >
-                  <span>+</span>
-                  <span>Crear Nuevo Usuario</span>
-                </button>
+                <div className="max-w-md mx-auto space-y-1.5">
+                  <h4 className="text-base font-extrabold text-slate-900">Módulo de Personal Restringido</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    La creación de usuarios, asignación de perfiles de cajero y concesión de facultades de auditoría corresponden exclusivamente al rol de <strong>Administrador / Supervisor</strong>.
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-purple-50 text-purple-800 text-xs font-bold border border-purple-200">
+                  <span>🔒</span> Permiso requerido: <span className="font-mono">ADMINISTRADOR</span>
+                </div>
               </div>
-
-              {/* Lista en formato Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {usersList.map((u) => (
-                  <div
-                    key={u.id}
-                    onClick={() => setSelectedUserModal(u)}
-                    className="p-4 rounded-2xl border border-slate-200 hover:border-[#E2498A]/60 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col justify-between group"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          {u.role.toUpperCase()}
-                        </span>
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                      </div>
-                      <h5 className="font-black text-slate-900 group-hover:text-[#E2498A] transition-colors">
-                        {u.name}
-                      </h5>
-                      <p className="text-[11px] font-mono text-slate-500 truncate">{u.email}</p>
-                    </div>
-
-                    <div className="mt-4 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-semibold text-slate-600">
-                      <span>Reportes Z: {u.canViewReports ? 'Habilitado' : 'Bloqueado'}</span>
-                      <span className="text-[#E2498A] font-bold">Editar ➔</span>
-                    </div>
+            ) : (
+              <div className="space-y-5 text-xs">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-sm">Usuarios con Acceso al Sistema</h4>
+                    <p className="text-slate-500 text-[11px]">Gestione roles de cajero/operario y permisos especiales de administración</p>
                   </div>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateUserModalOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>+</span>
+                    <span>Crear Nuevo Usuario</span>
+                  </button>
+                </div>
+
+                {/* Lista en formato Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {usersList.map((u) => (
+                    <div
+                      key={u.id}
+                      onClick={() => setSelectedUserModal(u)}
+                      className="p-4 rounded-2xl border border-slate-200 hover:border-[#E2498A]/60 shadow-xs hover:shadow-md transition cursor-pointer flex flex-col justify-between group"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            {u.role.toUpperCase()}
+                          </span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        </div>
+                        <h5 className="font-black text-slate-900 group-hover:text-[#E2498A] transition-colors">
+                          {u.name}
+                        </h5>
+                        <p className="text-[11px] font-mono text-slate-500 truncate">{u.email}</p>
+                      </div>
+
+                      <div className="mt-4 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-semibold text-slate-600">
+                        <span>Reportes Z: {u.canViewReports ? 'Habilitado' : 'Bloqueado'}</span>
+                        <span className="text-[#E2498A] font-bold">Editar ➔</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )
           )}
 
           {/* ── 4. PUNTO DE VENTA (POS) & TURNOS ── */}
           {activeSection === 'pos' && (
             <div className="space-y-6 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1 uppercase text-[11px]">
-                    Fondo de Caja Inicial ($ CLP)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="5000"
-                    value={posInitialCashFund}
-                    onChange={(e) => { setPosInitialCashFund(parseInt(e.target.value) || 0); markDirty(); }}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold focus:border-[#E2498A] focus:outline-none"
-                  />
-                  <span className="text-[10px] text-slate-500">Monto predeterminado al abrir turno</span>
+              {/* 1. SECCIÓN DE HARDWARE & TERMINAL DE GARITA (Común para Operador y Admin) */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-3">
+                  <div>
+                    <span className="font-bold text-xs text-slate-800 block">Impresora Térmica de Tickets & Comprobantes</span>
+                    <span className="text-[11px] text-slate-500">Seleccione el ancho de bobina y formato de emisión física</span>
+                  </div>
+                  <select
+                    value={printerPaperSize}
+                    onChange={(e) => { setPrinterPaperSize(e.target.value as any); markDirty(); }}
+                    className="h-9 px-3 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-800 focus:border-[#E2498A] focus:outline-none cursor-pointer"
+                  >
+                    <option value="80mm">Bobina 80 mm (Estándar Garita USB / Auto-corte)</option>
+                    <option value="58mm">Bobina 58 mm (Terminal Portátil Sunmi / Compacto)</option>
+                  </select>
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1 uppercase text-[11px]">
-                    Horario Entrada Turno Diurno
-                  </label>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-xs text-slate-800 block">Alertas Sonoras de Garita (Buzzer Beep)</span>
+                    <span className="text-[11px] text-slate-500">Sonido de confirmación al validar patente y emitir ticket</span>
+                  </div>
                   <input
-                    type="time"
-                    value={posShiftStartMandatory}
-                    onChange={(e) => { setPosShiftStartMandatory(e.target.value); markDirty(); }}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold focus:border-[#E2498A] focus:outline-none"
+                    type="checkbox"
+                    checked={audioBeepAlerts}
+                    onChange={(e) => { setAudioBeepAlerts(e.target.checked); markDirty(); }}
+                    className="w-5 h-5 accent-[#E2498A] cursor-pointer"
                   />
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 mb-1 uppercase text-[11px]">
-                    Horario Salida Turno Diurno
-                  </label>
-                  <input
-                    type="time"
-                    value={posShiftEndMandatory}
-                    onChange={(e) => { setPosShiftEndMandatory(e.target.value); markDirty(); }}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold focus:border-[#E2498A] focus:outline-none"
-                  />
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={() => onShowToast(`Ticket de prueba (${printerPaperSize}) enviado a impresora USB con QR y código de barras.`, 'success')}
+                    className="px-4 py-2 rounded-xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-xs active:scale-95"
+                  >
+                    <span>🖨️</span>
+                    <span>Imprimir Ticket Térmico de Prueba</span>
+                  </button>
                 </div>
               </div>
+
+              {/* 2. PARÁMETROS DE TURNO (Solo lectura para Operador, Editables para Admin) */}
+              {isAdmin ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1 uppercase text-[11px]">
+                      Fondo de Caja Inicial ($ CLP) *
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="5000"
+                      value={posInitialCashFund}
+                      onChange={(e) => { setPosInitialCashFund(parseInt(e.target.value) || 0); markDirty(); }}
+                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold focus:border-[#E2498A] focus:outline-none"
+                    />
+                    <span className="text-[10px] text-slate-500">Monto obligatorio al abrir turno ($50.000)</span>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1 uppercase text-[11px]">
+                      Horario Entrada Turno Diurno
+                    </label>
+                    <input
+                      type="time"
+                      value={posShiftStartMandatory}
+                      onChange={(e) => { setPosShiftStartMandatory(e.target.value); markDirty(); }}
+                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold focus:border-[#E2498A] focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1 uppercase text-[11px]">
+                      Horario Salida Turno Diurno
+                    </label>
+                    <input
+                      type="time"
+                      value={posShiftEndMandatory}
+                      onChange={(e) => { setPosShiftEndMandatory(e.target.value); markDirty(); }}
+                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold focus:border-[#E2498A] focus:outline-none"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3">
+                  <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
+                    <span>🔒</span>
+                    <span>Parámetros de Turno Fijados por Administración</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-white border border-amber-200">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Fondo de Gaveta Inicial</span>
+                      <span className="text-sm font-black font-mono text-slate-900 tabular-nums">$ 50.000 CLP</span>
+                      <span className="text-[10px] text-emerald-600 block mt-0.5">Obligatorio al iniciar turno</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white border border-amber-200">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Horario Turno Diurno</span>
+                      <span className="text-sm font-black font-mono text-slate-900 tabular-nums">08:00 — 20:00</span>
+                      <span className="text-[10px] text-slate-500 block mt-0.5">Turno estándar 12h</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white border border-amber-200">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase block">Recinto Garita</span>
+                      <span className="text-sm font-black text-slate-900">Serrano 447</span>
+                      <span className="text-[10px] text-slate-500 block mt-0.5">30 plazas (Sectores A y B)</span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Tareas Obligatorias del Operario (Checklist) */}
               <div className="space-y-3 pt-2 border-t border-slate-100">
@@ -664,27 +757,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                   ))}
                 </div>
 
-                <div className="flex gap-2 pt-2">
-                  <input
-                    type="text"
-                    value={newTaskInput}
-                    onChange={(e) => setNewTaskInput(e.target.value)}
-                    placeholder="Añadir nueva tarea para el checklist de apertura..."
-                    className="flex-1 h-10 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#E2498A] focus:outline-none text-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!newTaskInput.trim()) return;
-                      setTasksList((prev) => [...prev, { id: `task-${Date.now()}`, label: newTaskInput.trim(), mandatory: true }]);
-                      setNewTaskInput('');
-                      markDirty();
-                    }}
-                    className="px-4 py-2 rounded-xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs"
-                  >
-                    + Agregar
-                  </button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-2 pt-2">
+                    <input
+                      type="text"
+                      value={newTaskInput}
+                      onChange={(e) => setNewTaskInput(e.target.value)}
+                      placeholder="Añadir nueva tarea para el checklist de apertura..."
+                      className="flex-1 h-10 px-3 rounded-xl border border-slate-200 bg-white focus:border-[#E2498A] focus:outline-none text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newTaskInput.trim()) return;
+                        setTasksList((prev) => [...prev, { id: `task-${Date.now()}`, label: newTaskInput.trim(), mandatory: true }]);
+                        setNewTaskInput('');
+                        markDirty();
+                      }}
+                      className="px-4 py-2 rounded-xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs cursor-pointer shadow-xs"
+                    >
+                      + Agregar Tarea
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -693,6 +788,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
           {activeSection === 'tarifas' && (
             <div className="space-y-6 text-xs">
               
+              {!isAdmin && (
+                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-300 text-amber-900 flex items-start gap-3 shadow-2xs animate-fade-in-up">
+                  <span className="text-xl shrink-0">⚖️</span>
+                  <div className="space-y-1 text-xs">
+                    <span className="font-extrabold block">Modo Solo Consulta — Tarifario Oficial Vigente (Ley N° 20.967)</span>
+                    <p className="text-amber-800 text-[11px] leading-relaxed">
+                      Como <strong>Cajero Operador</strong>, visualiza las tarifas legalmente configuradas para el recinto Serrano 447. Los valores, tramos y parámetros impositivos están protegidos contra edición accidental; solo el rol de <strong>Administrador / Supervisor</strong> puede promulgar nuevas versiones tarifarias.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Resumen Ejecutivo de Alto Nivel (Progressive Disclosure - High Level Overview) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
@@ -752,11 +859,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                     </div>
                     <select
                       value={billingModel}
+                      disabled={!isAdmin}
                       onChange={(e) => {
                         setBillingModel(e.target.value as BillingModel);
                         markDirty();
                       }}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-bold text-xs text-slate-800 focus:border-[#E2498A] focus:bg-white focus:outline-none transition-colors"
+                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-bold text-xs text-slate-800 focus:border-[#E2498A] focus:bg-white focus:outline-none transition-colors disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                     >
                       <option value="PER_MINUTE">1. Cobro por Minuto Efectivo (Lineal)</option>
                       <option value="TRANCHE_30_10">2. Cobro por Tramos Vencidos (30 min base + 10 min)</option>
@@ -782,11 +890,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                     </div>
                     <select
                       value={taxDocumentType}
+                      disabled={!isAdmin}
                       onChange={(e) => {
                         setTaxDocumentType(parseInt(e.target.value) as TaxDocumentType);
                         markDirty();
                       }}
-                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-bold text-xs text-slate-800 focus:border-[#E2498A] focus:bg-white focus:outline-none transition-colors"
+                      className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-bold text-xs text-slate-800 focus:border-[#E2498A] focus:bg-white focus:outline-none transition-colors disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                     >
                       <option value={39}>Boleta Electrónica Afecta (Tipo 39 - Con 19% IVA)</option>
                       <option value={41}>Boleta Electrónica No Afecta / Exenta (Tipo 41)</option>
@@ -827,8 +936,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                               <input
                                 type="number"
                                 value={rateSedan}
+                                disabled={!isAdmin}
                                 onChange={(e) => { setRateSedan(parseInt(e.target.value) || 0); markDirty(); }}
-                                className="w-20 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                                className="w-20 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                               />
                             </div>
                           </td>
@@ -839,8 +949,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                                 <input
                                   type="number"
                                   value={trancheSedan}
+                                  disabled={!isAdmin}
                                   onChange={(e) => { setTrancheSedan(parseInt(e.target.value) || 0); markDirty(); }}
-                                  className="w-20 h-8 px-2 rounded-lg border border-amber-300 bg-amber-50/40 font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                                  className="w-20 h-8 px-2 rounded-lg border border-amber-300 bg-amber-50/40 font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                                 />
                               </div>
                             </td>
@@ -856,8 +967,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                               <input
                                 type="number"
                                 value={rateSuv}
+                                disabled={!isAdmin}
                                 onChange={(e) => { setRateSuv(parseInt(e.target.value) || 0); markDirty(); }}
-                                className="w-20 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                                className="w-20 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                               />
                             </div>
                           </td>
@@ -868,8 +980,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                                 <input
                                   type="number"
                                   value={trancheSuv}
+                                  disabled={!isAdmin}
                                   onChange={(e) => { setTrancheSuv(parseInt(e.target.value) || 0); markDirty(); }}
-                                  className="w-20 h-8 px-2 rounded-lg border border-amber-300 bg-amber-50/40 font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                                  className="w-20 h-8 px-2 rounded-lg border border-amber-300 bg-amber-50/40 font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                                 />
                               </div>
                             </td>
@@ -885,8 +998,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                               <input
                                 type="number"
                                 value={rateMoto}
+                                disabled={!isAdmin}
                                 onChange={(e) => { setRateMoto(parseInt(e.target.value) || 0); markDirty(); }}
-                                className="w-20 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                                className="w-20 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                               />
                             </div>
                           </td>
@@ -897,8 +1011,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                                 <input
                                   type="number"
                                   value={trancheMoto}
+                                  disabled={!isAdmin}
                                   onChange={(e) => { setTrancheMoto(parseInt(e.target.value) || 0); markDirty(); }}
-                                  className="w-20 h-8 px-2 rounded-lg border border-amber-300 bg-amber-50/40 font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                                  className="w-20 h-8 px-2 rounded-lg border border-amber-300 bg-amber-50/40 font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                                 />
                               </div>
                             </td>
@@ -929,8 +1044,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                       <input
                         type="number"
                         value={gracePeriod}
+                        disabled={!isAdmin}
                         onChange={(e) => { setGracePeriod(parseInt(e.target.value) || 0); markDirty(); }}
-                        className="w-16 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                        className="w-16 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                       />
                       <span className="text-[10px] text-slate-500 font-bold">min</span>
                     </div>
@@ -981,8 +1097,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                             <input
                               type="number"
                               value={nightSurcharge}
+                              disabled={!isAdmin}
                               onChange={(e) => { setNightSurcharge(parseInt(e.target.value) || 0); markDirty(); }}
-                              className="w-16 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                              className="w-16 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                             />
                             <span className="text-[10px] font-bold text-slate-500">%</span>
                           </div>
@@ -997,8 +1114,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                             <input
                               type="number"
                               value={weekendSurcharge}
+                              disabled={!isAdmin}
                               onChange={(e) => { setWeekendSurcharge(parseInt(e.target.value) || 0); markDirty(); }}
-                              className="w-16 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums"
+                              className="w-16 h-8 px-2 rounded-lg border border-slate-200 bg-white font-mono font-black text-right text-xs focus:border-[#E2498A] focus:outline-none tabular-nums disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                             />
                             <span className="text-[10px] font-bold text-slate-500">%</span>
                           </div>
@@ -1102,11 +1220,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onShowToast }) => {
                       </span>
                       <select
                         value={taxDocumentType}
+                        disabled={!isAdmin}
                         onChange={(e) => {
                           setTaxDocumentType(parseInt(e.target.value) as TaxDocumentType);
                           markDirty();
                         }}
-                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white font-bold text-xs focus:border-[#E2498A] focus:outline-none cursor-pointer"
+                        className="w-full h-8 px-2 rounded-lg border border-slate-200 bg-white font-bold text-xs focus:border-[#E2498A] focus:outline-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                       >
                         <option value={39}>Tipo 39 - Boleta Electrónica Afecta (19% IVA)</option>
                         <option value={41}>Tipo 41 - Boleta Electrónica Exenta (Giro Exento)</option>

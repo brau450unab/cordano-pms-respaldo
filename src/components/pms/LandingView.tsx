@@ -1,6 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppScreen } from '../../types';
 import { useParking } from '../../context/ParkingContext';
+import { INITIAL_ADMIN, INITIAL_OPERATOR } from '../../data/mockData';
+import {
+  Lock,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  User,
+  KeyRound,
+  X,
+  Activity,
+  Car
+} from 'lucide-react';
 
 interface LandingViewProps {
   onLoginSuccess: (targetScreen?: AppScreen) => void;
@@ -15,11 +27,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
   onNavigate,
   onShowToast,
 }) => {
-  const { setIsLoggedIn, isLoggedIn, tariffConfig } = useParking();
+  const { setIsLoggedIn, isLoggedIn, tariffConfig, user, logout, setUserRole, setUser } = useParking();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loginState, setLoginState] = useState<'idle' | 'loading'>('idle');
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -48,29 +61,24 @@ export const LandingView: React.FC<LandingViewProps> = ({
   // Carrusel de imágenes reales del recinto Serrano 447 (movimiento continuo)
   const carouselImages = [
     {
-      url: 'https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=1000&q=80',
-      title: 'Acceso Vehicular & Garita Serrano 447',
-      desc: 'Barrera automatizada y lector LPR de patentes',
+      url: '/assets/images/acceso-garita-barrera.jpg',
+      title: 'Control de Acceso & Garita Serrano 447',
+      desc: 'Barrera automatizada, tótem digital y lector LPR de patentes',
     },
     {
-      url: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?auto=format&fit=crop&w=1000&q=80',
+      url: '/assets/images/patio-central-serrano447.jpg',
       title: 'Patio Central de Estacionamiento',
-      desc: '30 plazas pavimentadas con señalética refractaria',
+      desc: '30 plazas pavimentadas con señalética vial diurna y demarcaciones',
     },
     {
-      url: 'https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?auto=format&fit=crop&w=1000&q=80',
+      url: '/assets/images/sector-techado-flotas.jpg',
       title: 'Sector Techado Preferencial',
-      desc: 'Espacios protegidos para flotas y convenios corporativos',
+      desc: 'Tensoestructuras arquitectónicas de protección solar para flotas y convenios',
     },
     {
-      url: 'https://images.unsplash.com/photo-1555652736-e92021d28a10?auto=format&fit=crop&w=1000&q=80',
-      title: 'CCTV y Seguridad Operativa 24/7',
-      desc: 'Monitoreo de perímetro y control de gaveta blindada',
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1000&q=80',
-      title: 'Terminal de Cobro Rápido POS Transbank',
-      desc: 'Emisión térmica inmediata y boletas DTE integradas',
+      url: '/assets/images/panoramica-iquique-costa.jpg',
+      title: 'Vista Panorámica del Recinto Serrano 447',
+      desc: 'Ubicación céntrica estratégica en Iquique con vista al borde costero y Cerro Dragón',
     },
   ];
 
@@ -102,18 +110,57 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
   const handleCredentialsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim() || !password.trim()) {
-      onShowToast('Ingrese credenciales', 'error');
+    const cleanUser = username.trim().toLowerCase();
+    const isBraulio = cleanUser === 'braulio@automatizable.cl' || cleanUser === 'braulio' || cleanUser === '15221890-4' || cleanUser === '15.221.890-4';
+    const isCajero = cleanUser === 'cajero@cordano.cl' || cleanUser === 'cajero' || cleanUser === '19824312-5' || cleanUser === '19.824.312-5';
+
+    if (isBraulio && password === 'admin123') {
+      setLoginState('loading');
+      setTimeout(() => {
+        setLoginState('idle');
+        setUser(INITIAL_ADMIN);
+        setIsLoggedIn(true);
+        setShowLoginModal(false);
+        onShowToast('Bienvenido, Braulio Cordano (Administrador)', 'success');
+        onNavigate('inicio');
+        onLoginSuccess('inicio');
+      }, 600);
       return;
     }
+
+    if (isCajero && password === 'cajero123') {
+      setLoginState('loading');
+      setTimeout(() => {
+        setLoginState('idle');
+        setUser(INITIAL_OPERATOR);
+        setIsLoggedIn(true);
+        setShowLoginModal(false);
+        onShowToast('Bienvenido al Turno, Cajero Garita (Operador)', 'success');
+        onNavigate('pos');
+        onLoginSuccess('pos');
+      }, 600);
+      return;
+    }
+
+    onShowToast('Credenciales incorrectas.', 'error');
+  };
+
+  const handleFastLogin = (role: 'operador' | 'administrador') => {
     setLoginState('loading');
     setTimeout(() => {
       setLoginState('idle');
+      if (role === 'operador') {
+        setUser(INITIAL_OPERATOR);
+        onShowToast('Bienvenido al Turno (Cajero Garita - Operador)', 'success');
+      } else {
+        setUser(INITIAL_ADMIN);
+        onShowToast('Bienvenido al sistema (Braulio Cordano - Administrador)', 'success');
+      }
       setIsLoggedIn(true);
-      onShowToast('Bienvenido al sistema', 'success');
-      onNavigate('pos');
-      onLoginSuccess('pos');
-    }, 800);
+      setShowLoginModal(false);
+      onNavigate(role === 'operador' ? 'pos' : 'inicio');
+      onLoginSuccess(role === 'operador' ? 'pos' : 'inicio');
+    }, 400);
   };
 
   const handleContactSubmit = (e: React.FormEvent) => {
@@ -399,14 +446,148 @@ export const LandingView: React.FC<LandingViewProps> = ({
   return (
     <div className="min-h-screen bg-white text-[#1E1E2F] font-sans selection:bg-[#E2498A] selection:text-white overflow-hidden">
       
-      {/* NAVBAR */}
-      <nav className="absolute top-0 left-0 w-full z-50 px-6 py-6 lg:px-12 flex items-center justify-between">
+      {/* ── MODO MÓVIL EXCLUSIVO: PORTAL DE LOGIN & SUPERVISIÓN (MD:HIDDEN) ── */}
+      <div className="block md:hidden min-h-screen bg-[#F8FAFC] p-4 flex flex-col justify-center items-center font-sans">
+        <div className="w-full max-w-sm bg-white rounded-3xl border border-slate-200 shadow-xl p-6 space-y-5 animate-fade-in-up">
+          {/* Logo & Encabezado */}
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 bg-gradient-to-tr from-[#C83472] to-[#E2498A] rounded-2xl flex items-center justify-center shadow-lg shadow-[#E2498A]/25 mx-auto">
+              <span className="text-white font-black text-2xl">C</span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-[#1E1E2F] tracking-tight">
+                Cordano<span className="text-[#E2498A]"> Parking Ops</span>
+              </h1>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                Portal de Supervisión • Garita Serrano 447
+              </p>
+            </div>
+          </div>
+
+          {/* Estado de Sesión */}
+          {isLoggedIn ? (
+            <div className="space-y-4 pt-1">
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Sesión Activa</span>
+                </div>
+                <div className="text-base font-black text-slate-900">{user?.name || 'Operador'}</div>
+                <div className="text-xs text-slate-500 font-medium">
+                  Perfil: <strong className="capitalize">{user?.role || 'operador'}</strong>
+                </div>
+              </div>
+
+              {/* Botón Principal: IR A LA SESIÓN ACTIVA */}
+              <button
+                type="button"
+                onClick={() => {
+                  onNavigate('menu');
+                  onLoginSuccess('menu');
+                }}
+                className="w-full min-h-[52px] bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-sm font-black shadow-lg shadow-[#E2498A]/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+              >
+                <span>Ir a la sesión activa</span>
+                <span className="text-base">→</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  onShowToast('Sesión cerrada correctamente', 'info');
+                }}
+                className="w-full py-2.5 text-xs text-slate-500 hover:text-slate-800 font-bold text-center cursor-pointer transition-colors"
+              >
+                Cerrar sesión / Cambiar de cuenta
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleCredentialsSubmit} className="space-y-4 pt-1">
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1">
+                    Usuario o RUT
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Ej. operador / 12345678-9"
+                    className="w-full h-12 px-3.5 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E2498A] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1">
+                    Contraseña o PIN
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full h-12 px-3.5 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E2498A] focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loginState === 'loading'}
+                className="w-full min-h-[50px] bg-[#1E1E2F] hover:bg-[#2D2D44] text-white rounded-2xl text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+              >
+                <Lock className="w-4 h-4 text-[#E2498A]" />
+                <span>{loginState === 'loading' ? 'Ingresando...' : 'Iniciar Sesión'}</span>
+              </button>
+
+              {/* Accesos rápidos de rol para testeo ágil */}
+              <div className="pt-3 border-t border-slate-100 space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">
+                  Ingreso Rápido por Perfil
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleFastLogin('operador')}
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition cursor-pointer"
+                  >
+                    <span className="text-[11px] font-black text-slate-900 block">Carlos M.</span>
+                    <span className="text-[10px] text-[#E2498A] font-bold">Operador Garita</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleFastLogin('administrador')}
+                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition cursor-pointer"
+                  >
+                    <span className="text-[11px] font-black text-slate-900 block">Andrea V.</span>
+                    <span className="text-[10px] text-purple-600 font-bold">Supervisora</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          <div className="pt-2 text-center border-t border-slate-100">
+            <span className="text-[10px] text-slate-400 font-semibold">
+              Serrano 447, Iquique • Terminal de 30 Plazas
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── MODO DESKTOP: LANDING COMERCIAL COMPLETA (HIDDEN MD:BLOCK) ── */}
+      <div className="hidden md:block">
+        {/* NAVBAR */}
+        <nav className="absolute top-0 left-0 w-full z-50 px-6 py-6 lg:px-12 flex items-center justify-between">
         <div className="flex items-center gap-3">
-           <div className="w-10 h-10 bg-[#E2498A] rounded-2xl flex items-center justify-center shadow-md">
+           <div className="w-10 h-10 bg-gradient-to-tr from-[#C83472] to-[#E2498A] rounded-2xl flex items-center justify-center shadow-md shadow-[#E2498A]/30">
              <span className="text-white font-black text-xl">C</span>
            </div>
            <span className="font-extrabold text-2xl tracking-tight text-[#1E1E2F]">
-             Cordano<span className="text-[#E2498A]">PMS</span>
+             Cordano<span className="text-[#E2498A]"> Parking Ops</span>
            </span>
         </div>
         <div className="hidden lg:flex items-center gap-8 font-bold text-sm text-slate-500">
@@ -416,9 +597,25 @@ export const LandingView: React.FC<LandingViewProps> = ({
            <a href="#convenios" className="hover:text-[#E2498A] transition-colors">Convenios</a>
            <a href="#faq" className="hover:text-[#E2498A] transition-colors">FAQ</a>
         </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              if (isLoggedIn) {
+                onNavigate('pos');
+                onLoginSuccess('pos');
+              } else {
+                setShowLoginModal(true);
+              }
+            }}
+            className="px-5 py-2.5 bg-[#1E1E2F] hover:bg-[#2D2D44] text-white rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-sm hover:shadow"
+          >
+            <Lock className="w-3.5 h-3.5 text-[#E2498A]" />
+            <span>{isLoggedIn ? 'Ir a Garita / POS →' : 'Acceso Garita / POS'}</span>
+          </button>
+        </div>
       </nav>
 
-      {/* 1. HERO & LOGIN SIDE-BY-SIDE */}
+      {/* 1. HERO & LIVE STATUS */}
       <section id="inicio" className="relative pt-32 pb-16 lg:pt-40 lg:pb-32">
         {/* Background Blobs */}
         <div className="absolute top-0 right-0 -translate-y-24 translate-x-1/4 pointer-events-none z-0">
@@ -431,50 +628,156 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
             
             <div className="lg:col-span-7 space-y-8 animate-fade-in-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-[#E2498A] text-sm font-bold border border-slate-200 shadow-sm">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-[#E2498A] text-sm font-bold border border-slate-200 shadow-2xs">
                  <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E2498A] opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#E2498A]"></span></span>
-                 Cordano PMS Version 1.0
+                 Cordano Parking Ops · Versión 1.0 · Serrano 447, Iquique
               </div>
               <h1 className="text-5xl lg:text-7xl font-black tracking-tight text-[#1E1E2F] leading-[1.05]">
                 Inteligencia y <span className="text-[#E2498A]">Rapidez</span> en cada turno.
               </h1>
               <p className="text-lg lg:text-xl text-slate-500 font-medium max-w-2xl leading-relaxed">
-                El sistema de punto de venta y matriz de ocupación optimizado para garantizar tiempos de atención rápidos y máxima seguridad operativa.
+                El sistema de punto de venta y matriz de ocupación optimizado para garantizar tiempos de atención rápidos, cumplimiento estricto de la Ley N° 20.967 y máxima seguridad operativa.
               </p>
+              
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                {!isLoggedIn && (
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="px-8 py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/30 transition-all flex items-center gap-3 cursor-pointer active:scale-[0.99]"
+                  >
+                    <Lock className="w-5 h-5" />
+                    <span>Iniciar Turno en Garita</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                )}
+                <a
+                  href="#monitor"
+                  className="px-7 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-base font-bold transition-all flex items-center gap-2"
+                >
+                  <span>Ver Monitor 30 Plazas</span>
+                </a>
+                {isLoggedIn && (
+                  <a
+                    href="#convenios"
+                    className="px-6 py-4 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 rounded-2xl text-base font-bold transition-all flex items-center gap-2"
+                  >
+                    <span>Convenios Corporativos</span>
+                  </a>
+                )}
+              </div>
             </div>
 
+            {/* Right Column: Dynamic Status or Direct Gate Card */}
             <div className="lg:col-span-5 relative">
-               <div className="bg-white rounded-[2.5rem] p-8 lg:p-12 shadow-[0_20px_60px_-15px_rgba(226,73,138,0.3)] relative z-10 border border-slate-100 animate-fade-in-up" style={{animationDelay: '100ms'}}>
-                  <div className="text-center mb-10">
-                     <div className="w-16 h-16 bg-[#E2498A]/10 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-                        <svg className="w-8 h-8 text-[#E2498A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                     </div>
-                     <h3 className="text-2xl font-black text-[#1E1E2F] tracking-tight">Acceso Operador</h3>
-                     <p className="text-sm font-medium text-slate-500 mt-2">{isLoggedIn ? 'Tu sesión está activa en este equipo' : 'Ingresa tus credenciales para operar'}</p>
+              {isLoggedIn ? (
+                /* Card Limpia y Directa para Usuario con Sesión Activa */
+                <div className="bg-white rounded-[2.5rem] p-8 lg:p-10 shadow-[0_20px_60px_-15px_rgba(226,73,138,0.25)] relative z-10 border border-slate-100 animate-fade-in-up space-y-6">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-bold">
+                        <CheckCircle2 className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-[#1E1E2F]">Sesión Activa</h3>
+                        <p className="text-xs text-slate-400 font-medium">Terminal Garita · Serrano 447</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 text-xs font-bold rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Conectado
+                    </span>
                   </div>
 
-                  {!isLoggedIn ? (
-                     <form onSubmit={handleCredentialsSubmit} className="space-y-6">
-                       <div>
-                         <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Usuario / PIN</label>
-                         <input required type="text" placeholder="operador@cordano.cl" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all text-[#1E1E2F]" />
-                       </div>
-                       <div>
-                         <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">Contraseña</label>
-                         <input required type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all text-[#1E1E2F]" />
-                       </div>
-                       <button type="submit" disabled={loginState === "loading"} className="w-full h-14 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/25 transition-all mt-2 flex items-center justify-center gap-2">
-                         {loginState === "loading" ? "Conectando..." : "Ingresar"}
-                       </button>
-                     </form>
-                  ) : (
-                     <div className="flex flex-col items-center mt-6">
-                        <button onClick={() => { onNavigate("pos"); onLoginSuccess("pos"); }} className="w-full py-5 bg-[#E2498A] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/25 transition-all hover:bg-[#C83472]">
-                          Abrir Consola POS
-                        </button>
-                     </div>
-                  )}
-               </div>
+                  <div className="p-5 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Usuario en Turno</span>
+                      <span className="text-xs font-extrabold text-[#E2498A] bg-[#FFF5F8] px-2.5 py-0.5 rounded-full border border-[#E2498A]/20">
+                        {user?.role === 'administrador' ? 'Administrador' : 'Operador Garita'}
+                      </span>
+                    </div>
+                    <p className="text-sm font-bold text-slate-800">
+                      {user?.name || 'Personal Autorizado Cordano'}
+                    </p>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                      Tu puesto de trabajo está listo. Ingresa directamente al punto de venta para cobro de tickets, control de barrera y ocupación.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 pt-1">
+                    <button
+                      onClick={() => {
+                        onNavigate('pos');
+                        onLoginSuccess('pos');
+                      }}
+                      className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-sm font-black shadow-lg shadow-[#E2498A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                    >
+                      <span>Ir directamente a la Garita / POS</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      onClick={() => onNavigate('inicio')}
+                      className="w-full py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Ir al Menú Hub Central (F1)</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Card con Información del Recinto para visitantes sin sesión */
+                <div className="bg-white rounded-[2.5rem] p-8 lg:p-10 shadow-[0_20px_60px_-15px_rgba(226,73,138,0.25)] relative z-10 border border-slate-100 animate-fade-in-up space-y-6">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-bold">
+                        <Activity className="w-6 h-6 animate-pulse" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-black text-[#1E1E2F]">Recinto Serrano 447</h3>
+                        <p className="text-xs text-slate-400 font-medium">Iquique Centro · En Línea</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 text-xs font-bold rounded-full border border-emerald-500/20">
+                      Operativo
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Capacidad</span>
+                      <span className="text-3xl font-black text-[#1E1E2F] tabular-nums mt-1 block">30</span>
+                      <span className="text-[11px] text-slate-500 font-medium">Plazas Totales</span>
+                    </div>
+                    <div className="p-4 bg-[#FFF5F8] rounded-2xl border border-[#E2498A]/20 text-center">
+                      <span className="text-xs font-bold text-[#E2498A] uppercase tracking-wider block">Gaveta Base</span>
+                      <span className="text-2xl font-black text-[#E2498A] tabular-nums mt-1 block">$ 50.000</span>
+                      <span className="text-[11px] text-[#E2498A]/80 font-medium">Fondo Apertura</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-xs text-slate-600 font-medium">
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                      <span>Sector A (Plazas 01 a 15)</span>
+                      <span className="font-bold text-emerald-600">Disponibles</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
+                      <span>Sector B (Plazas 16 a 30)</span>
+                      <span className="font-bold text-emerald-600">Disponibles</span>
+                    </div>
+                    <div className="flex items-center justify-between py-1.5">
+                      <span>Normativa Aplicada</span>
+                      <span className="font-bold text-slate-800">Ley N° 20.967</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="w-full py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                  >
+                    <Lock className="w-3.5 h-3.5 text-[#E2498A]" />
+                    <span>Acceso Operativo de Garita</span>
+                  </button>
+                </div>
+              )}
             </div>
 
           </div>
@@ -685,7 +988,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
            <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 2xl:px-12">
               <div className="text-center mb-12">
                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF5F8] border border-[#E2498A]/30 text-[#E2498A] text-xs font-bold uppercase mb-2">
-                    ARQUITECTURA DE SOFTWARE CORDANO PMS
+                    ARQUITECTURA DE SOFTWARE CORDANO PARKING OPS
                  </div>
                  <h2 className="text-3xl lg:text-4xl font-black text-[#1E1E2F]">
                     Módulos Operativos del Sistema
@@ -1009,6 +1312,111 @@ export const LandingView: React.FC<LandingViewProps> = ({
             </div>
          </div>
       </footer>
+      </div>
+
+      {/* MODAL FLOTANTE ELEGANTE DE INICIO DE SESIÓN */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-100 relative animate-fade-in-up space-y-6">
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="absolute top-6 right-6 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="text-center space-y-2 pt-2">
+              <div className="w-14 h-14 bg-gradient-to-tr from-[#C83472] to-[#E2498A] rounded-2xl mx-auto flex items-center justify-center shadow-md shadow-[#E2498A]/30 text-white font-black text-2xl">
+                C
+              </div>
+              <h3 className="text-2xl font-black text-[#1E1E2F] tracking-tight">Acceso de Garita</h3>
+              <p className="text-xs text-slate-500 font-medium">Serrano 447, Iquique · Autenticación de Operador</p>
+            </div>
+
+            {!isLoggedIn ? (
+              <form onSubmit={handleCredentialsSubmit} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">Usuario / PIN</label>
+                  <div className="relative">
+                    <input
+                      required
+                      type="text"
+                      placeholder="braulio@automatizable.cl o braulio"
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all text-[#1E1E2F]"
+                    />
+                    <User className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-bold text-slate-700">Contraseña</label>
+                  <div className="relative">
+                    <input
+                      required
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all text-[#1E1E2F]"
+                    />
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loginState === "loading"}
+                  className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-xl text-sm font-black shadow-lg shadow-[#E2498A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] mt-2"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span>{loginState === "loading" ? "Validando credenciales..." : "Ingresar al Turno"}</span>
+                </button>
+
+                {/* Accesos rápidos de prueba */}
+                <div className="pt-2 border-t border-slate-100 space-y-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">
+                    Accesos Directos de Demostración
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFastLogin('operador')}
+                      className="py-2 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left text-[11px] text-slate-700 transition cursor-pointer"
+                    >
+                      <span className="font-bold block text-slate-800">Braulio C.</span>
+                      <span className="text-[10px] text-[#E2498A]">Operador POS →</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleFastLogin('administrador')}
+                      className="py-2 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left text-[11px] text-slate-700 transition cursor-pointer"
+                    >
+                      <span className="font-bold block text-slate-800">Braulio C.</span>
+                      <span className="text-[10px] text-purple-600">Admin Hub →</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <div className="space-y-4 text-center">
+                <p className="text-xs text-slate-600 font-medium">Ya dispones de una sesión activa en este puesto de control.</p>
+                <button
+                  onClick={() => {
+                    setShowLoginModal(false);
+                    onNavigate("pos");
+                    onLoginSuccess("pos");
+                  }}
+                  className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-xl text-sm font-black shadow-lg transition-all cursor-pointer"
+                >
+                  Ir a Consola POS Garita
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
     </div>
   );

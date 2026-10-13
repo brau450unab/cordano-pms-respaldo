@@ -6,54 +6,61 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Parking Operations (Tickets)
+    // Parking Operations (Tickets) - Ley N° 20.967
     match /tickets/{ticketId} {
       allow read: if true;
       allow create, update: if true;
       allow delete: if isAuthenticated();
     }
 
-    // Shifts / Turnos de Caja
+    // Shifts / Turnos de Caja (Arqueo Ciego & Sello SHA-256)
     match /shifts/{shiftId} {
       allow read: if true;
       allow create, update: if true;
       allow delete: if isAuthenticated();
     }
 
-    // Slots / Cajones de Estacionamiento
+    // Slots / 30 Cajones de Estacionamiento Serrano 447 (Sectores A y B)
     match /slots/{slotId} {
       allow read: if true;
       allow create, update: if true;
       allow delete: if isAuthenticated();
     }
 
-    // Agreements / Convenios & Abonados
+    // Agreements / Convenios & Abonados Mensuales
     match /agreements/{agreementId} {
       allow read: if true;
       allow create, update: if true;
       allow delete: if isAuthenticated();
     }
 
-    // Cash Movements / Sangrías y Gastos
+    // Cash Movements / Sangrías y Gastos Menores
     match /cash_movements/{movementId} {
       allow read: if true;
       allow create, update: if true;
       allow delete: if isAuthenticated();
     }
 
-    // Audit Logs / Trazabilidad Inmutable
+    // Audit Logs / Trazabilidad Inmutable Append-Only
     match /audit_logs/{logId} {
       allow read: if true;
       allow create: if true;
       allow update, delete: if false; // Inmutable por diseño
     }
 
-    // Settings / Tarifas y Parámetros
+    // Customers / Clientes Frecuentes y Convenios
+    match /customers/{customerId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAuthenticated();
+    }
+
+    // Settings / Tarifas y Parámetros Operativos
     match /settings/{settingId} {
       allow read, write: if true;
     }
 
-    // Users / Operadores
+    // Users / Operadores y Supervisores
     match /users/{userId} {
       allow read, write: if true;
     }

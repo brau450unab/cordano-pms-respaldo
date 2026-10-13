@@ -1,7 +1,11 @@
 // Google Sheets & Drive API Integration Service for CORDANO PMS
 import { CORDANO_11_TABLES_SCHEMA } from '../types/databaseSchema';
+import firebaseConfig from '../../firebase-applet-config.json';
 
-const CLIENT_ID = '349577440002.apps.googleusercontent.com'; // O provisto dinámicamente
+const CLIENT_ID =
+  (import.meta.env?.VITE_GOOGLE_CLIENT_ID as string) ||
+  firebaseConfig.oAuthClientId ||
+  '349577440002-6r0ijjtbqo7biqt4c8cd9r69daeit48v.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
 
 export interface GoogleAuthState {

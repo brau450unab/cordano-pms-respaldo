@@ -81,7 +81,7 @@ export const APP_ROUTES: Record<AppScreen, RouteConfig> = {
     path: '/',
     title: 'Landing Page Principal',
     category: 'Principal',
-    description: 'Portal principal y bienvenida de Cordano PMS',
+    description: 'Portal principal y bienvenida de Cordano Parking Ops',
     isPublic: true,
   },
   inicio: {

@@ -38,7 +38,7 @@ const HISTORICAL_HEATMAP_DATA: number[][] = [
 ];
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onShowToast, onNavigateToCheckout }) => {
-  const { slots, tickets, currentShift } = useParking();
+  const { slots, tickets, currentShift, user } = useParking();
   const [selectedSlotForDetail, setSelectedSlotForDetail] = useState<string | null>('A-01');
   const [now, setNow] = useState(Date.now());
   const [activeSubView, setActiveSubView] = useState<'patio' | 'heatmap' | 'revpas'>('patio');
@@ -138,46 +138,71 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onShowToast, onNav
               <span className="w-1.5 h-1.5 rounded-full bg-[#E2498A]" />
               Mapa de Calor (Heatmap)
             </button>
-            <button
-              onClick={() => setActiveSubView('revpas')}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                activeSubView === 'revpas'
-                  ? 'bg-white text-[#1E1E2F] shadow-xs'
-                  : 'text-[#64748B] hover:text-[#1E1E2F]'
-              }`}
-            >
-              KPIs RevPAS &amp; Rotación
-            </button>
+            {(user?.role === 'administrador' || user?.role === 'supervisor') && (
+              <button
+                onClick={() => setActiveSubView('revpas')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  activeSubView === 'revpas'
+                    ? 'bg-white text-[#1E1E2F] shadow-xs'
+                    : 'text-[#64748B] hover:text-[#1E1E2F]'
+                }`}
+              >
+                KPIs RevPAS &amp; Rotación
+              </button>
+            )}
           </div>
 
-          <button
-            onClick={() => onShowToast('Exportando snapshot ejecutivo en PDF...', 'info')}
-            className="px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] hover:bg-[#FFF5F8] text-xs font-bold shadow-xs transition"
-          >
-            Exportar Snapshot
-          </button>
+          {(user?.role === 'administrador' || user?.role === 'supervisor') && (
+            <button
+              onClick={() => onShowToast('Exportando snapshot ejecutivo en PDF...', 'info')}
+              className="px-4 py-2 rounded-xl bg-white border border-[#E2E8F0] hover:bg-[#FFF5F8] text-xs font-bold shadow-xs transition cursor-pointer"
+            >
+              Exportar Snapshot
+            </button>
+          )}
         </div>
       </div>
 
       {/* ── PILAR 1: WIDGETS SUPERIORES EN LECTURA "Z" CON DELTAS COMPARATIVOS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Widget 1: Ingresos del Día con Delta */}
+        {/* Widget 1: Ingresos del Día con Delta (Ciego para Operador) */}
         <div className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs relative overflow-hidden group hover:border-[#E2498A]/50 transition-all">
           <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#64748B] mb-2">
-            <span>Ingresos del Día</span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              {revenueComparisonDelta} vs mes ant.
-            </span>
+            <span>{(user?.role === 'administrador' || user?.role === 'supervisor') ? 'Ingresos del Día' : 'Control de Turno'}</span>
+            {(user?.role === 'administrador' || user?.role === 'supervisor') ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+                {revenueComparisonDelta} vs mes ant.
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                ARQUEO CIEGO
+              </span>
+            )}
           </div>
           <div className="text-3xl font-black font-mono tabular-nums tracking-tight text-[#E2498A]">
-            ${totalRevenue.toLocaleString('es-CL')}
+            {(user?.role === 'administrador' || user?.role === 'supervisor') ? (
+              `$${totalRevenue.toLocaleString('es-CL')}`
+            ) : (
+              <span className="text-slate-800 text-2xl flex items-center gap-2">
+                <span>🔒</span> Arqueo Ciego
+              </span>
+            )}
           </div>
           <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F8FAFC]">
-            <span>{paidTickets.length} transacciones liquidadas</span>
-            <span className="font-mono tabular-nums text-slate-700 font-semibold">+${projectedIncome.toLocaleString('es-CL')} proyectado</span>
+            {(user?.role === 'administrador' || user?.role === 'supervisor') ? (
+              <>
+                <span>{paidTickets.length} transacciones liquidadas</span>
+                <span className="font-mono tabular-nums text-slate-700 font-semibold">+${projectedIncome.toLocaleString('es-CL')} proyectado</span>
+              </>
+            ) : (
+              <>
+                <span>Recaudación protegida</span>
+                <span className="font-mono text-purple-700 font-semibold">Declaración al cierre</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -227,22 +252,41 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onShowToast, onNav
           </div>
         </div>
 
-        {/* Widget 4: RevPAS Instantáneo (Métrica Reina del Parking) */}
+        {/* Widget 4: RevPAS Instantáneo / Rotación (Adaptativo por Rol) */}
         <div className="p-5 bg-white border border-[#E2E8F0] rounded-2xl shadow-xs relative overflow-hidden group hover:border-[#E2498A]/50 transition-all">
           <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#64748B] mb-2">
-            <span>RevPAS (Ingreso / Plaza)</span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-              revPasDelta >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
-            }`}>
-              {revPasDelta >= 0 ? `+${revPasDelta.toFixed(1)}%` : `${revPasDelta.toFixed(1)}%`} vs meta
-            </span>
+            <span>{(user?.role === 'administrador' || user?.role === 'supervisor') ? 'RevPAS (Ingreso / Plaza)' : 'Rotación de Plazas'}</span>
+            {(user?.role === 'administrador' || user?.role === 'supervisor') ? (
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                revPasDelta >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+              }`}>
+                {revPasDelta >= 0 ? `+${revPasDelta.toFixed(1)}%` : `${revPasDelta.toFixed(1)}%`} vs meta
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                ROTACIÓN DÍA
+              </span>
+            )}
           </div>
           <div className="text-3xl font-black font-mono tabular-nums tracking-tight text-[#E2498A]">
-            ${revPas.toLocaleString('es-CL')}
+            {(user?.role === 'administrador' || user?.role === 'supervisor') ? (
+              `$${revPas.toLocaleString('es-CL')}`
+            ) : (
+              `${turnoverRate}x`
+            )}
           </div>
           <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F8FAFC]">
-            <span>Meta recinto: $14.500</span>
-            <span className="font-mono tabular-nums font-bold text-[#1E1E2F]">Rotación: {turnoverRate}x</span>
+            {(user?.role === 'administrador' || user?.role === 'supervisor') ? (
+              <>
+                <span>Meta recinto: $14.500</span>
+                <span className="font-mono tabular-nums font-bold text-[#1E1E2F]">Rotación: {turnoverRate}x</span>
+              </>
+            ) : (
+              <>
+                <span>Capacidad total: 30 plazas</span>
+                <span className="font-mono tabular-nums font-bold text-[#1E1E2F]">{(TOTAL_SPOTS - occupiedSlotsCount)} libres</span>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -364,7 +408,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ onShowToast, onNav
       )}
 
       {/* ── PILAR 4: REPORTES FINANCIEROS & MENSUALES (REVPAS, TURNOVER, COMPARATIVAS) ── */}
-      {activeSubView === 'revpas' && (
+      {activeSubView === 'revpas' && (user?.role === 'administrador' || user?.role === 'supervisor') && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tarjeta 1: Desglose RevPAS */}
           <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-xs p-6 space-y-4">

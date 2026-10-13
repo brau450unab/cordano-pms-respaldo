@@ -66,7 +66,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
   const handleWhatsAppSend = () => {
     const adminPhone = '56987654321'; // Default admin contact
     const text = encodeURIComponent(
-      `*CORDANO PMS — REPORTE DE CIERRE DE TURNO*\n` +
+      `*CORDANO PARKING OPS — REPORTE DE CIERRE DE TURNO*\n` +
       `📅 Fecha: ${new Date(shift.endTime || shift.startTime).toLocaleDateString('es-CL')}\n` +
       `🆔 Turno: ${shift.id}\n` +
       `👤 Operador: ${shift.operatorName}\n` +
@@ -90,7 +90,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
 
   // Handle Email send
   const handleEmailSend = () => {
-    const subject = encodeURIComponent(`Reporte Cierre Turno ${shift.id} - ${shift.operatorName} - CORDANO PMS`);
+    const subject = encodeURIComponent(`Reporte Cierre Turno ${shift.id} - ${shift.operatorName} - CORDANO PARKING OPS`);
     const body = encodeURIComponent(
       `Estimada Administración:\n\n` +
       `Adjunto el resumen del cierre de caja del turno ${shift.id}:\n\n` +
@@ -100,7 +100,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
       `- Total Esperado: $${totalExpected.toLocaleString('es-CL')} CLP\n` +
       `- Diferencia Neta: $${discrepancyTotal.toLocaleString('es-CL')} CLP\n` +
       `- Estado: ${isFlagged ? 'DESCUADRADO' : 'CUADRADO'}\n\n` +
-      `Atentamente,\nControl de Operaciones CORDANO PMS`
+      `Atentamente,\nControl de Operaciones CORDANO PARKING OPS`
     );
     window.location.href = `mailto:administracion@cordano.cl?subject=${subject}&body=${body}`;
   };
@@ -268,7 +268,7 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-[#0F172A]" />
-                    <span className="font-bold text-[#1D1D1F] text-sm">CORDANO PMS — Recinto Iquique</span>
+                    <span className="font-bold text-[#1D1D1F] text-sm">CORDANO PARKING OPS — Recinto Iquique</span>
                   </div>
                   <span className="text-[#717785] block tabular-nums text-[11px]">
                     Turno: <strong>{shift.id}</strong> | Operador: <strong>{shift.operatorName}</strong>

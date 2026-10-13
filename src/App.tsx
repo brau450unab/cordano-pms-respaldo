@@ -8,8 +8,10 @@ import { PosView, PatioVehicle, CashHistoryLog } from './components/pms/PosView'
 import { TicketPreviewModal, TicketPreviewData } from './components/pms/TicketPreviewModal';
 import { ArqueoCiegoModal } from './components/pms/ArqueoCiegoModal';
 import { ModalAperturaTurno } from './components/pms/ModalAperturaTurno';
+import { ShiftNotificationPill } from './components/pms/ShiftNotificationPill';
 import { AppScreen, UserRole, VehicleType, PaymentMethod } from './types';
 import { getScreenFromPath, getPathFromScreen, APP_ROUTES } from './utils/routes';
+import { PatioTestSimulator } from './components/common/PatioTestSimulator';
 
 // Lazy-loaded secondary modules to optimize initial bundle and Core Web Vitals (LCP <= 2.5s)
 const AnalyticsView = React.lazy(() => import('./components/pms/AnalyticsView').then((m) => ({ default: m.AnalyticsView })));
@@ -52,34 +54,13 @@ function MainAppContent() {
   const [isArqueoCiegoModalOpen, setIsArqueoCiegoModalOpen] = useState(false);
   const [isAperturaTurnoModalOpen, setIsAperturaTurnoModalOpen] = useState(false);
   const [posInitialSubtab, setPosInitialSubtab] = useState<'entry' | 'exit' | 'history'>('entry');
+  const [mobileSupervisorTab, setMobileSupervisorTab] = useState<'plano' | 'cronologia' | 'supervision'>('plano');
 
   // Ticket Preview Modal state
   const [ticketPreviewData, setTicketPreviewData] = useState<TicketPreviewData | null>(null);
   const [isTicketPreviewConfirmed, setIsTicketPreviewConfirmed] = useState(false);
 
-  // Floating Toasts & Shift Reminder Snooze (Persistente ante recargas del navegador)
-  const [shiftReminderDismissedUntil, setShiftReminderDismissedUntil] = useState<number>(() => {
-    try {
-      const stored = localStorage.getItem('cordano_shift_reminder_snooze_until');
-      if (stored) {
-        const parsed = parseInt(stored, 10);
-        if (!isNaN(parsed) && parsed > Date.now()) {
-          return parsed;
-        }
-      }
-    } catch (e) {
-      // Ignorar error de acceso a localStorage
-    }
-    return 0;
-  });
 
-  // Limpiar snooze persistente cuando el turno se abra
-  useEffect(() => {
-    if (currentShift?.status === 'abierto') {
-      localStorage.removeItem('cordano_shift_reminder_snooze_until');
-      setShiftReminderDismissedUntil(0);
-    }
-  }, [currentShift?.status]);
   const [toasts, setToasts] = useState<{ id: string; msg: string; type: 'success' | 'error' | 'info' }[]>([]);
   const showToast = useCallback((msg: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
@@ -102,9 +83,26 @@ function MainAppContent() {
     }
     const routeInfo = APP_ROUTES[screen];
     if (routeInfo) {
-      document.title = `${routeInfo.title} | ParkOps PMS — Serrano 447`;
+      document.title = `${routeInfo.title} | Cordano Parking Ops — Serrano 447`;
     }
   }, []);
+
+  // RBAC Route Guard: Si un operador intenta entrar a vistas administrativas, redirigir a garita POS
+  useEffect(() => {
+    const adminOnlyScreens: AppScreen[] = [
+      'reports',
+      'reportes_dashboard',
+      'reportes_auditoria',
+      'reportes_database',
+      'settings',
+      'config_tarifas',
+      'config_sistema',
+    ];
+    if (isLoggedIn && user?.role === 'operador' && adminOnlyScreens.includes(currentScreen)) {
+      showToast('Acceso restringido: Módulo exclusivo para el perfil de Administrador.', 'error');
+      handleNavigate('pos', true);
+    }
+  }, [isLoggedIn, user?.role, currentScreen, handleNavigate, showToast]);
 
   // Global Keyboard Shortcuts (Regla de Dominio #1: Ergonomía de Garita)
   useEffect(() => {
@@ -117,7 +115,7 @@ function MainAppContent() {
 
     const initialRoute = APP_ROUTES[currentScreen];
     if (initialRoute) {
-      document.title = `${initialRoute.title} | ParkOps PMS — Serrano 447`;
+      document.title = `${initialRoute.title} | Cordano Parking Ops — Serrano 447`;
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -276,8 +274,35 @@ function MainAppContent() {
         : 'Automóvil';
 
     const availableSlot = slots.find((s) => s.status === 'disponible');
-    const slotCode = availableSlot ? availableSlot.code : `A-${String(ticketPreviewData.slot).padStart(2, '0')}`;
-    registerEntry(ticketPreviewData.plate, vehicleType, slotCode, ticketPreviewData.obs || ticketPreviewData.name);
+    const slotCode = availableSlot
+      ? availableSlot.code
+      : ticketPreviewData.slot <= 15
+      ? `A-${String(ticketPreviewData.slot).padStart(2, '0')}`
+      : `B-${String(ticketPreviewData.slot).padStart(2, '0')}`;
+    const createdTicket = registerEntry(
+      ticketPreviewData.plate,
+      vehicleType,
+      slotCode,
+      ticketPreviewData.obs,
+      {
+        name: ticketPreviewData.name,
+        phone: ticketPreviewData.phone,
+      }
+    );
+    setTicketPreviewData((prev) =>
+      prev
+        ? {
+            ...prev,
+            ticketId: createdTicket?.ticketCode || createdTicket?.id || prev.ticketId,
+            dateStr: new Date(createdTicket?.entryTime || Date.now()).toLocaleDateString('es-CL'),
+            timeStr:
+              new Date(createdTicket?.entryTime || Date.now()).toLocaleTimeString('es-CL', {
+                hour: '2-digit',
+                minute: '2-digit',
+              }) + ' hrs',
+          }
+        : null
+    );
     setIsTicketPreviewConfirmed(true);
     showToast(`Ticket emitido para ${ticketPreviewData.plate} en cupo ${slotCode}`, 'success');
   };
@@ -337,6 +362,8 @@ function MainAppContent() {
           onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
           onInitiateOpenShift={() => setIsAperturaTurnoModalOpen(true)}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          activeMobileTab={mobileSupervisorTab}
+          onSelectMobileTab={setMobileSupervisorTab}
           onLogout={() => {
             logout();
             handleNavigate('landing');
@@ -381,6 +408,8 @@ function MainAppContent() {
             {isLoggedIn && (effectiveScreen === 'pos' || effectiveScreen === 'operacion_salida' || effectiveScreen === 'operacion_ingreso') && (
               <PosView
                 initialSubtab={posInitialSubtab}
+                activeMobileTab={mobileSupervisorTab}
+                onMobileTabChange={setMobileSupervisorTab}
                 activeVehicles={activeVehicles}
                 historyLogs={historyLogs}
                 onOpenTicketPreview={handleOpenTicketPreview}
@@ -403,12 +432,59 @@ function MainAppContent() {
               />
             )}
 
-            {/* 4. Reportes & Auditoría */}
+            {/* 4. Reportes & Auditoría (Restringido para Administrador / Supervisor) */}
             {isLoggedIn && (effectiveScreen === 'reports' || effectiveScreen === 'reportes_dashboard' || effectiveScreen === 'reportes_auditoria' || effectiveScreen === 'reportes_database') && (
-              <ReportsView
-                onShowToast={(msg, type) => showToast(msg, type)}
-                onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
-              />
+              (user?.role === 'administrador' || user?.role === 'supervisor' || user?.permissions?.canViewReports) ? (
+                <ReportsView
+                  onShowToast={(msg, type) => showToast(msg, type)}
+                  onInitiateCashClose={() => setIsArqueoCiegoModalOpen(true)}
+                />
+              ) : (
+                <div className="p-4 sm:p-6 lg:p-8 w-full max-w-2xl mx-auto space-y-6 text-[#1E1E2F] animate-fade-in-up mt-8">
+                  <div className="p-8 rounded-3xl bg-white border border-slate-200 shadow-xl text-center space-y-5">
+                    <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-700 border border-purple-200 text-3xl flex items-center justify-center mx-auto shadow-xs">
+                      🔒
+                    </div>
+                    <div className="space-y-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-900 border border-purple-300 text-xs font-black">
+                        MÓDULO EXCLUSIVO PARA ADMINISTRACIÓN
+                      </span>
+                      <h3 className="text-xl font-extrabold text-[#1E1E2F]">
+                        Acceso a Informes &amp; Auditoría Restringido
+                      </h3>
+                      <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                        El perfil actual <strong>({user?.name || 'Cajero Operador'})</strong> no cuenta con privilegios para consultar el libro diario contable, cortes Z ni métricas financieras de otros turnos.
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-left text-xs text-amber-900 space-y-1">
+                      <span className="font-bold flex items-center gap-1.5">
+                        <span>ℹ️</span> Política de Arqueo Ciego &amp; Seguridad:
+                      </span>
+                      <p className="text-[11px] text-amber-800 leading-relaxed">
+                        Para preservar la integridad del arqueo ciego, los informes de recaudación global y bitácoras antifraude están reservados para supervisión. Al finalizar su jornada, declare el efectivo físico en <strong>Arqueo Ciego</strong>.
+                      </p>
+                    </div>
+
+                    <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleNavigate('pos')}
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white font-bold text-xs shadow-sm transition active:scale-95 cursor-pointer"
+                      >
+                        ← Volver a Garita POS
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleNavigate('menu')}
+                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
+                      >
+                        Ir al Dashboard
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
             )}
 
             {/* 5. Submódulo Paralelo de Convenios & Convenios */}
@@ -435,17 +511,23 @@ function MainAppContent() {
           </Suspense>
       </main>
 
-      {/* Ticket Preview Modal (80mm Dual QR + Code 128) */}
+      {/* Ticket Preview Modal (80mm Dual QR + Code 128 + PDF + WhatsApp) */}
       <TicketPreviewModal
         data={ticketPreviewData}
         onClose={() => setTicketPreviewData(null)}
         onConfirmEntry={handleConfirmTicketEntry}
         isConfirmed={isTicketPreviewConfirmed}
         onPrintTicket={() => {
-          showToast('Ticket 80mm enviado a impresora térmica USB (QR + Code 128).', 'success');
+          showToast('Ticket 80mm enviado a impresión térmica / diálogo.', 'success');
         }}
-        onSendWhatsApp={() => {
-          showToast('Comprobante digital enviado vía WhatsApp.', 'success');
+        onExportPdf={() => {
+          showToast('Ticket PDF descargado exitosamente.', 'success');
+        }}
+        onSendWhatsApp={(phone) => {
+          showToast(`Comprobante digital enviado vía WhatsApp ${phone ? `(+${phone})` : ''}`, 'success');
+        }}
+        onUpdateTicketPhone={(phone) => {
+          setTicketPreviewData((prev) => (prev ? { ...prev, phone } : null));
         }}
       />
 
@@ -526,61 +608,19 @@ function MainAppContent() {
         ))}
       </div>
 
-      {/* Floating Pop-up Inferior Central: Aviso de Turno No Iniciado */}
-      {isLoggedIn && effectiveScreen !== 'landing' && currentShift?.status !== 'abierto' && Date.now() > shiftReminderDismissedUntil && (
-        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-fade-in-up">
-          <div className="bg-[#1E1E2F] text-white p-4 rounded-3xl border border-[#E2498A]/40 shadow-[0_20px_50px_rgba(0,0,0,0.35)] flex items-center justify-between gap-3 backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#E2498A] flex items-center justify-center text-xl shrink-0">
-                ⚠️
-              </div>
-              <div>
-                <h4 className="font-black text-xs sm:text-sm text-white flex items-center gap-1.5">
-                  Turno no iniciado
-                </h4>
-                <p className="text-[11px] text-gray-300 mt-0.5">
-                  El POS está bloqueado. Inicia turno para aperturar caja.
-                </p>
-              </div>
-            </div>
+      {/* Notificación de Turno No Iniciado: Píldora Ergonómica Flotante & No Invasiva */}
+      {isLoggedIn && effectiveScreen !== 'landing' && (
+        <ShiftNotificationPill
+          currentShift={currentShift}
+          currentScreen={effectiveScreen}
+          onOpenAperturaModal={() => setIsAperturaTurnoModalOpen(true)}
+          onShowToast={(msg, type) => showToast(msg, type)}
+        />
+      )}
 
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setIsAperturaTurnoModalOpen(true)}
-                className="px-3.5 py-2 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white font-extrabold text-xs transition cursor-pointer shadow-sm active:scale-95"
-              >
-                Iniciar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const snoozeUntil = Date.now() + 5 * 60 * 1000;
-                  setShiftReminderDismissedUntil(snoozeUntil);
-                  localStorage.setItem('cordano_shift_reminder_snooze_until', snoozeUntil.toString());
-                  showToast('Recordatorio pospuesto por 5 minutos.', 'info');
-                }}
-                className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[11px] transition cursor-pointer"
-                title="Recordar en 5 minutos"
-              >
-                Recordar en 5m
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const snoozeUntil = Date.now() + 10 * 60 * 1000;
-                  setShiftReminderDismissedUntil(snoozeUntil);
-                  localStorage.setItem('cordano_shift_reminder_snooze_until', snoozeUntil.toString());
-                  showToast('Aviso cerrado por 10 minutos.', 'info');
-                }}
-                className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs font-bold transition cursor-pointer"
-                title="Cerrar aviso"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Interactive Mobile Supervisor & Space Simulator Harness */}
+      {isLoggedIn && effectiveScreen !== 'landing' && (
+        <PatioTestSimulator onShowToast={(msg, type) => showToast(msg, type)} />
       )}
     </div>
   );

@@ -136,14 +136,11 @@ export function calculateStayFeeLey20967(
 
   // 4. Aplicar tope diario máximo (Max Daily Rate) si corresponde
   const days = Math.floor(durationMinutes / (24 * 60));
-  const remainingMinutes = durationMinutes % (24 * 60);
-  const dailyCappedAmount =
-    days * rate.maxDailyRate +
-    Math.min(remainingMinutes * rate.minuteRate, rate.maxDailyRate);
+  const maxAllowableAmount = days * rate.maxDailyRate + rate.maxDailyRate;
 
-  if (rawSubtotal > dailyCappedAmount) {
-    rawSubtotal = dailyCappedAmount;
-    breakdownDesc += ` (Ajustado al tope diario máximo: $${dailyCappedAmount.toLocaleString('es-CL')} CLP)`;
+  if (rawSubtotal > maxAllowableAmount) {
+    rawSubtotal = maxAllowableAmount;
+    breakdownDesc += ` (Ajustado al tope diario máximo: $${maxAllowableAmount.toLocaleString('es-CL')} CLP)`;
   }
 
   // 5. Recargos: Nocturno (22:00 a 06:00) y Fin de semana (Sábado/Domingo)

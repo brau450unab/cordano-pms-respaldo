@@ -33,9 +33,7 @@ interface ModalMovimientoCajaProps {
 }
 
 const SUPERVISORS = [
-  { id: 'sup-1', name: 'María González (Supervisora Operativa)', pin: '2026' },
-  { id: 'sup-2', name: 'Carlos Cordano (Administrador Recinto)', pin: '1234' },
-  { id: 'sup-3', name: 'Supervisor de Turno ZOFRI', pin: '2026' },
+  { id: 'sup-1', name: 'Braulio Cordano (Administrador)', pin: 'admin123' },
 ];
 
 export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
@@ -43,7 +41,7 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
   onClose,
   onConfirm,
   currentCashInDrawer,
-  activeOperatorName = 'Juan Pérez',
+  activeOperatorName = 'Braulio Cordano',
 }) => {
   const [type, setType] = useState<'INGRESO_MANUAL' | 'RETIRO_SANGRIA' | 'GASTO_MENOR'>('RETIRO_SANGRIA');
   const [amount, setAmount] = useState<string>('');

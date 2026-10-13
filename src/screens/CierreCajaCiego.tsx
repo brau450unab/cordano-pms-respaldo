@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useParking } from '../context/ParkingContext';
 import { Shift, ChileanCashBreakdown } from '../types';
 import { generateShiftReportPDF, generateShiftOpenReportPDF } from '../utils/pdfGenerator';
-import { ModalAperturaTurno } from '../components/ModalAperturaTurno';
+import { ModalAperturaTurno } from '../components/pms/ModalAperturaTurno';
 import { ModalMovimientoCaja } from '../components/ModalMovimientoCaja';
 import { ModalRevisionVehiculosCierre } from '../components/ModalRevisionVehiculosCierre';
 import { ModalInstruccionesCierreCiego } from '../components/ModalInstruccionesCierreCiego';
@@ -57,7 +57,7 @@ export const CierreCajaCiego: React.FC = () => {
   const [isInstruccionesOpen, setIsInstruccionesOpen] = useState(false);
   const [isReporteModalOpen, setIsReporteModalOpen] = useState(false);
   const [isVouchersModalOpen, setIsVouchersModalOpen] = useState(false);
-  const [handoverFundAmount, setHandoverFundAmount] = useState<string>('30000');
+  const [handoverFundAmount, setHandoverFundAmount] = useState<string>('50000');
 
   // Formulario Ciego
   const [cashInputMode, setCashInputMode] = useState<'total' | 'denominaciones'>('total');
@@ -213,16 +213,7 @@ export const CierreCajaCiego: React.FC = () => {
     executeShiftClose();
   };
 
-  const handleOpenShiftConfirm = (total: number, brk?: ChileanCashBreakdown) => {
-    openNewShift(total, brk);
-    setIsAperturaModalOpen(false);
-    setClosedShiftResult(null);
-    setDeclaredCash('');
-    setDeclaredCard('');
-    setDeclaredTransfer('');
-    setJustification('');
-    setHasCompletedVehicleReview(false);
-  };
+
 
   const totalDeclared =
     (activeShift.declaredCash || 0) +
@@ -892,14 +883,14 @@ export const CierreCajaCiego: React.FC = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setHandoverFundAmount('30000')}
+                        onClick={() => setHandoverFundAmount('50000')}
                         className={`px-2.5 py-1 rounded border text-xs font-bold transition cursor-pointer ${
-                          handoverFundAmount === '30000'
+                          handoverFundAmount === '50000'
                             ? 'bg-[#1E1E2F] text-white border-slate-900'
                             : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
                         }`}
                       >
-                        Fondo $30.000
+                        Fondo $ 50.000
                       </button>
                     </div>
                   </div>
@@ -1282,13 +1273,17 @@ export const CierreCajaCiego: React.FC = () => {
         />
       )}
 
-      {/* Modal Apertura de Turno */}
+      {/* Modal Apertura de Turno Oficial */}
       <ModalAperturaTurno
         isOpen={isAperturaModalOpen}
         onClose={() => setIsAperturaModalOpen(false)}
-        onConfirm={handleOpenShiftConfirm}
-        operatorName={user.name}
-        suggestedInitialCash={parseInt(handoverFundAmount) || 30000}
+        onSuccess={() => {
+          setIsAperturaModalOpen(false);
+          setClosedShiftResult(null);
+          setDeclaredCash('');
+          setDeclaredCard('');
+        }}
+        onShowToast={(_msg, _type) => {}}
       />
 
       {/* Modal Movimiento de Caja */}

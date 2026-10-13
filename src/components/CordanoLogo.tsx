@@ -23,7 +23,7 @@ export const CordanoLogo: React.FC<CordanoLogoProps> = ({
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       style={size ? { width: size, height: size } : undefined}
-      aria-label="Logo CORDANO PMS"
+      aria-label="Logo Cordano Parking Ops"
       role="img"
     >
       <rect width="512" height="512" rx="110" fill={bgFill} />

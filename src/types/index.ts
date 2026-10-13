@@ -35,12 +35,25 @@ export type UserRole = 'operador' | 'supervisor' | 'administrador';
 
 export type TariffType = 'estandar' | 'convenio' | 'mensual' | 'tarifa_plana' | 'especial';
 
+export interface UserPermissions {
+  canOperatePos: boolean; // Generar tickets, realizar cobros de caja
+  canOpenCloseShift: boolean; // Apertura y Arqueo Ciego de turno
+  canViewReports: boolean; // Dashboard de métricas, RevPAS, ventas
+  canViewAudit: boolean; // Bitácora SHA-256, autorizaciones PIN
+  canConfigureSystem: boolean; // Configuración de tarifas (Ley 20.967) y parámetros
+  canManageClients: boolean; // Submódulo de convenios y mensualidades
+  isLiveSupervisorMode: boolean; // Modo solo lectura cuando admin inspecciona garita
+}
+
 export interface User {
   id: string;
   name: string;
   role: UserRole;
   shiftId: string;
   email?: string;
+  username?: string;
+  rut?: string;
+  permissions?: UserPermissions;
 }
 
 export interface ParkingSlot {
@@ -233,6 +246,7 @@ export interface Shift {
   startTime: string; // ISO string
   endTime?: string;
   initialCash: number; // Fondo inicial
+  initialCashDeclared?: number;
   initialCashBreakdown?: ChileanCashBreakdown;
   declaredCash?: number;
   declaredCard?: number;
