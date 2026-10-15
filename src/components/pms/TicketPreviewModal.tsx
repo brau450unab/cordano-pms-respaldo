@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { generateTicketPdf, ThermalPaperSize } from '../../utils/pdfGenerator';
+import { generateQrSvgString } from '../../utils/qrCodeGenerator';
 
 export interface TicketPreviewData {
   plate: string;
@@ -96,7 +97,7 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
         : 'Estimado/a cliente:';
 
     const lines = [
-      `🅿️ *CORDANO PMS — TICKET DE ESTACIONAMIENTO*`,
+      `🅿️ *PARKING OPS — TICKET DE ESTACIONAMIENTO*`,
       `📍 Serrano 447, Iquique, Región de Tarapacá`,
       ``,
       greeting,
@@ -108,9 +109,10 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
       `⏰ *Hora de Ingreso:* ${timeStr}`,
       `🅿️ *Cupo Asignado:* *${slotCode}*`,
       `💲 *Tarifa:* $${data.rate.toLocaleString('es-CL')}/minuto`,
+      `⏱️ *Tiempo de Gracia:* 15 minutos sin costo incluidos`,
       ...(data.obs ? [`📝 *Obs / Daños:* ${data.obs}`] : []),
       ``,
-      `⚠️ *Importante:* Conserve este comprobante digital. Recargo reglamentario por ticket extraviado: $8.000 CLP previa acreditación de dominio.`,
+      `ℹ️ *Importante:* Es responsabilidad del cliente conservar este comprobante para acreditar su hora de ingreso. Conforme a la Ley N° 20.967, ante extravío se liquida exclusivamente el tiempo efectivo por patente sin cobros punitivos.`,
       ``,
       `🌐 *Portal en línea:* https://cordanopms.ai.studio`,
       `_¡Gracias por preferir Cordano Parking Ops!_`,
@@ -154,9 +156,7 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
 
   // Ejecución de impresión térmica o PDF
   const handleTriggerPrint = () => {
-    if (onPrintTicket) {
-      onPrintTicket();
-    } else {
+    try {
       generateTicketPdf(
         {
           ticketCode: ticketId,
@@ -174,17 +174,20 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
           notes: data.obs,
           rate: data.rate,
         },
-        paperFormat,
+        '80mm',
         false
       );
+    } catch (err) {
+      console.warn('Error imprimiendo ticket:', err);
+    }
+    if (onPrintTicket) {
+      onPrintTicket();
     }
   };
 
   // Ejecución de descarga de PDF
   const handleTriggerDownloadPdf = () => {
-    if (onExportPdf) {
-      onExportPdf();
-    } else {
+    try {
       generateTicketPdf(
         {
           ticketCode: ticketId,
@@ -202,16 +205,27 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
           notes: data.obs,
           rate: data.rate,
         },
-        paperFormat,
+        '80mm',
         true
       );
+    } catch (err) {
+      console.warn('Error descargando PDF:', err);
+    }
+    if (onExportPdf) {
+      onExportPdf();
     }
   };
 
   return (
     <div
       id="modal-ticket-preview"
-      className="fixed inset-0 bg-slate-900/50 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in-up font-sans"
+      onClick={(e) => {
+        // Si no está confirmado, permite cerrar al hacer clic en el fondo
+        if (!isConfirmed && e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in-up font-sans"
     >
       <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-[0_20px_60px_rgba(30,30,47,0.25)] w-full max-w-sm sm:max-w-md overflow-hidden flex flex-col max-h-[94vh]">
         {/* Header */}
@@ -219,16 +233,22 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#E2498A]" />
             <span className="text-xs font-black uppercase tracking-wider text-[#1E1E2F]">
-              {isConfirmed ? 'Ticket Confirmado — Emisión de Comprobante' : 'Vista Previa del Ticket'}
+              {isConfirmed ? 'Ticket Confirmado — Emisión de Comprobante' : 'Vista Previa del Ticket (Térmica 80mm)'}
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-slate-200/60 text-[#94A3B8] hover:text-[#1E1E2F] flex items-center justify-center transition-colors text-base font-bold cursor-pointer"
-            aria-label="Cerrar modal"
-          >
-            ✕
-          </button>
+          {!isConfirmed ? (
+            <button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full hover:bg-slate-200/60 text-[#94A3B8] hover:text-[#1E1E2F] flex items-center justify-center transition-colors text-base font-bold cursor-pointer"
+              aria-label="Cerrar modal"
+            >
+              ✕
+            </button>
+          ) : (
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">
+              80mm Térmica
+            </span>
+          )}
         </div>
 
         {/* Body (Scrollable) */}
@@ -302,6 +322,12 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
                 <span className="font-bold text-[#1E1E2F] font-mono">${data.rate.toLocaleString('es-CL')}/min</span>
               </div>
 
+              {/* Tiempo de Gracia */}
+              <div className="col-span-2 pt-1 border-t border-dashed border-[#CBD5E1] flex justify-between items-center">
+                <span className="text-[#94A3B8]">Tiempo de Gracia:</span>
+                <span className="font-extrabold text-emerald-700 font-mono">15 minutos sin costo</span>
+              </div>
+
               {/* Cliente y WhatsApp en ticket */}
               {data.name && data.name !== 'Particular' && (
                 <div className="col-span-2 pt-1 border-t border-slate-200/60">
@@ -325,72 +351,37 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
               </div>
             )}
 
-            {/* DUAL IDENTIFICATION: 2D QR + LINEAR CODE 128 */}
-            <div className="pt-1 flex flex-col items-center justify-center space-y-2">
-              {/* QR Code SVG */}
-              <div className="w-[74px] h-[74px] border-2 border-[#1E1E2F] p-1.5 bg-white rounded-xl flex items-center justify-center shadow-xs">
-                <svg className="w-full h-full text-[#1E1E2F]" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="2" y="2" width="6" height="6" rx="0.5" />
-                  <rect x="16" y="2" width="6" height="6" rx="0.5" />
-                  <rect x="2" y="16" width="6" height="6" rx="0.5" />
-                  <rect x="3.5" y="3.5" width="3" height="3" fill="white" />
-                  <rect x="17.5" y="3.5" width="3" height="3" fill="white" />
-                  <rect x="3.5" y="17.5" width="3" height="3" fill="white" />
-                  <rect x="10" y="10" width="4" height="4" rx="0.25" />
-                  <rect x="16" y="16" width="4" height="4" rx="0.25" />
-                  <rect x="10" y="16" width="4" height="2" rx="0.25" />
-                  <rect x="16" y="10" width="2" height="4" rx="0.25" />
-                  <rect x="10" y="3" width="2" height="2" />
-                  <rect x="13" y="3" width="2" height="2" />
-                  <rect x="3" y="10" width="2" height="2" />
-                  <rect x="3" y="13" width="2" height="2" />
-                </svg>
-              </div>
+            {/* CÓDIGO QR FUNCIONAL DENTRO DEL TICKET (ISO/IEC 18004) */}
+            <div className="pt-2 pb-1 flex flex-col items-center justify-center space-y-1.5">
+              <div
+                className="w-[104px] h-[104px] border-2 border-[#1E1E2F] p-1 bg-white rounded-2xl flex items-center justify-center shadow-xs overflow-hidden"
+                dangerouslySetInnerHTML={{
+                  __html: generateQrSvgString(
+                    `https://cordanopms.ai.studio/verify?folio=${encodeURIComponent(ticketId)}&plate=${encodeURIComponent(data.plate)}`,
+                    96,
+                    'M',
+                    '#1E1E2F',
+                    '#FFFFFF'
+                  ),
+                }}
+              />
 
-              {/* Code 128 linear barcode */}
-              <div className="w-full px-2">
-                <div
-                  className="h-7 w-full rounded-sm overflow-hidden"
-                  style={{
-                    background:
-                      'repeating-linear-gradient(90deg,#1E1E2F 0px,#1E1E2F 2px,transparent 2px,transparent 4px,#1E1E2F 4px,#1E1E2F 5px,transparent 5px,transparent 8px,#1E1E2F 8px,#1E1E2F 9px,transparent 9px,transparent 12px)',
-                  }}
-                />
-                <div className="text-[10px] font-bold tracking-[0.12em] text-[#1E1E2F] mt-1 text-center font-mono">
-                  {ticketId}
-                </div>
+              <div className="text-[11px] font-bold tracking-wider text-[#1E1E2F] font-mono">
+                {ticketId}
               </div>
+              <span className="text-[9px] text-[#64748B]">
+                Escanee con su cámara para verificar ticket en línea
+              </span>
             </div>
 
-            {/* LEYENDA LEGAL OBLIGATORIA */}
-            <div className="border border-amber-300 bg-amber-50 rounded-xl px-3 py-2 text-[9px] text-amber-900 text-left leading-snug mt-1">
-              <span className="font-extrabold uppercase tracking-wide text-amber-800">⚠️ Aviso Legal:</span> No pierda este comprobante. El extravío tiene un recargo reglamentario de{' '}
-              <strong className="text-amber-950 text-[10px] font-mono font-bold">$ 8.000 CLP</strong> previa acreditación de dominio.
+            {/* LEYENDA LEGAL: RESPONSABILIDAD DEL CLIENTE (SIN MULTAS ILEGALES) */}
+            <div className="border border-slate-200 bg-slate-100 rounded-xl px-3 py-2 text-[9px] text-slate-700 text-left leading-snug mt-1">
+              <span className="font-extrabold uppercase tracking-wide text-slate-900 block mb-0.5">
+                ℹ️ Responsabilidad del Cliente:
+              </span>
+              Es responsabilidad del cliente conservar este ticket para acreditar su hora de ingreso al momento del retiro. Conforme a la Ley N° 20.967, ante extravío se liquida exclusivamente el tiempo efectivo por patente sin recargos.
             </div>
           </div>
-
-          {/* Formato de papel térmico / A4 selector */}
-          {isConfirmed && (
-            <div className="flex items-center justify-between px-1 text-xs">
-              <span className="text-slate-500 font-bold">Formato de Documento:</span>
-              <div className="flex gap-1.5">
-                {(['80mm', '58mm', 'a4'] as ThermalPaperSize[]).map((fmt) => (
-                  <button
-                    key={fmt}
-                    type="button"
-                    onClick={() => setPaperFormat(fmt)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-colors cursor-pointer ${
-                      paperFormat === fmt
-                        ? 'bg-[#1E1E2F] text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {fmt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Panel Interactivo de Solicitud de Teléfono para WhatsApp */}
           {showPhonePrompt && (
@@ -469,53 +460,59 @@ export const TicketPreviewModal: React.FC<TicketPreviewModalProps> = ({
               </button>
             </div>
           ) : (
-            <div className="space-y-2.5 pt-1">
+            <div className="space-y-3 pt-1">
+              {/* Botones de acción principales */}
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={handleTriggerPrint}
-                  className="h-11 rounded-xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold shadow-xs transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-98"
-                  title="Imprimir ticket térmico en impresora USB o diálogo del sistema"
+                  className="h-12 rounded-xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white text-xs font-bold shadow-xs transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-98"
+                  title="Imprimir ticket térmico en impresora USB de 80mm"
                 >
                   <span>🖨️ Imprimir</span>
-                  <span className="text-[9px] text-slate-300 font-mono">{paperFormat}</span>
+                  <span className="text-[9px] text-slate-300 font-mono">80mm Térmica</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleTriggerDownloadPdf}
-                  className="h-11 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold border border-slate-300 shadow-xs transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-98"
-                  title="Descargar documento PDF directamente"
+                  className="h-12 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold border border-slate-300 shadow-xs transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-98"
+                  title="Descargar documento PDF de 80mm directamente"
                 >
                   <span>📄 Guardar</span>
-                  <span className="text-[9px] text-slate-500 font-mono">PDF</span>
+                  <span className="text-[9px] text-slate-500 font-mono">PDF 80mm</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => executeSendWhatsApp()}
-                  className="h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-98"
+                  className="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-98"
                   title="Enviar comprobante vía WhatsApp wa.me"
                 >
                   <span>💬 WhatsApp</span>
-                  <span className="text-[9px] text-emerald-200 font-mono">wa.me</span>
+                  <span className="text-[9px] text-emerald-100 font-mono">wa.me</span>
                 </button>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleCopyMessage}
-                  className="flex-1 py-2 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer text-center"
-                >
-                  {copiedMsg ? '✓ Mensaje Copiado' : '📋 Copiar Enlace y Texto'}
-                </button>
+              {/* Botón copiar mensaje */}
+              <button
+                type="button"
+                onClick={handleCopyMessage}
+                className="w-full py-2.5 text-xs font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5"
+              >
+                <span>{copiedMsg ? '✓' : '📋'}</span>
+                <span>{copiedMsg ? '¡Texto y Enlace Copiados al Portapapeles!' : 'Copiar Texto y Enlace para WhatsApp'}</span>
+              </button>
+
+              {/* BOTÓN ENORME FINALIZAR: Obligatorio para cerrar el modal */}
+              <div className="pt-1">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl transition-colors cursor-pointer text-center"
+                  className="w-full py-4 rounded-2xl bg-[#1E1E2F] hover:bg-[#2D2D44] active:scale-[0.99] text-white font-black text-sm sm:text-base shadow-xl transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  Finalizar
+                  <span>✅</span>
+                  <span>Finalizar</span>
                 </button>
               </div>
             </div>

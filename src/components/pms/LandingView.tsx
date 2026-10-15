@@ -27,7 +27,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
   onNavigate,
   onShowToast,
 }) => {
-  const { setIsLoggedIn, isLoggedIn, tariffConfig, user, logout, setUserRole, setUser } = useParking();
+  const { setIsLoggedIn, isLoggedIn, tariffConfig, user, logout, setUserRole, setUser, currentShift } = useParking();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -45,7 +45,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
     parkingNeed: 'fijo_reservado',
     schedule: '24_7',
     comments: '',
-    plan: [] as string[],
+    selectedPlan: 'mensual',
   });
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
@@ -58,27 +58,27 @@ export const LandingView: React.FC<LandingViewProps> = ({
     role: string;
   } | null>(null);
 
-  // Carrusel de imágenes reales del recinto Serrano 447 (movimiento continuo)
+  // Carrusel de imágenes reales del recinto Serrano 447 (orientadas a beneficios)
   const carouselImages = [
     {
       url: '/assets/images/acceso-garita-barrera.jpg',
-      title: 'Control de Acceso & Garita Serrano 447',
-      desc: 'Barrera automatizada, tótem digital y lector LPR de patentes',
+      title: 'Control de Acceso Automatizado LPR',
+      desc: 'Barrera vehicular inteligente con lectura de patente y tótem digital de garita',
     },
     {
       url: '/assets/images/patio-central-serrano447.jpg',
       title: 'Patio Central de Estacionamiento',
-      desc: '30 plazas pavimentadas con señalética vial diurna y demarcaciones',
+      desc: '30 plazas pavimentadas con señalética vial diurna y demarcaciones de alto tráfico',
     },
     {
       url: '/assets/images/sector-techado-flotas.jpg',
-      title: 'Sector Techado Preferencial',
-      desc: 'Tensoestructuras arquitectónicas de protección solar para flotas y convenios',
+      title: 'Sector Techado para Convenios y Flotas',
+      desc: 'Protección solar arquitectónica continua para empresas y vehículos abonados',
     },
     {
       url: '/assets/images/panoramica-iquique-costa.jpg',
-      title: 'Vista Panorámica del Recinto Serrano 447',
-      desc: 'Ubicación céntrica estratégica en Iquique con vista al borde costero y Cerro Dragón',
+      title: 'Ubicación Céntrica Estratégica Serrano 447',
+      desc: 'Conectividad inmediata al centro cívico, puerto y comercio de Iquique',
     },
   ];
 
@@ -111,7 +111,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
   const handleCredentialsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanUser = username.trim().toLowerCase();
-    const isBraulio = cleanUser === 'braulio@automatizable.cl' || cleanUser === 'braulio' || cleanUser === '15221890-4' || cleanUser === '15.221.890-4';
+    const isBraulio = cleanUser === 'braulio@automatizable.cl' || cleanUser === 'braulio' || cleanUser === 'admin' || cleanUser === '15221890-4' || cleanUser === '15.221.890-4';
     const isCajero = cleanUser === 'cajero@cordano.cl' || cleanUser === 'cajero' || cleanUser === '19824312-5' || cleanUser === '19.824.312-5';
 
     if (isBraulio && password === 'admin123') {
@@ -122,8 +122,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
         setIsLoggedIn(true);
         setShowLoginModal(false);
         onShowToast('Bienvenido, Braulio Cordano (Administrador)', 'success');
-        onNavigate('inicio');
-        onLoginSuccess('inicio');
+        onNavigate('menu');
+        onLoginSuccess('menu');
       }, 600);
       return;
     }
@@ -136,8 +136,8 @@ export const LandingView: React.FC<LandingViewProps> = ({
         setIsLoggedIn(true);
         setShowLoginModal(false);
         onShowToast('Bienvenido al Turno, Cajero Garita (Operador)', 'success');
-        onNavigate('pos');
-        onLoginSuccess('pos');
+        onNavigate('menu');
+        onLoginSuccess('menu');
       }, 600);
       return;
     }
@@ -145,84 +145,55 @@ export const LandingView: React.FC<LandingViewProps> = ({
     onShowToast('Credenciales incorrectas.', 'error');
   };
 
-  const handleFastLogin = (role: 'operador' | 'administrador') => {
-    setLoginState('loading');
-    setTimeout(() => {
-      setLoginState('idle');
-      if (role === 'operador') {
-        setUser(INITIAL_OPERATOR);
-        onShowToast('Bienvenido al Turno (Cajero Garita - Operador)', 'success');
-      } else {
-        setUser(INITIAL_ADMIN);
-        onShowToast('Bienvenido al sistema (Braulio Cordano - Administrador)', 'success');
-      }
-      setIsLoggedIn(true);
-      setShowLoginModal(false);
-      onNavigate(role === 'operador' ? 'pos' : 'inicio');
-      onLoginSuccess(role === 'operador' ? 'pos' : 'inicio');
-    }, 400);
-  };
-
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contactForm.name || !contactForm.phone) {
-      onShowToast('Por favor, completa al menos tu nombre y teléfono', 'error');
+    if (!contactForm.company.trim()) {
+      onShowToast('Por favor, ingresa el nombre de la empresa', 'error');
       return;
     }
 
     setIsSubmittingContact(true);
     
-    const selectedPlans = tariffConfig.subscriptionPlans?.filter(p => contactForm.plan.includes(p.id)) || [];
-    const selectedServices = selectedPlans.map(p => p.title).join(", ") || "Ninguno seleccionado";
+    const selectedPlanObj = planTypes.find(p => p.id === contactForm.selectedPlan) || planTypes[2];
+    const planText = `*Plan Solicitado:* ${selectedPlanObj.title} (${selectedPlanObj.price})%0A`;
     
-    const companyText = contactForm.company ? `*Empresa / Razón Social:* ${contactForm.company}%0A` : "";
-    const emailText = contactForm.email ? `*Email:* ${contactForm.email}%0A` : "";
-    const fleetText = `*Dimensión Flota:* ${contactForm.fleetSize}%0A`;
-    const needText = `*Modalidad Requerida:* ${contactForm.parkingNeed === 'fijo_reservado' ? 'Plazas Fijas Reservadas' : contactForm.parkingNeed === 'flotante' ? 'Abono Flotante Rotativo' : contactForm.parkingNeed === 'techado' ? 'Espacios Techados Exclusivos' : 'Mixto'}%0A`;
-    const scheduleText = `*Horario Operativo:* ${contactForm.schedule === '24_7' ? 'Continuo 24/7' : contactForm.schedule === 'oficina' ? 'Lunes a Viernes (Horario Oficina)' : contactForm.schedule === 'nocturno' ? 'Nocturno / Fin de semana' : 'Personalizado'}%0A`;
-    const obs = contactForm.comments ? `*Observaciones / Requisitos:* ${contactForm.comments}` : "";
+    const companyText = `*Empresa:* ${contactForm.company}%0A`;
+    const fleetText = `*Cantidad de Vehículos:* ${contactForm.fleetSize}%0A`;
+    const commentsText = contactForm.comments ? `*Comentarios:* ${contactForm.comments}` : "";
     
-    const text = `*SOLICITUD DE CONVENIO CORPORATIVO - SERRANO 447*%0A%0A*Contacto:* ${contactForm.name}%0A*Teléfono / WhatsApp:* ${contactForm.phone}%0A${companyText}${emailText}${fleetText}${needText}${scheduleText}*Planes de Interés:* ${selectedServices}%0A%0A${obs}`;
-    const waUrl = `https://wa.me/56900000000?text=${text}`; 
+    const text = `*SOLICITUD DE COTIZACIÓN CORPORATIVA - CORDANO SERRANO 447*%0A%0A${companyText}${fleetText}${planText}${commentsText}`;
+    const adminPhone = '56987654321';
+    const waUrl = `https://wa.me/${adminPhone}?text=${text}`;
 
     setTimeout(() => {
       setIsSubmittingContact(false);
       setContactSuccess(true);
-      onShowToast('Solicitud enviada correctamente', 'success');
+      onShowToast('Abriendo WhatsApp para enviar cotización...', 'success');
       
       window.open(waUrl, '_blank');
       
       setTimeout(() => {
-         setContactSuccess(false);
-         setContactForm({
-           name: '',
-           company: '',
-           phone: '',
-           email: '',
-           fleetSize: '1 a 3 vehículos',
-           parkingNeed: 'fijo_reservado',
-           schedule: '24_7',
-           comments: '',
-           plan: [],
-         });
-      }, 5000);
-    }, 1200);
+        setContactSuccess(false);
+        setContactForm({
+          name: '',
+          company: '',
+          phone: '',
+          email: '',
+          fleetSize: '1 a 3 vehículos',
+          parkingNeed: 'fijo_reservado',
+          schedule: '24_7',
+          comments: '',
+          selectedPlan: 'mensual',
+        });
+      }, 4000);
+    }, 800);
   };
 
-  const togglePlan = (planId: string) => {
-     setContactForm(prev => ({
-        ...prev,
-        plan: prev.plan.includes(planId) 
-           ? prev.plan.filter(p => p !== planId)
-           : [...prev.plan, planId]
-     }));
-  };
-
-  const dynamicPricingOptions = tariffConfig.subscriptionPlans || [
-     { id: 'mensual', title: 'Mensual', price: '$50.000', desc: 'Por mes' },
-     { id: 'semanal', title: 'Semanal', price: '$15.000', desc: 'Por semana' },
-     { id: 'diurno', title: 'Diurno', price: '$5.000', desc: 'Por día' },
-     { id: 'flota', title: 'Flota Corp.', price: 'A conv.', desc: 'Multivehículo' }
+  const planTypes = [
+    { id: 'diario', title: 'Diario', price: '$ 15.000 / día', desc: 'Acceso 24h libre' },
+    { id: 'semanal', title: 'Semanal', price: '$ 45.000 / sem', desc: '7 días continuos' },
+    { id: 'mensual', title: 'Mensual', price: '$ 75.000 / mes', desc: 'Abonado fijo oficial' },
+    { id: 'anual', title: 'Anual', price: '$ 810.000 / año', desc: 'Flota corporativa' },
   ];
 
   const renderFormContent = () => (
@@ -233,192 +204,97 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <span>PROGRAMA CORPORATIVO &amp; FLOTAS SERRANO 447</span>
         </div>
         <h4 className="font-extrabold text-2xl text-slate-900 tracking-tight">
-          Formulario de Calificación Comercial
+          Formulario de Cotización Corporativa
         </h4>
         <p className="text-slate-600 text-sm mt-1">
-          Ingresa los antecedentes de tu empresa o flota para cotizar un convenio a medida con facturación mensual consolidada.
+          Ingresa los datos para cotizar un convenio a medida con facturación consolidada.
         </p>
       </div>
 
-      {/* Bloque 1: Identificación y Contacto */}
-      <div className="space-y-4">
-        <h5 className="text-xs font-black uppercase tracking-wider text-[#E2498A] flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#E2498A]"></span>
-          1. Datos de la Empresa y Contacto Directo
-        </h5>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Nombre y Apellido del Encargado *
-            </label>
-            <input
-              required
-              type="text"
-              placeholder="Ej. Rodrigo Tapia Valdés"
-              value={contactForm.name}
-              onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Empresa / Razón Social o Institución
-            </label>
-            <input
-              type="text"
-              placeholder="Ej. Minera del Norte S.A. / Rent-a-Car"
-              value={contactForm.company}
-              onChange={e => setContactForm({ ...contactForm, company: e.target.value })}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Teléfono Celular / WhatsApp *
-            </label>
-            <input
-              required
-              type="text"
-              placeholder="Ej. +56 9 8765 4321"
-              value={contactForm.phone}
-              onChange={e => setContactForm({ ...contactForm, phone: e.target.value })}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all font-mono"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Correo Electrónico Corporativo
-            </label>
-            <input
-              type="email"
-              placeholder="Ej. contacto@empresa.cl"
-              value={contactForm.email}
-              onChange={e => setContactForm({ ...contactForm, email: e.target.value })}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
-            />
-          </div>
-        </div>
+      {/* Nombre de la Empresa */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+          Nombre de la Empresa *
+        </label>
+        <input
+          required
+          type="text"
+          placeholder="Ej. Minera del Norte / Rent-a-Car Iquique"
+          value={contactForm.company}
+          onChange={e => setContactForm({ ...contactForm, company: e.target.value })}
+          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
+        />
       </div>
 
-      {/* Bloque 2: Perfil Operativo y Necesidades de Flota */}
-      <div className="space-y-4 pt-2 border-t border-slate-100">
-        <h5 className="text-xs font-black uppercase tracking-wider text-[#E2498A] flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-[#E2498A]"></span>
-          2. Requerimientos de Espacio y Uso
-        </h5>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Cantidad de Vehículos / Patentes
-            </label>
-            <select
-              value={contactForm.fleetSize}
-              onChange={e => setContactForm({ ...contactForm, fleetSize: e.target.value })}
-              className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
-            >
-              <option value="1 a 3 vehículos">1 a 3 vehículos (Pequeña flota)</option>
-              <option value="4 a 8 vehículos">4 a 8 vehículos (Empresa mediana)</option>
-              <option value="9 a 15 vehículos">9 a 15 vehículos (Gran flota corporativa)</option>
-              <option value="16+ vehículos">Más de 16 vehículos (Sector exclusivo)</option>
-            </select>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Tipo de Asignación de Plazas
-            </label>
-            <select
-              value={contactForm.parkingNeed}
-              onChange={e => setContactForm({ ...contactForm, parkingNeed: e.target.value })}
-              className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
-            >
-              <option value="fijo_reservado">Plazas Fijas Numeradas (A-01 a A-15)</option>
-              <option value="flotante">Abono Flotante Rotativo (Disponibilidad)</option>
-              <option value="techado">Sector Techado Preferencial</option>
-              <option value="mixto">Mixto (Fijo + Rotativo)</option>
-            </select>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Franja Horaria Operativa
-            </label>
-            <select
-              value={contactForm.schedule}
-              onChange={e => setContactForm({ ...contactForm, schedule: e.target.value })}
-              className="w-full px-3.5 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all"
-            >
-              <option value="24_7">Acceso Continuo 24 Horas / 7 Días</option>
-              <option value="oficina">Horario Comercial (08:00 a 20:00)</option>
-              <option value="nocturno">Custodia Nocturna y Fin de Semana</option>
-              <option value="rotativo_turnos">Turnos Rotativos Mineros / Industriales</option>
-            </select>
-          </div>
-        </div>
+      {/* Cantidad de Vehículos (Selector) */}
+      <div className="space-y-1.5">
+        <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+          Cantidad de Vehículos *
+        </label>
+        <select
+          value={contactForm.fleetSize}
+          onChange={e => setContactForm({ ...contactForm, fleetSize: e.target.value })}
+          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all cursor-pointer"
+        >
+          <option value="1 a 3 vehículos">1 a 3 vehículos</option>
+          <option value="4 a 8 vehículos">4 a 8 vehículos</option>
+          <option value="9 a 15 vehículos">9 a 15 vehículos</option>
+          <option value="Más de 15 vehículos">Más de 15 vehículos</option>
+        </select>
       </div>
 
-      {/* Bloque 3: Selección de Planes */}
-      <div className="space-y-3 pt-2 border-t border-slate-100">
+      {/* Selección de Planes: Diario, Semanal, Mensual, Anual (Selección Única) */}
+      <div className="space-y-2 pt-2 border-t border-slate-100">
         <div className="flex items-center justify-between">
-          <h5 className="text-xs font-black uppercase tracking-wider text-[#E2498A] flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#E2498A]"></span>
-            3. Planes de Referencia para Cotizar
-          </h5>
-          <span className="text-[11px] font-bold text-slate-500">
-            {contactForm.plan.length > 0 ? `${contactForm.plan.length} plan(es) seleccionado(s)` : 'Selecciona al menos uno'}
+          <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+            Plan Corporativo Requerido *
+          </label>
+          <span className="text-[11px] font-bold text-[#E2498A]">
+            Selección única
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {dynamicPricingOptions.map(opt => {
-            const isSelected = contactForm.plan.includes(opt.id);
+          {planTypes.map(opt => {
+            const isSelected = contactForm.selectedPlan === opt.id;
             return (
               <div
                 key={opt.id}
-                onClick={() => togglePlan(opt.id)}
-                className={`cursor-pointer border-2 rounded-2xl p-3.5 transition-all flex flex-col items-center text-center select-none ${
+                onClick={() => setContactForm(prev => ({ ...prev, selectedPlan: opt.id }))}
+                className={`cursor-pointer border-2 rounded-2xl py-3 px-3 transition-all flex flex-col items-center justify-center text-center select-none ${
                   isSelected
-                    ? 'border-[#E2498A] bg-[#FFF5F8] text-[#1E1E2F] shadow-sm ring-2 ring-[#E2498A]/20'
-                    : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    ? 'border-[#E2498A] bg-[#FFF5F8] text-[#E2498A] shadow-sm ring-2 ring-[#E2498A]/20 font-black'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 font-bold'
                 }`}
               >
-                <span className="font-extrabold text-sm mb-1">{opt.title}</span>
-                <span className={`text-base font-black tabular-nums font-mono ${isSelected ? 'text-[#E2498A]' : 'text-slate-800'}`}>
-                  {opt.price}
-                </span>
-                <span className="text-[10px] uppercase font-bold text-slate-500 mt-1">
-                  {opt.desc}
-                </span>
+                <span className="text-sm font-black">{opt.title}</span>
+                <span className="text-[11px] font-mono font-bold mt-0.5 text-slate-600 tabular-nums">{opt.price}</span>
+                <span className="text-[10px] text-slate-400 mt-0.5">{opt.desc}</span>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Bloque 4: Requerimientos especiales y facturación */}
+      {/* Campo de Comentarios */}
       <div className="space-y-1.5 pt-2 border-t border-slate-100">
         <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-          Detalles Específicos de Operación, Facturación o RUT de Empresa
+          Comentarios
         </label>
         <textarea
           rows={3}
-          placeholder="Indica si requieres factura con orden de compra, control de TAG/código de barra, fechas estimadas de inicio o requerimientos de seguridad..."
+          placeholder="Escribe aquí tus comentarios, requerimientos particulares o dudas..."
           value={contactForm.comments}
           onChange={e => setContactForm({ ...contactForm, comments: e.target.value })}
           className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all resize-none"
         ></textarea>
       </div>
 
-      {/* Botón de Envío */}
+      {/* Botón Enviar con integración wa.me */}
       <div className="pt-2">
         <button
           type="submit"
-          disabled={isSubmittingContact || contactForm.plan.length === 0}
+          disabled={isSubmittingContact || !contactForm.company.trim()}
           className="w-full h-14 bg-[#E2498A] text-white rounded-2xl text-base font-black shadow-xl hover:bg-[#C83472] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 tracking-wide cursor-pointer"
         >
           {isSubmittingContact ? (
@@ -427,17 +303,17 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
-              <span>Generando Ficha de Solicitud...</span>
+              <span>Generando Enlace WhatsApp...</span>
             </>
           ) : (
             <>
-              <span>Solicitar Cotización y Enviar Ficha por WhatsApp</span>
+              <span>Enviar</span>
               <span className="text-xl">💬</span>
             </>
           )}
         </button>
         <p className="text-center text-[11px] text-slate-500 font-semibold mt-2.5">
-          Atención ejecutiva directa • Respuesta promedio en menos de 15 minutos en horario hábil
+          Envío directo vía WhatsApp wa.me • Respuesta promedio en menos de 15 minutos
         </p>
       </div>
     </form>
@@ -452,14 +328,14 @@ export const LandingView: React.FC<LandingViewProps> = ({
           {/* Logo & Encabezado */}
           <div className="text-center space-y-2">
             <div className="w-14 h-14 bg-gradient-to-tr from-[#C83472] to-[#E2498A] rounded-2xl flex items-center justify-center shadow-lg shadow-[#E2498A]/25 mx-auto">
-              <span className="text-white font-black text-2xl">C</span>
+              <span className="text-white font-black text-2xl">P</span>
             </div>
             <div>
               <h1 className="text-2xl font-black text-[#1E1E2F] tracking-tight">
-                Cordano<span className="text-[#E2498A]"> Parking Ops</span>
+                PARKING <span className="text-[#E2498A]">OPS</span>
               </h1>
-              <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                Portal de Supervisión • Garita Serrano 447
+              <p className="text-xs font-extrabold text-slate-500 mt-0.5 tracking-wider uppercase">
+                Cordano Iquique
               </p>
             </div>
           </div>
@@ -476,9 +352,25 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 <div className="text-xs text-slate-500 font-medium">
                   Perfil: <strong className="capitalize">{user?.role || 'operador'}</strong>
                 </div>
+                <div className="pt-2 border-t border-emerald-200/60 mt-2">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-slate-600">Estado del Turno:</span>
+                    {currentShift && currentShift.status === 'abierto' ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 font-black text-[11px]">
+                        <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                        Turno Iniciado
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-black text-[11px]">
+                        <span className="w-2 h-2 rounded-full bg-amber-500" />
+                        Turno No Iniciado
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Botón Principal: IR A LA SESIÓN ACTIVA */}
+              {/* Botón Principal: Ir a la sesión activa */}
               <button
                 type="button"
                 onClick={() => {
@@ -507,21 +399,21 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <div className="space-y-3">
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1">
-                    Usuario o RUT
+                    Usuario o Correo
                   </label>
                   <input
                     type="text"
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Ej. operador / 12345678-9"
-                    className="w-full h-12 px-3.5 rounded-xl border border-slate-200 bg-slate-50 font-mono text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E2498A] focus:bg-white"
+                    placeholder="braulio@automatizable.cl o cajero@cordano.cl"
+                    className="w-full h-12 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-900 focus:outline-none focus:border-[#E2498A] focus:bg-white"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-1">
-                    Contraseña o PIN
+                    Contraseña
                   </label>
                   <input
                     type="password"
@@ -542,37 +434,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 <Lock className="w-4 h-4 text-[#E2498A]" />
                 <span>{loginState === 'loading' ? 'Ingresando...' : 'Iniciar Sesión'}</span>
               </button>
-
-              {/* Accesos rápidos de rol para testeo ágil */}
-              <div className="pt-3 border-t border-slate-100 space-y-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">
-                  Ingreso Rápido por Perfil
-                </span>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleFastLogin('operador')}
-                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition cursor-pointer"
-                  >
-                    <span className="text-[11px] font-black text-slate-900 block">Carlos M.</span>
-                    <span className="text-[10px] text-[#E2498A] font-bold">Operador Garita</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleFastLogin('administrador')}
-                    className="p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition cursor-pointer"
-                  >
-                    <span className="text-[11px] font-black text-slate-900 block">Andrea V.</span>
-                    <span className="text-[10px] text-purple-600 font-bold">Supervisora</span>
-                  </button>
-                </div>
-              </div>
             </form>
           )}
 
           <div className="pt-2 text-center border-t border-slate-100">
             <span className="text-[10px] text-slate-400 font-semibold">
-              Serrano 447, Iquique • Terminal de 30 Plazas
+              Cordano Iquique • Serrano 447
             </span>
           </div>
         </div>
@@ -584,25 +451,29 @@ export const LandingView: React.FC<LandingViewProps> = ({
         <nav className="absolute top-0 left-0 w-full z-50 px-6 py-6 lg:px-12 flex items-center justify-between">
         <div className="flex items-center gap-3">
            <div className="w-10 h-10 bg-gradient-to-tr from-[#C83472] to-[#E2498A] rounded-2xl flex items-center justify-center shadow-md shadow-[#E2498A]/30">
-             <span className="text-white font-black text-xl">C</span>
+             <span className="text-white font-black text-xl">P</span>
            </div>
-           <span className="font-extrabold text-2xl tracking-tight text-[#1E1E2F]">
-             Cordano<span className="text-[#E2498A]"> Parking Ops</span>
-           </span>
+           <div className="flex flex-col">
+             <span className="font-extrabold text-2xl tracking-tight text-[#1E1E2F] leading-none">
+               PARKING <span className="text-[#E2498A]">OPS</span>
+             </span>
+             <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase mt-0.5">
+               Cordano Iquique
+             </span>
+           </div>
         </div>
         <div className="hidden lg:flex items-center gap-8 font-bold text-sm text-slate-500">
            <a href="#inicio" className="hover:text-[#E2498A] transition-colors">Inicio</a>
-           <a href="#monitor" className="hover:text-[#E2498A] transition-colors">Monitor</a>
-           <a href="#funcionalidades" className="hover:text-[#E2498A] transition-colors">POS</a>
+           <a href="#funcionalidades" className="hover:text-[#E2498A] transition-colors">Funcionalidades</a>
            <a href="#convenios" className="hover:text-[#E2498A] transition-colors">Convenios</a>
-           <a href="#faq" className="hover:text-[#E2498A] transition-colors">FAQ</a>
+           <a href="#faq" className="hover:text-[#E2498A] transition-colors">FAQs</a>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
               if (isLoggedIn) {
-                onNavigate('pos');
-                onLoginSuccess('pos');
+                onNavigate('menu');
+                onLoginSuccess('menu');
               } else {
                 setShowLoginModal(true);
               }
@@ -610,7 +481,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
             className="px-5 py-2.5 bg-[#1E1E2F] hover:bg-[#2D2D44] text-white rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-sm hover:shadow"
           >
             <Lock className="w-3.5 h-3.5 text-[#E2498A]" />
-            <span>{isLoggedIn ? 'Ir a Garita / POS →' : 'Acceso Garita / POS'}</span>
+            <span>{isLoggedIn ? 'Ir a Dashboard →' : 'Acceso Garita / POS'}</span>
           </button>
         </div>
       </nav>
@@ -628,10 +499,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
             
             <div className="lg:col-span-7 space-y-8 animate-fade-in-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-[#E2498A] text-sm font-bold border border-slate-200 shadow-2xs">
-                 <span className="relative flex h-2.5 w-2.5"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#E2498A] opacity-75"></span><span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#E2498A]"></span></span>
-                 Cordano Parking Ops · Versión 1.0 · Serrano 447, Iquique
-              </div>
               <h1 className="text-5xl lg:text-7xl font-black tracking-tight text-[#1E1E2F] leading-[1.05]">
                 Inteligencia y <span className="text-[#E2498A]">Rapidez</span> en cada turno.
               </h1>
@@ -640,37 +507,26 @@ export const LandingView: React.FC<LandingViewProps> = ({
               </p>
               
               <div className="flex flex-wrap items-center gap-4 pt-2">
-                {!isLoggedIn && (
-                  <button
-                    onClick={() => setShowLoginModal(true)}
-                    className="px-8 py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/30 transition-all flex items-center gap-3 cursor-pointer active:scale-[0.99]"
-                  >
-                    <Lock className="w-5 h-5" />
-                    <span>Iniciar Turno en Garita</span>
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                )}
                 <a
-                  href="#monitor"
-                  className="px-7 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-base font-bold transition-all flex items-center gap-2"
+                  href="#convenios"
+                  className="px-8 py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/30 transition-all flex items-center gap-3 cursor-pointer active:scale-[0.99]"
                 >
-                  <span>Ver Monitor 30 Plazas</span>
+                  <span>Cotizar contacto corporativo</span>
+                  <ArrowRight className="w-5 h-5" />
                 </a>
-                {isLoggedIn && (
-                  <a
-                    href="#convenios"
-                    className="px-6 py-4 bg-white border border-slate-200 hover:border-slate-300 text-slate-600 rounded-2xl text-base font-bold transition-all flex items-center gap-2"
-                  >
-                    <span>Convenios Corporativos</span>
-                  </a>
-                )}
+                <a
+                  href="#funcionalidades"
+                  className="px-7 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl text-base font-bold transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Ver funcionalidades</span>
+                </a>
               </div>
             </div>
 
             {/* Right Column: Dynamic Status or Direct Gate Card */}
             <div className="lg:col-span-5 relative">
               {isLoggedIn ? (
-                /* Card Limpia y Directa para Usuario con Sesión Activa */
+                /* Card Limpia para Usuario con Sesión Activa */
                 <div className="bg-white rounded-[2.5rem] p-8 lg:p-10 shadow-[0_20px_60px_-15px_rgba(226,73,138,0.25)] relative z-10 border border-slate-100 animate-fade-in-up space-y-6">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div className="flex items-center gap-3">
@@ -688,94 +544,109 @@ export const LandingView: React.FC<LandingViewProps> = ({
                     </span>
                   </div>
 
-                  <div className="p-5 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-2">
+                  <div className="p-5 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Usuario en Turno</span>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">Usuario Autenticado</span>
                       <span className="text-xs font-extrabold text-[#E2498A] bg-[#FFF5F8] px-2.5 py-0.5 rounded-full border border-[#E2498A]/20">
                         {user?.role === 'administrador' ? 'Administrador' : 'Operador Garita'}
                       </span>
                     </div>
-                    <p className="text-sm font-bold text-slate-800">
+                    <p className="text-base font-black text-slate-900">
                       {user?.name || 'Personal Autorizado Cordano'}
                     </p>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                      Tu puesto de trabajo está listo. Ingresa directamente al punto de venta para cobro de tickets, control de barrera y ocupación.
-                    </p>
+                    <div className="pt-2 border-t border-slate-200/60">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-500">Estado del Turno Físico:</span>
+                        {currentShift && currentShift.status === 'abierto' ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            Turno Iniciado
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-black">
+                            <span className="w-2 h-2 rounded-full bg-amber-500" />
+                            Turno No Iniciado
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="space-y-3 pt-1">
+                  <div className="pt-1">
                     <button
                       onClick={() => {
-                        onNavigate('pos');
-                        onLoginSuccess('pos');
+                        onNavigate('menu');
+                        onLoginSuccess('menu');
                       }}
-                      className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-sm font-black shadow-lg shadow-[#E2498A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                      className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
                     >
-                      <span>Ir directamente a la Garita / POS</span>
+                      <span>Ir a Dashboard</span>
                       <ArrowRight className="w-4 h-4" />
-                    </button>
-
-                    <button
-                      onClick={() => onNavigate('inicio')}
-                      className="w-full py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <span>Ir al Menú Hub Central (F1)</span>
                     </button>
                   </div>
                 </div>
               ) : (
-                /* Card con Información del Recinto para visitantes sin sesión */
+                /* Card con Formulario Directo de Iniciar Sesión (Sin usuarios de ejemplo) */
                 <div className="bg-white rounded-[2.5rem] p-8 lg:p-10 shadow-[0_20px_60px_-15px_rgba(226,73,138,0.25)] relative z-10 border border-slate-100 animate-fade-in-up space-y-6">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-bold">
-                        <Activity className="w-6 h-6 animate-pulse" />
+                      <div className="w-12 h-12 bg-pink-50 text-[#E2498A] rounded-2xl flex items-center justify-center font-bold">
+                        <Lock className="w-6 h-6" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-[#1E1E2F]">Recinto Serrano 447</h3>
-                        <p className="text-xs text-slate-400 font-medium">Iquique Centro · En Línea</p>
+                        <h3 className="text-lg font-black text-[#1E1E2F]">Iniciar Sesión</h3>
+                        <p className="text-xs text-slate-400 font-medium">Terminal Garita · Serrano 447</p>
                       </div>
                     </div>
-                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-600 text-xs font-bold rounded-full border border-emerald-500/20">
-                      Operativo
+                    <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full border border-slate-200">
+                      Acceso Seguro
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Capacidad</span>
-                      <span className="text-3xl font-black text-[#1E1E2F] tabular-nums mt-1 block">30</span>
-                      <span className="text-[11px] text-slate-500 font-medium">Plazas Totales</span>
+                  <form onSubmit={handleCredentialsSubmit} className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                        Usuario o Correo
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          placeholder="braulio@automatizable.cl o cajero@cordano.cl"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all font-sans"
+                        />
+                        <User className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     </div>
-                    <div className="p-4 bg-[#FFF5F8] rounded-2xl border border-[#E2498A]/20 text-center">
-                      <span className="text-xs font-bold text-[#E2498A] uppercase tracking-wider block">Gaveta Base</span>
-                      <span className="text-2xl font-black text-[#E2498A] tabular-nums mt-1 block">$ 50.000</span>
-                      <span className="text-[11px] text-[#E2498A]/80 font-medium">Fondo Apertura</span>
-                    </div>
-                  </div>
 
-                  <div className="space-y-2 text-xs text-slate-600 font-medium">
-                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                      <span>Sector A (Plazas 01 a 15)</span>
-                      <span className="font-bold text-emerald-600">Disponibles</span>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
+                        Contraseña
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#E2498A] focus:bg-white focus:ring-4 focus:ring-[#E2498A]/10 transition-all font-mono"
+                        />
+                        <KeyRound className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between py-1.5 border-b border-slate-100">
-                      <span>Sector B (Plazas 16 a 30)</span>
-                      <span className="font-bold text-emerald-600">Disponibles</span>
-                    </div>
-                    <div className="flex items-center justify-between py-1.5">
-                      <span>Normativa Aplicada</span>
-                      <span className="font-bold text-slate-800">Ley N° 20.967</span>
-                    </div>
-                  </div>
 
-                  <button
-                    onClick={() => setShowLoginModal(true)}
-                    className="w-full py-3.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
-                  >
-                    <Lock className="w-3.5 h-3.5 text-[#E2498A]" />
-                    <span>Acceso Operativo de Garita</span>
-                  </button>
+                    <button
+                      type="submit"
+                      disabled={loginState === 'loading'}
+                      className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                    >
+                      <Lock className="w-4 h-4" />
+                      <span>{loginState === 'loading' ? 'Ingresando...' : 'Iniciar Sesión'}</span>
+                    </button>
+                  </form>
                 </div>
               )}
             </div>
@@ -849,25 +720,25 @@ export const LandingView: React.FC<LandingViewProps> = ({
               <div>
                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-[#E2498A] text-xs font-black tracking-wider uppercase mb-2">
                     <span className="w-2 h-2 rounded-full bg-[#E2498A] animate-ping" />
-                    RECINTO OPERATIVO EN VIVO
+                    SHOW REEL RECINTO EN VIVO
                  </div>
                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
-                    Infraestructura &amp; Seguridad Serrano 447
+                    Infraestructura &amp; Seguridad Cordano Iquique
                  </h2>
                  <p className="text-slate-400 text-sm mt-1">
-                    Conoce las instalaciones físicas: garita de control, pavimentación, cámaras y áreas techadas.
+                    Instalaciones del recinto Serrano 447: garita de control, pavimentación, cámaras y áreas techadas.
                  </p>
               </div>
               <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-400">
                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                 <span>Recinto 100% Operativo • Iquique Centro</span>
+                 <span>Recinto 100% Operativo • Cordano Iquique</span>
               </div>
            </div>
 
-           {/* Track del Carrusel Animado Infinito */}
-           <div className="relative w-full overflow-hidden">
+           {/* Track del Carrusel Animado Infinito (Show Reel Continuo) */}
+           <div className="relative w-full overflow-hidden select-none">
               <div className="flex gap-6 animate-carousel-infinite hover:[animation-play-state:paused] w-max py-2">
-                 {[...carouselImages, ...carouselImages].map((img, idx) => (
+                 {[...carouselImages, ...carouselImages, ...carouselImages, ...carouselImages].map((img, idx) => (
                     <div 
                       key={idx} 
                       className="w-[320px] sm:w-[420px] lg:w-[480px] shrink-0 bg-[#1E1E2F] rounded-3xl overflow-hidden border border-slate-700/80 shadow-2xl group transition-transform duration-300 hover:scale-[1.02]"
@@ -880,7 +751,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-[#1E1E2F] via-transparent to-transparent opacity-80" />
                           <span className="absolute top-4 left-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[10px] font-mono font-bold text-white border border-white/20">
-                             SECTOR {idx % 2 === 0 ? 'A' : 'B'} • CORDANO
+                             SECTOR {idx % 2 === 0 ? 'A' : 'B'} • CORDANO IQUIQUE
                           </span>
                        </div>
                        <div className="p-5 space-y-1">
@@ -1291,15 +1162,18 @@ export const LandingView: React.FC<LandingViewProps> = ({
          </div>
       </section>
 
-      {/* 5. FOOTER */}
+       {/* 5. FOOTER */}
       <footer className="pt-24 pb-12 bg-white text-center border-t border-slate-100">
          <div className="max-w-[1200px] mx-auto px-6">
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#1E1E2F] rounded-lg flex items-center justify-center rotate-3">
-                    <span className="text-white font-black text-sm -rotate-3">C</span>
+                  <div className="w-8 h-8 bg-[#1E1E2F] rounded-lg flex items-center justify-center rotate-3 shadow-xs">
+                    <span className="text-white font-black text-sm -rotate-3">P</span>
                   </div>
-                  <span className="font-bold text-[#1E1E2F]">Cordano Inversiones</span>
+                  <div className="flex flex-col text-left">
+                    <span className="font-extrabold text-[#1E1E2F] text-sm leading-none">PARKING <span className="text-[#E2498A]">OPS</span></span>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Cordano Iquique</span>
+                  </div>
                </div>
                <div className="flex gap-6 text-sm font-bold text-slate-500">
                   <a href="#" className="hover:text-[#E2498A]">Privacidad</a>
@@ -1307,7 +1181,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   <a href="#" className="hover:text-[#E2498A]">Soporte Técnico</a>
                </div>
                <div className="text-slate-400 text-sm font-medium">
-                  © 2026 PMS Cloud V1.0
+                  © 2026 PARKING OPS • Recinto Cordano Iquique
                </div>
             </div>
          </div>
@@ -1317,7 +1191,7 @@ export const LandingView: React.FC<LandingViewProps> = ({
       {/* MODAL FLOTANTE ELEGANTE DE INICIO DE SESIÓN */}
       {showLoginModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-100 relative animate-fade-in-up space-y-6">
+          <div data-testid="login-modal" className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border border-slate-100 relative animate-fade-in-up space-y-6">
             <button
               onClick={() => setShowLoginModal(false)}
               className="absolute top-6 right-6 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition"
@@ -1327,10 +1201,10 @@ export const LandingView: React.FC<LandingViewProps> = ({
 
             <div className="text-center space-y-2 pt-2">
               <div className="w-14 h-14 bg-gradient-to-tr from-[#C83472] to-[#E2498A] rounded-2xl mx-auto flex items-center justify-center shadow-md shadow-[#E2498A]/30 text-white font-black text-2xl">
-                C
+                P
               </div>
-              <h3 className="text-2xl font-black text-[#1E1E2F] tracking-tight">Acceso de Garita</h3>
-              <p className="text-xs text-slate-500 font-medium">Serrano 447, Iquique · Autenticación de Operador</p>
+              <h3 className="text-2xl font-black text-[#1E1E2F] tracking-tight">PARKING <span className="text-[#E2498A]">OPS</span></h3>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Cordano Iquique · Serrano 447</p>
             </div>
 
             {!isLoggedIn ? (
@@ -1374,30 +1248,6 @@ export const LandingView: React.FC<LandingViewProps> = ({
                   <span>{loginState === "loading" ? "Validando credenciales..." : "Ingresar al Turno"}</span>
                 </button>
 
-                {/* Accesos rápidos de prueba */}
-                <div className="pt-2 border-t border-slate-100 space-y-2">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block text-center">
-                    Accesos Directos de Demostración
-                  </span>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleFastLogin('operador')}
-                      className="py-2 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left text-[11px] text-slate-700 transition cursor-pointer"
-                    >
-                      <span className="font-bold block text-slate-800">Braulio C.</span>
-                      <span className="text-[10px] text-[#E2498A]">Operador POS →</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleFastLogin('administrador')}
-                      className="py-2 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-left text-[11px] text-slate-700 transition cursor-pointer"
-                    >
-                      <span className="font-bold block text-slate-800">Braulio C.</span>
-                      <span className="text-[10px] text-purple-600">Admin Hub →</span>
-                    </button>
-                  </div>
-                </div>
               </form>
             ) : (
               <div className="space-y-4 text-center">
@@ -1405,12 +1255,12 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 <button
                   onClick={() => {
                     setShowLoginModal(false);
-                    onNavigate("pos");
-                    onLoginSuccess("pos");
+                    onNavigate("menu");
+                    onLoginSuccess("menu");
                   }}
                   className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-xl text-sm font-black shadow-lg transition-all cursor-pointer"
                 >
-                  Ir a Consola POS Garita
+                  Ir a Dashboard
                 </button>
               </div>
             )}

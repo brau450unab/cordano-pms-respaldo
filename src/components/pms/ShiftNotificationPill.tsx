@@ -87,12 +87,12 @@ export const ShiftNotificationPill: React.FC<ShiftNotificationPillProps> = ({
     }
   };
 
-  // 1. MODO MINI CHIP (No invasivo, discreto en la esquina inferior derecha)
+  // 1. MODO MINI CHIP (No invasivo, discreto en la esquina inferior izquierda)
   if (isMinimized) {
     return (
       <aside 
         aria-label="Aviso de caja cerrada"
-        className="fixed bottom-4 right-4 z-40 animate-fade-in print:hidden select-none"
+        className="fixed bottom-20 md:bottom-4 left-4 z-40 animate-fade-in print:hidden select-none"
       >
         <button
           type="button"
@@ -119,7 +119,7 @@ export const ShiftNotificationPill: React.FC<ShiftNotificationPillProps> = ({
   return (
     <aside 
       aria-label="Notificación de turno no iniciado"
-      className="fixed bottom-4 right-4 z-40 max-w-[92vw] sm:max-w-md animate-fade-in-up print:hidden select-none"
+      className="fixed bottom-20 md:bottom-4 left-4 z-40 max-w-[92vw] sm:max-w-md animate-fade-in-up print:hidden select-none"
     >
       <div className="bg-[#1E1E2F]/95 backdrop-blur-md text-white px-3.5 py-2.5 rounded-2xl border border-slate-700/80 shadow-[0_12px_36px_rgba(0,0,0,0.3)] flex items-center gap-3">
         {/* Micro-icono indicador */}

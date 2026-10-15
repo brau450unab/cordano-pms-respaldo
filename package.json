@@ -4,11 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 3000",
+    "dev": "vite --host 0.0.0.0 --port 3200",
     "build": "tsc && vite build",
-    "test": "vitest run",
+    "test": "vitest run src",
+    "test:e2e": "e2e run",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview --port 3000 --host 0.0.0.0"
+    "preview": "vite preview --port 3200 --host 0.0.0.0"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -24,10 +25,12 @@
     "tailwind-merge": "^3.0.1"
   },
   "devDependencies": {
+    "@e2e-dev/web": "^0.15.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "e2e": "^0.21.0",
     "postcss": "^8.5.2",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",

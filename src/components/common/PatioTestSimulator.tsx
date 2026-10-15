@@ -97,7 +97,7 @@ export const PatioTestSimulator: React.FC<PatioTestSimulatorProps> = ({ onShowTo
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-16 md:bottom-4 left-4 z-40 px-3 py-1.5 rounded-full bg-[#1E1E2F] hover:bg-slate-800 text-white border border-slate-600 shadow-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer backdrop-blur-md active:scale-95 transition-all"
+        className="fixed bottom-20 md:bottom-4 left-4 z-40 px-3 py-1.5 rounded-full bg-[#1E1E2F] hover:bg-slate-800 text-white border border-slate-600 shadow-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer backdrop-blur-md active:scale-95 transition-all"
         title="Abrir Simulador de Supervisión y Patio"
       >
         <span>🧪</span>

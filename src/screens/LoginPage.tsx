@@ -170,13 +170,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#C83472] to-[#E2498A] flex items-center justify-center text-white font-black text-sm shadow-sm shadow-[#E2498A]/30">
-              C
+              P
             </div>
             <div className="flex flex-col">
               <span className="font-extrabold text-sm tracking-tight text-[#1E1E2F]">
-                Cordano<span className="text-[#E2498A]"> Parking Ops</span>
+                PARKING<span className="text-[#E2498A]"> OPS</span>
               </span>
-              <span className="text-[10px] text-slate-500 font-medium">Garita Serrano 447 · Iquique</span>
+              <span className="text-[10px] text-slate-500 font-medium">Cordano Iquique · Serrano 447</span>
             </div>
           </div>
 
@@ -238,43 +238,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 </div>
               </div>
 
-              {/* Fast Login Preset Buttons for easy testing */}
-              <div className="space-y-2.5 pt-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Accesos Directos de Prueba
+              {/* Protocolo de Seguridad y Auditoría */}
+              <div className="border border-slate-200/90 rounded-2xl p-4 bg-white/70 space-y-2 text-slate-700">
+                <span className="font-bold text-[#1E1E2F] block text-xs tracking-tight">
+                  Autenticación de Turno
                 </span>
-                <button
-                  type="button"
-                  onClick={() => handleFastLogin('operador')}
-                  className="w-full py-2.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#E2498A]/50 rounded-xl text-left px-3.5 text-xs flex items-center justify-between text-slate-700 transition cursor-pointer group shadow-2xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-[10px]">
-                      OP
-                    </div>
-                    <div>
-                      <span className="font-semibold text-slate-800 block text-xs">Cajero Garita</span>
-                      <span className="text-[10px] text-slate-400">cajero@cordano.cl (Operador)</span>
-                    </div>
-                  </div>
-                  <span className="font-bold text-[#E2498A] group-hover:translate-x-0.5 transition-transform">Entrar →</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleFastLogin('administrador')}
-                  className="w-full py-2.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#E2498A]/50 rounded-xl text-left px-3.5 text-xs flex items-center justify-between text-slate-700 transition cursor-pointer group shadow-2xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-[10px]">
-                      AD
-                    </div>
-                    <div>
-                      <span className="font-semibold text-slate-800 block text-xs">Braulio Cordano</span>
-                      <span className="text-[10px] text-slate-400">Administrador General</span>
-                    </div>
-                  </div>
-                  <span className="font-bold text-[#E2498A] group-hover:translate-x-0.5 transition-transform">Entrar →</span>
-                </button>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Ingrese con su usuario institucional y PIN habilitado. Todas las aperturas de turno generan registro de auditoría con hash SHA-256 inmutable.
+                </p>
               </div>
             </div>
 
@@ -365,7 +336,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 </button>
 
                 <div className="pt-2 text-center text-[11px] text-slate-400">
-                  Credenciales estándar: <span className="font-mono text-slate-600">operador123</span> / <span className="font-mono text-slate-600">admin123</span>
+                  Acceso exclusivo para personal autorizado y registrado.
                 </div>
 
               </form>
@@ -434,7 +405,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       {/* 3. Footer */}
       <footer className="relative z-10 py-3 text-center text-xs text-slate-400 border-t border-slate-200/80 bg-white/60">
-        CORDANO PARKING OPS · Terminal Operativo Garita · Serrano 447, Iquique
+        PARKING OPS · Recinto Cordano Iquique · Serrano 447, Iquique
       </footer>
 
       {/* Support Modal */}

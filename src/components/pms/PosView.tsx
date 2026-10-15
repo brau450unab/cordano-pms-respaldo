@@ -4,6 +4,7 @@ import { useParking } from '../../context/ParkingContext';
 
 import { AntifraudPinModal, PinModalType } from './AntifraudPinModal';
 import { PatioMatrix2D } from '../common/PatioMatrix2D';
+import { generateTicketPdf } from '../../utils/pdfGenerator';
 
 export interface PatioVehicle {
   slot: number;
@@ -33,8 +34,8 @@ export interface CashHistoryLog {
 
 interface PosViewProps {
   initialSubtab?: 'entry' | 'exit' | 'history';
-  activeMobileTab?: 'plano' | 'cronologia' | 'supervision';
-  onMobileTabChange?: (tab: 'plano' | 'cronologia' | 'supervision') => void;
+  activeMobileTab?: 'supervision' | 'patio' | 'flujo' | 'reportes' | 'ajustes' | 'plano' | 'cronologia' | string;
+  onMobileTabChange?: (tab: any) => void;
   activeVehicles: PatioVehicle[];
   historyLogs: CashHistoryLog[];
   onOpenTicketPreview: (data: {
@@ -49,7 +50,11 @@ interface PosViewProps {
   onProcessCheckout: (
     vehicle: PatioVehicle,
     method: PaymentMethod,
-    total: number
+    total: number,
+    cashGiven?: number,
+    change?: number,
+    discount?: number,
+    discountReason?: string
   ) => void;
   onOpenManualTransaction: () => void;
   onShowToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
@@ -72,6 +77,9 @@ export const PosView: React.FC<PosViewProps> = ({
 }) => {
   const {
     currentShift,
+    isShiftOpen,
+    isShiftOwner,
+    isViewerOnly,
     tickets,
     addPendingApproval,
     pendingApprovals,
@@ -80,8 +88,9 @@ export const PosView: React.FC<PosViewProps> = ({
     printFiscalReceipt,
     findCustomerByPlate,
     findAgreementByPlate,
+    moveOrSwapVehicleSlot,
   } = useParking();
-  const isShiftClosed = currentShift?.status === 'cerrado';
+  const isShiftClosed = !isShiftOpen;
   const isSupervisorLiveMode = user?.role === 'administrador' || user?.role === 'supervisor';
   const [posTab, setPosTab] = useState<'entry' | 'exit' | 'history'>(initialSubtab);
 
@@ -97,9 +106,9 @@ export const PosView: React.FC<PosViewProps> = ({
   }, [initialSubtab]);
 
   // Mobile Supervisor States & Filters
-  const [internalMobileTab, setInternalMobileTab] = useState<'plano' | 'cronologia' | 'supervision' | 'finanzas'>('plano');
+  const [internalMobileTab, setInternalMobileTab] = useState<'plano' | 'cronologia' | 'supervision' | 'finanzas' | 'patio' | 'flujo' | 'reportes' | 'ajustes' | string>('plano');
   const mobileTab = activeMobileTab || internalMobileTab;
-  const setMobileTab = (tab: 'plano' | 'cronologia' | 'supervision') => {
+  const setMobileTab = (tab: any) => {
     setInternalMobileTab(tab);
     if (onMobileTabChange) onMobileTabChange(tab);
   };
@@ -108,8 +117,14 @@ export const PosView: React.FC<PosViewProps> = ({
   const [selectedMobileVehicle, setSelectedMobileVehicle] = useState<PatioVehicle | null>(null);
   const [showMobileGaritaPos, setShowMobileGaritaPos] = useState(false);
 
+  // Drag & Drop 2D Matrix State (Reubicación interactiva de vehículos en patio)
+  const [draggedSlot, setDraggedSlot] = useState<number | null>(null);
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  const [reassignModalVehicle, setReassignModalVehicle] = useState<PatioVehicle | null>(null);
+
   // Entry State
   const [entryPlate, setEntryPlate] = useState('');
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [entryCategory, setEntryCategory] = useState<'Sedán' | 'SUV' | 'Moto'>('Sedán');
   const [entryRate, setEntryRate] = useState(35);
   const [entryName, setEntryName] = useState('');
@@ -117,18 +132,85 @@ export const PosView: React.FC<PosViewProps> = ({
   const [entryObs, setEntryObs] = useState('');
   const plateInputRef = useRef<HTMLInputElement>(null);
 
+  // Validador técnico de patentes chilenas (Normativa Registro Civil & MTT)
+  const plateValidation = useMemo(() => {
+    const clean = entryPlate.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    if (!clean || clean.length < 2) {
+      return { isValidChilean: false, formatDesc: 'Ingrese caracteres de patente', isForeignOrCustom: false };
+    }
+
+    // 1. Formato nuevo chileno (4 letras + 2 números: ej. BBCL10, ABCD12)
+    if (/^[A-Z]{4}\d{2}$/.test(clean)) {
+      const strictConsonants = /^[BCDFGHJKLPRSTVWXYZ]{4}\d{2}$/.test(clean);
+      return {
+        isValidChilean: true,
+        formatDesc: strictConsonants
+          ? 'Patente chilena verificada (Formato estándar post-2007)'
+          : 'Patente chilena verificada (4 letras + 2 números)',
+        isForeignOrCustom: false,
+      };
+    }
+
+    // 2. Formato tradicional chileno (2 letras + 4 números: ej. AB1234)
+    if (/^[A-Z]{2}\d{4}$/.test(clean)) {
+      return {
+        isValidChilean: true,
+        formatDesc: 'Patente chilena verificada (Formato clásico pre-2007)',
+        isForeignOrCustom: false,
+      };
+    }
+
+    // 3. Formato motocicleta chilena (3 letras + 2/3 números o 2 letras + 3 números)
+    if (/^[A-Z]{3}\d{2,3}$/.test(clean) || /^[A-Z]{2}\d{3}$/.test(clean)) {
+      return {
+        isValidChilean: true,
+        formatDesc: 'Patente motocicleta chilena verificada',
+        isForeignOrCustom: false,
+      };
+    }
+
+    // 4. Formato especial / extranjero (Permitido para vehículos de Argentina, Bolivia, Perú, diplomáticos, etc.)
+    return {
+      isValidChilean: false,
+      formatDesc: clean.length >= 3 ? 'Vehículo extranjero / Formato especial (Permitido)' : 'Incompleto',
+      isForeignOrCustom: clean.length >= 3,
+    };
+  }, [entryPlate]);
+
   // Detección proactiva de cliente frecuente o convenio registrado
   const detectedCustomer = useMemo(() => {
     const clean = entryPlate.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    if (clean.length >= 5 && findCustomerByPlate) {
-      return findCustomerByPlate(clean);
+    if (clean.length < 3) return undefined;
+
+    // 1. Búsqueda en directorio de clientes
+    if (findCustomerByPlate) {
+      const fromCust = findCustomerByPlate(clean);
+      if (fromCust) return { name: fromCust.name, phone: fromCust.phone || '' };
     }
+
+    // 2. Búsqueda en convenios
+    if (findAgreementByPlate) {
+      const fromAg = findAgreementByPlate(clean);
+      if (fromAg) return { name: fromAg.contactName || fromAg.companyName, phone: fromAg.phone || '' };
+    }
+
+    // 3. Búsqueda en historial de tickets previos
+    const prevTicket = tickets.find(
+      (t) => t.plateNumber.toUpperCase() === clean && (t.customerName || t.customerPhone || (t.notes && t.notes !== 'Particular'))
+    );
+    if (prevTicket) {
+      return {
+        name: prevTicket.customerName || (prevTicket.notes && prevTicket.notes !== 'Particular' ? prevTicket.notes : 'Particular'),
+        phone: prevTicket.customerPhone || '',
+      };
+    }
+
     return undefined;
-  }, [entryPlate, findCustomerByPlate]);
+  }, [entryPlate, findCustomerByPlate, findAgreementByPlate, tickets]);
 
   const detectedAgreement = useMemo(() => {
     const clean = entryPlate.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    if (clean.length >= 5 && findAgreementByPlate) {
+    if (clean.length >= 3 && findAgreementByPlate) {
       return findAgreementByPlate(clean);
     }
     return undefined;
@@ -168,13 +250,21 @@ export const PosView: React.FC<PosViewProps> = ({
   // Entry Handlers
   const handleEntrySubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isShiftClosed) {
+      onShowToast('Turno cerrado: debe aperturar un nuevo turno con fondo inicial ($ 50.000 CLP) para registrar ingresos.', 'error');
+      return;
+    }
+    if (isViewerOnly) {
+      onShowToast(`Modo Solo Visualización: El turno fue abierto por ${currentShift?.operatorName || 'otro operador'}. Solo el titular tiene permisos operativos.`, 'error');
+      return;
+    }
     if (isSupervisorLiveMode) {
       onShowToast('Modo Supervisión Activo: La emisión de tickets físicos está reservada al operador de turno para resguardar la caja.', 'error');
       return;
     }
     const cleanPlate = entryPlate.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    if (cleanPlate.length < 5) {
-      onShowToast('Patente inválida (mín. 5 caracteres)', 'error');
+    if (cleanPlate.length < 2) {
+      onShowToast('Ingrese una patente válida.', 'error');
       return;
     }
     const isInside = activeVehicles.some((v) => v.plate === cleanPlate);
@@ -186,8 +276,14 @@ export const PosView: React.FC<PosViewProps> = ({
     const availableSlotIndex = Array.from({ length: 30 }, (_, i) => i + 1).find(
       (s) => !activeVehicles.some((v) => v.slot === s)
     );
-    if (!availableSlotIndex) {
+    const targetSlot = selectedSlot || availableSlotIndex;
+    if (!targetSlot) {
       onShowToast('Patio lleno, no hay cupos disponibles', 'error');
+      return;
+    }
+
+    if (selectedSlot && activeVehicles.some((v) => v.slot === selectedSlot)) {
+      onShowToast(`El cupo #${selectedSlot} ya está ocupado por otro vehículo. Seleccione otro cupo o use asignación libre.`, 'error');
       return;
     }
 
@@ -198,13 +294,14 @@ export const PosView: React.FC<PosViewProps> = ({
       name: entryName.trim() || (detectedCustomer?.name || 'Particular'),
       phone: entryPhone.trim() || (detectedCustomer?.phone || ''),
       obs: entryObs.trim(),
-      slot: availableSlotIndex,
+      slot: targetSlot,
     });
 
     setEntryPlate('');
     setEntryName('');
     setEntryPhone('');
     setEntryObs('');
+    setSelectedSlot(null);
   };
 
   // Exit Handlers: Ordenados por hora de entrada del más antiguo al más nuevo (mayor estadía primero)
@@ -237,6 +334,14 @@ export const PosView: React.FC<PosViewProps> = ({
   const cashChange = Math.max(0, (parseFloat(cashGiven) || 0) - finalTotal);
 
   const handleConfirmCheckout = () => {
+    if (isShiftClosed) {
+      onShowToast('Turno cerrado: debe aperturar un turno para cobrar y liquidar vehículos.', 'error');
+      return;
+    }
+    if (isViewerOnly) {
+      onShowToast(`Modo Solo Visualización: El turno activo está a cargo de ${currentShift?.operatorName || 'otro operador'}. Solo el titular puede liquidar cobros.`, 'error');
+      return;
+    }
     if (isSupervisorLiveMode) {
       onShowToast('Modo Supervisión Activo: El cobro y emisión de boleta fiscal está reservado al cajero del turno físico.', 'error');
       return;
@@ -250,13 +355,26 @@ export const PosView: React.FC<PosViewProps> = ({
       tarjeta: 'tarjeta_debito',
       transferencia: 'transferencia',
     };
-    onProcessCheckout(selectedExitVehicle, methodMapping[checkoutPaymentMethod], finalTotal);
-    onShowToast(`Cobro registrado: $${finalTotal.toLocaleString('es-CL')} para ${selectedExitVehicle.plate}. Barrera abierta.`, 'success');
+    const givenAmount = checkoutPaymentMethod === 'efectivo' ? (parseFloat(cashGiven) || finalTotal) : finalTotal;
+    onProcessCheckout(
+      selectedExitVehicle,
+      methodMapping[checkoutPaymentMethod],
+      finalTotal,
+      givenAmount,
+      cashChange,
+      appliedDiscount,
+      appliedDiscount > 0 ? 'Descuento Comercial Autorizado' : undefined
+    );
     setSelectedExitVehicle(null);
     setExitSearchQuery('');
   };
 
   const handlePinConfirm = (payload: { type: 'DISCOUNT' | 'LOST_TICKET'; pin: string; reason: string; discountAmount?: number; deferred?: boolean; }) => {
+    if (isShiftClosed || isViewerOnly) {
+      onShowToast('Acción bloqueada: solo el titular del turno activo puede aplicar excepciones o descuentos.', 'error');
+      setPinModalType(null);
+      return;
+    }
     if (payload.deferred) {
       addPendingApproval({
         type: payload.type,
@@ -430,16 +548,18 @@ export const PosView: React.FC<PosViewProps> = ({
         </div>
       )}
 
-      {/* ── DESKTOP MODAL BLOQUEO DE TURNO (SOLO GARITA OPERADOR) ── */}
-      {isShiftClosed && !isSupervisorLiveMode && (
-        <div className="hidden lg:flex fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md items-center justify-center p-3 sm:p-4 animate-fade-in">
-          <div className="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xl text-center space-y-4 sm:space-y-5 animate-fade-in-up">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-rose-50 text-rose-500 mx-auto flex items-center justify-center text-2xl sm:text-3xl">
+      {/* ── MODAL BLOQUEO DE TURNO (GARITA POS - RESPONSIVE) ── */}
+      {isShiftClosed && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fade-in">
+          <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-700 shadow-2xl text-center space-y-4 sm:space-y-5 animate-fade-in-up">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-500 mx-auto flex items-center justify-center text-2xl sm:text-3xl">
               🔒
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Punto de Venta Bloqueado</h3>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">El turno actual se encuentra cerrado. Para realizar nuevos ingresos o cobros debe aperturar un nuevo turno con fondo de gaveta.</p>
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">Punto de Venta Bloqueado</h3>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                El turno actual se encuentra cerrado. Para realizar nuevos ingresos o cobros debe aperturar un nuevo turno declarando el fondo inicial ($ 50.000 CLP).
+              </p>
             </div>
             <div className="pt-2 flex flex-col gap-2">
               <button
@@ -458,7 +578,7 @@ export const PosView: React.FC<PosViewProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate ? onNavigate("menu") : undefined}
-                className="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm transition cursor-pointer"
+                className="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition cursor-pointer"
               >
                 Volver al Menú Principal
               </button>
@@ -494,6 +614,19 @@ export const PosView: React.FC<PosViewProps> = ({
                   Iniciar Turno
                 </button>
               </div>
+            ) : isViewerOnly ? (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between gap-2.5 text-blue-900">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">👁️</span>
+                  <div>
+                    <span className="font-extrabold text-xs block">Modo Solo Visualización</span>
+                    <span className="text-[10px] text-blue-700">Turno abierto por {currentShift?.operatorName || 'otro operador'}.</span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md border border-blue-300 uppercase shrink-0">
+                  Solo Lectura
+                </span>
+              </div>
             ) : (
               <div className="p-3 bg-[#1E1E2F] text-white border border-slate-800 rounded-2xl flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-2.5">
@@ -511,11 +644,23 @@ export const PosView: React.FC<PosViewProps> = ({
                     </div>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <span className="text-[9px] uppercase font-bold text-gray-400 block">Patio Serrano</span>
-                  <span className="text-xs font-black font-mono text-emerald-300">
-                    {freeSlotsCount} libres ({occupiedCount}/30)
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="text-right shrink-0">
+                    <span className="text-[9px] uppercase font-bold text-gray-400 block">Patio Serrano</span>
+                    <span className="text-xs font-black font-mono text-emerald-300">
+                      {freeSlotsCount} libres ({occupiedCount}/30)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate ? onNavigate('operacion_cierre') : undefined}
+                    className="px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shadow-sm transition active:scale-95 cursor-pointer whitespace-nowrap flex items-center gap-1.5"
+                    title="Cerrar turno y realizar arqueo ciego"
+                  >
+                    <span>🔒</span>
+                    <span className="hidden sm:inline">Cerrar Turno</span>
+                    <span className="sm:hidden">Cerrar</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -591,6 +736,35 @@ export const PosView: React.FC<PosViewProps> = ({
                 </div>
 
                 <form onSubmit={handleEntrySubmit} className="space-y-4">
+                  {/* Indicador de Cupo Seleccionado Arriba de Patente */}
+                  {selectedSlot ? (
+                    <div className="flex items-center justify-between p-2.5 bg-pink-50/90 border-2 border-[#E2498A] rounded-xl animate-fade-in shadow-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">📍</span>
+                        <div>
+                          <span className="text-xs font-black uppercase text-[#E2498A] block">
+                            Cupo Asignado: {selectedSlot <= 15 ? `A-${String(selectedSlot).padStart(2, '0')}` : `B-${String(selectedSlot).padStart(2, '0')}`}
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-medium">Plaza fijada para el próximo ingreso</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSlot(null)}
+                        className="text-[10px] font-bold text-rose-600 bg-white border border-rose-200 px-2 py-0.5 rounded-lg cursor-pointer"
+                      >
+                        ✕ Libre
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <span>🎯</span> Asignación: <strong className="text-slate-800">Libre / Automática</strong>
+                      </span>
+                      <span className="text-[10px] text-slate-400">(Toca un cupo en Patio 2D para fijar)</span>
+                    </div>
+                  )}
+
                   {/* Campo Patente Táctil Grande */}
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1">
@@ -605,9 +779,31 @@ export const PosView: React.FC<PosViewProps> = ({
                       placeholder="ABCD12..."
                       className="w-full text-center py-3 text-2xl font-black font-mono tracking-widest uppercase rounded-2xl border-2 border-slate-200 bg-slate-50 text-slate-900 focus:bg-white focus:border-[#E2498A] focus:outline-none transition-all shadow-inner"
                     />
-                    <span className="text-[10px] text-slate-400 text-center block mt-1">
-                      Formato chileno estándar (4 letras + 2 números o 2 letras + 4 números)
-                    </span>
+                    
+                    {/* Validador Técnico de Patente Chilena con Check Verde */}
+                    {entryPlate.trim().length >= 2 ? (
+                      <div className="mt-1.5 flex items-center justify-center">
+                        {plateValidation.isValidChilean ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 animate-fade-in">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            ✓ {plateValidation.formatDesc}
+                          </span>
+                        ) : plateValidation.isForeignOrCustom ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-300 animate-fade-in">
+                            <span>🌐</span>
+                            {plateValidation.formatDesc}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 text-center block">
+                            Formato estándar: 4 letras + 2 números o 2 letras + 4 números
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 text-center block mt-1">
+                        Formato chileno estándar (4 letras + 2 números o 2 letras + 4 números)
+                      </span>
+                    )}
                   </div>
 
                   {/* Selector de Categoría de Tarifa */}
@@ -714,15 +910,21 @@ export const PosView: React.FC<PosViewProps> = ({
                   {/* Botón Principal Emitir Ticket */}
                   <button
                     type="submit"
-                    disabled={!entryPlate || entryPlate.replace(/[^a-zA-Z0-9]/g, '').length < 5 || isShiftClosed}
+                    disabled={!entryPlate || entryPlate.replace(/[^a-zA-Z0-9]/g, '').length < 3 || isShiftClosed || isViewerOnly}
                     className={`w-full min-h-[52px] py-3.5 px-4 rounded-2xl text-white text-sm font-black transition-all flex items-center justify-center gap-2 shadow-md ${
-                      !entryPlate || entryPlate.replace(/[^a-zA-Z0-9]/g, '').length < 5 || isShiftClosed
+                      !entryPlate || entryPlate.replace(/[^a-zA-Z0-9]/g, '').length < 3 || isShiftClosed || isViewerOnly
                         ? 'bg-slate-300 cursor-not-allowed text-slate-500'
                         : 'bg-[#E2498A] hover:bg-[#C83472] active:scale-[0.99] cursor-pointer'
                     }`}
                   >
                     <span>🎟️</span>
-                    <span>Emitir Ticket &amp; Asignar Cupo</span>
+                    <span>
+                      {isShiftClosed
+                        ? 'Turno Cerrado (POS Bloqueado)'
+                        : isViewerOnly
+                        ? 'Modo Solo Visualización'
+                        : 'Emitir Ticket & Asignar Cupo'}
+                    </span>
                   </button>
                 </form>
               </div>
@@ -796,6 +998,9 @@ export const PosView: React.FC<PosViewProps> = ({
                                 <div className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
                                   <span>{v.slotCode || `Cupo ${v.slot}`}</span>
                                   <span className="text-[10px] text-slate-400">({v.cat})</span>
+                                  <span className="text-[10px] text-slate-600 font-semibold truncate max-w-[120px]">
+                                    👤 {v.client || 'Particular'}
+                                  </span>
                                 </div>
                                 <div className="text-[10px] text-slate-500 font-mono">
                                   Entrada: {v.entry} · <strong className="text-pink-600">{formatStayDuration(v.durationMin)}</strong>
@@ -825,7 +1030,7 @@ export const PosView: React.FC<PosViewProps> = ({
                           {selectedExitVehicle.plate}
                         </span>
                         <span className="text-xs font-bold text-slate-700">
-                          {selectedExitVehicle.slotCode || `Cupo ${selectedExitVehicle.slot}`} · {selectedExitVehicle.cat}
+                          {selectedExitVehicle.slotCode || `Cupo ${selectedExitVehicle.slot}`} · {selectedExitVehicle.cat} · 👤 {selectedExitVehicle.client || 'Particular'}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-200/80">
@@ -871,7 +1076,12 @@ export const PosView: React.FC<PosViewProps> = ({
                       <button
                         type="button"
                         onClick={() => setPinModalType('DISCOUNT')}
-                        className="py-2 px-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                        disabled={isShiftClosed || isViewerOnly}
+                        className={`py-2 px-3 rounded-xl border text-[11px] font-bold flex items-center justify-center gap-1.5 transition ${
+                          isShiftClosed || isViewerOnly
+                            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                            : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700 cursor-pointer shadow-xs'
+                        }`}
                       >
                         <span>🏷️</span>
                         <span>Descuento</span>
@@ -879,7 +1089,12 @@ export const PosView: React.FC<PosViewProps> = ({
                       <button
                         type="button"
                         onClick={() => setPinModalType('LOST_TICKET')}
-                        className="py-2 px-3 rounded-xl bg-amber-50 border border-amber-200 hover:bg-amber-100 text-[11px] font-bold text-amber-900 flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                        disabled={isShiftClosed || isViewerOnly}
+                        className={`py-2 px-3 rounded-xl border text-[11px] font-bold flex items-center justify-center gap-1.5 transition ${
+                          isShiftClosed || isViewerOnly
+                            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                            : 'bg-amber-50 border-amber-200 hover:bg-amber-100 text-amber-900 cursor-pointer shadow-xs'
+                        }`}
                       >
                         <span>⚠️</span>
                         <span>Ticket Extraviado</span>
@@ -976,10 +1191,21 @@ export const PosView: React.FC<PosViewProps> = ({
                       <button
                         type="button"
                         onClick={handleConfirmCheckout}
-                        className="w-full min-h-[52px] py-3.5 px-4 rounded-2xl bg-[#E2498A] hover:bg-[#C83472] active:scale-[0.99] text-white text-sm font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                        disabled={isShiftClosed || isViewerOnly}
+                        className={`w-full min-h-[52px] py-3.5 px-4 rounded-2xl text-white text-sm font-black transition-all flex items-center justify-center gap-2 shadow-md ${
+                          isShiftClosed || isViewerOnly
+                            ? 'bg-slate-300 cursor-not-allowed text-slate-500'
+                            : 'bg-[#E2498A] hover:bg-[#C83472] active:scale-[0.99] cursor-pointer'
+                        }`}
                       >
                         <span>💳</span>
-                        <span>Confirmar Cobro &amp; Abrir Barrera</span>
+                        <span>
+                          {isShiftClosed
+                            ? 'Turno Cerrado'
+                            : isViewerOnly
+                            ? 'Modo Solo Visualización'
+                            : 'Confirmar Cobro & Abrir Barrera'}
+                        </span>
                       </button>
 
                       <button
@@ -1025,11 +1251,33 @@ export const PosView: React.FC<PosViewProps> = ({
                 <PatioMatrix2D
                   activeVehicles={activeVehicles}
                   mode="mobile"
+                  isDraggable={!isShiftClosed && !isViewerOnly}
+                  onMoveOrSwapSlot={(src, tgt) => {
+                    try {
+                      const ok = moveOrSwapVehicleSlot(src, tgt);
+                      if (ok) {
+                        const sCode = src <= 15 ? `A-${String(src).padStart(2, '0')}` : `B-${String(src).padStart(2, '0')}`;
+                        const tCode = tgt <= 15 ? `A-${String(tgt).padStart(2, '0')}` : `B-${String(tgt).padStart(2, '0')}`;
+                        onShowToast(`Vehículo reubicado con éxito de ${sCode} a ${tCode}.`, 'success');
+                      }
+                    } catch (e: any) {
+                      onShowToast(e.message || 'Error al reubicar vehículo', 'error');
+                    }
+                  }}
+                  selectedSlotCode={selectedSlot ? (selectedSlot <= 15 ? `A-${String(selectedSlot).padStart(2, '0')}` : `B-${String(selectedSlot).padStart(2, '0')}`) : null}
                   onSelectSlot={(slotCode, vehicle) => {
                     if (vehicle) {
                       setSelectedMobileVehicle(vehicle);
                     } else {
-                      onShowToast(`Cupo ${slotCode} disponible para estacionar.`, 'info');
+                      const numMatch = slotCode.match(/\d+/);
+                      const slotNum = numMatch ? parseInt(numMatch[0], 10) : null;
+                      if (slotNum) {
+                        setSelectedSlot(slotNum);
+                        setOperadorMobileTab('entry');
+                        onShowToast(`Cupo ${slotCode} seleccionado para el próximo ingreso.`, 'success');
+                      } else {
+                        onShowToast(`Cupo ${slotCode} disponible para estacionar.`, 'info');
+                      }
                     }
                   }}
                 />
@@ -1081,20 +1329,46 @@ export const PosView: React.FC<PosViewProps> = ({
                 <div className="space-y-2 pt-1">
                   <button
                     type="button"
-                    onClick={() => onNavigate ? onNavigate('operacion_cierre') : undefined}
-                    className="w-full min-h-[50px] py-3 px-4 rounded-2xl bg-[#E2498A] hover:bg-[#C83472] active:scale-[0.99] text-white text-xs font-extrabold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                    onClick={() => {
+                      if (isViewerOnly) {
+                        onShowToast(`Modo Solo Visualización: El turno activo fue iniciado por ${currentShift?.operatorName || 'otro operador'}. Solo el titular puede realizar el arqueo.`, 'error');
+                        return;
+                      }
+                      if (onNavigate) onNavigate('operacion_cierre');
+                    }}
+                    disabled={isShiftClosed || isViewerOnly}
+                    className={`w-full min-h-[50px] py-3 px-4 rounded-2xl text-white text-xs font-extrabold transition-all flex items-center justify-center gap-2 shadow-sm ${
+                      isShiftClosed || isViewerOnly
+                        ? 'bg-slate-300 cursor-not-allowed text-slate-500'
+                        : 'bg-[#E2498A] hover:bg-[#C83472] active:scale-[0.99] cursor-pointer'
+                    }`}
                   >
                     <span>🔒</span>
-                    <span>Realizar Arqueo Ciego &amp; Cierre de Turno</span>
+                    <span>{isViewerOnly ? 'Arqueo Bloqueado (Solo Titular)' : 'Realizar Arqueo Ciego & Cierre de Turno'}</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={onOpenManualTransaction}
-                    className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                    onClick={() => {
+                      if (isShiftClosed) {
+                        onShowToast('El turno está cerrado. Debe aperturar un turno para registrar movimientos.', 'error');
+                        return;
+                      }
+                      if (isViewerOnly) {
+                        onShowToast(`Modo Solo Visualización: Solo ${currentShift?.operatorName || 'el titular'} puede registrar movimientos de caja.`, 'error');
+                        return;
+                      }
+                      onOpenManualTransaction();
+                    }}
+                    disabled={isShiftClosed || isViewerOnly}
+                    className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition ${
+                      isShiftClosed || isViewerOnly
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer'
+                    }`}
                   >
                     <span>💵</span>
-                    <span>Registrar Movimiento Manual de Caja</span>
+                    <span>Registrar Movimiento Manual de Caja {isViewerOnly ? '(Solo Titular)' : ''}</span>
                   </button>
                 </div>
               </div>
@@ -1115,13 +1389,9 @@ export const PosView: React.FC<PosViewProps> = ({
                     <span className="text-[10px] text-amber-800">Modo supervisión activo (solo lectura).</span>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onInitiateOpenShift ? onInitiateOpenShift() : undefined}
-                  className="px-3 py-1.5 rounded-xl bg-[#E2498A] text-white text-[11px] font-bold shrink-0 shadow-xs active:scale-95 cursor-pointer"
-                >
-                  Iniciar Turno
-                </button>
+                <span className="text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2.5 py-1 rounded-lg border border-amber-300 shrink-0">
+                  Solo Lectura
+                </span>
               </div>
             )}
 
@@ -1162,51 +1432,6 @@ export const PosView: React.FC<PosViewProps> = ({
                   {overstayVehicles.length > 0 ? '⚠️ Alerta > 2 hrs' : 'Al día'}
                 </div>
               </div>
-            </div>
-
-            {/* ── TABS SUPERVISIÓN MÓVIL (3 TABS) ── */}
-            <div className="flex bg-white p-1 rounded-2xl border border-slate-200 gap-1 shadow-xs">
-              <button
-                type="button"
-                onClick={() => setMobileTab('plano')}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  mobileTab === 'plano'
-                    ? 'bg-[#1E1E2F] text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <span>🗺️</span>
-                <span>Plano 2D</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMobileTab('cronologia')}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  mobileTab === 'cronologia'
-                    ? 'bg-[#1E1E2F] text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <span>⏱️</span>
-                <span>Cronología</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setMobileTab('supervision')}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                  mobileTab === 'supervision'
-                    ? 'bg-[#1E1E2F] text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                <span>🛡️</span>
-                <span>Supervisión</span>
-                {pendingApprovals.filter((a: any) => a.status === 'pending').length > 0 && (
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse ml-0.5" />
-                )}
-              </button>
             </div>
 
             {/* ── TAB 1 MÓVIL: PLANO 2D UNIFICADO (30 PLAZAS SERRANO 447) ── */}
@@ -1351,13 +1576,9 @@ export const PosView: React.FC<PosViewProps> = ({
                     </div>
 
                     {isShiftClosed ? (
-                      <button
-                        type="button"
-                        onClick={() => onInitiateOpenShift ? onInitiateOpenShift() : undefined}
-                        className="px-3 py-1.5 rounded-xl bg-[#E2498A] text-white text-[11px] font-extrabold shadow-xs hover:bg-[#C83472] cursor-pointer"
-                      >
-                        Aperturar Turno
-                      </button>
+                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                        Turno cerrado
+                      </span>
                     ) : (
                       <div className="text-right">
                         <span className="text-[10px] uppercase font-bold text-slate-400 block">Inicio Turno</span>
@@ -1503,40 +1724,6 @@ export const PosView: React.FC<PosViewProps> = ({
                     </div>
                   </div>
                 </div>
-
-                {/* 4. GRÁFICO HORARIO EN MÓVIL */}
-                <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold uppercase text-slate-500 flex items-center gap-1.5">
-                      <span>📊</span> Ocupación Horaria (Hoy)
-                    </span>
-                    <span className="text-[10px] font-bold text-[#E2498A] bg-[#FFF5F8] px-2 py-0.5 rounded-full font-mono">
-                      En patio: {occupiedCount}
-                    </span>
-                  </div>
-
-                  <div className="h-32 w-full flex items-end gap-1 pt-2 pb-1 bg-slate-50 rounded-xl border border-slate-100 px-1">
-                    {[
-                      { hour: '08:00', count: Math.max(2, Math.round(activeVehicles.length * 0.35)) },
-                      { hour: '10:00', count: Math.max(9, Math.round(activeVehicles.length * 0.85)) },
-                      { hour: '12:00', count: Math.max(14, Math.round(activeVehicles.length * 1.1)) },
-                      { hour: '14:00', count: Math.max(15, Math.round(activeVehicles.length * 0.9)) },
-                      { hour: '16:00', count: Math.max(12, Math.round(activeVehicles.length * 0.8)) },
-                      { hour: '18:00', count: activeVehicles.length },
-                    ].map((point) => {
-                      const heightPercent = Math.min(100, Math.max(15, Math.round((point.count / 30) * 100)));
-                      return (
-                        <div key={point.hour} className="flex-1 flex flex-col items-center h-full justify-end">
-                          <div
-                            style={{ height: `${heightPercent}%` }}
-                            className="w-full bg-[#E2498A] rounded-t transition-all"
-                          />
-                          <span className="text-[9px] font-mono text-slate-400 mt-1">{point.hour.slice(0, 2)}h</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -1607,12 +1794,110 @@ export const PosView: React.FC<PosViewProps> = ({
               </button>
               <button
                 type="button"
+                onClick={() => {
+                  setReassignModalVehicle(selectedMobileVehicle);
+                  setSelectedMobileVehicle(null);
+                }}
+                disabled={isShiftClosed || isViewerOnly}
+                className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  isShiftClosed || isViewerOnly
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                    : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                }`}
+                title="Mover o cambiar de plaza en el patio"
+              >
+                <span>🔄</span>
+                <span>Reubicar</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setSelectedMobileVehicle(null)}
-                className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs"
+                className="px-3 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold text-xs"
               >
                 Cerrar
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL REUBICACIÓN MANUAL DE CUPO (MÓVIL / ACCESIBILIDAD) ── */}
+      {reassignModalVehicle && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 animate-fade-in font-sans">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm p-5 space-y-4 animate-fade-in-up">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🔄</span>
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-900">Reubicar Vehículo</h4>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    Patente {reassignModalVehicle.plate} (Actual: Cupo {reassignModalVehicle.slotCode || `A-${String(reassignModalVehicle.slot).padStart(2, '0')}`})
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReassignModalVehicle(null)}
+                className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:text-slate-700 font-bold text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Seleccione la plaza de destino (Sector A o B). Si el cupo está ocupado por otro vehículo, se realizará una permuta de cupos automática con registro de auditoría.
+            </p>
+
+            <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+              {Array.from({ length: 30 }, (_, i) => i + 1).map((sNum) => {
+                const sCode = sNum <= 15 ? `A-${String(sNum).padStart(2, '0')}` : `B-${String(sNum).padStart(2, '0')}`;
+                const occVeh = activeVehicles.find((v) => v.slot === sNum || v.slotCode === sCode);
+                const isCurrent = (reassignModalVehicle.slot === sNum) || (reassignModalVehicle.slotCode === sCode);
+
+                return (
+                  <button
+                    key={sNum}
+                    type="button"
+                    disabled={isCurrent}
+                    onClick={() => {
+                      try {
+                        const ok = moveOrSwapVehicleSlot(reassignModalVehicle.slot, sNum);
+                        if (ok) {
+                          onShowToast(`Vehículo ${reassignModalVehicle.plate} reubicado al cupo ${sCode}.`, 'success');
+                          setReassignModalVehicle(null);
+                        }
+                      } catch (err: any) {
+                        onShowToast(err.message || 'Error al reubicar', 'error');
+                      }
+                    }}
+                    className={`w-full p-2.5 rounded-xl border flex items-center justify-between text-xs font-mono transition cursor-pointer ${
+                      isCurrent
+                        ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-60'
+                        : occVeh
+                        ? 'bg-[#2D2D44] border-gray-700 text-white hover:border-[#E2498A]'
+                        : 'bg-emerald-50/50 border-emerald-200 text-emerald-900 hover:bg-emerald-100'
+                    }`}
+                  >
+                    <span className="font-bold">{sCode}</span>
+                    <span className="font-sans text-[11px] font-medium">
+                      {isCurrent
+                        ? 'Plaza actual'
+                        : occVeh
+                        ? `Ocupado por ${occVeh.plate} (Permutar)`
+                        : '✓ Disponible libre'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setReassignModalVehicle(null)}
+              className="w-full py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}
@@ -1623,7 +1908,7 @@ export const PosView: React.FC<PosViewProps> = ({
       <div className="hidden lg:grid lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-start">
         
         {/* ── LEFT COLUMN: POS SYSTEM (Adelgazado a 5/12 cols) ── */}
-        <div className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+        <div data-testid="desktop-pos-panel" className="lg:col-span-5 bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
           {/* POS TABS */}
           <div className="flex border-b border-gray-100 bg-gray-50/50 p-1.5 sm:p-2 gap-1.5 sm:gap-2">
             <button onClick={() => setPosTab('entry')} className={`flex-1 py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all ${posTab === 'entry' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200' : 'text-gray-500 hover:text-gray-800'}`}>Ingreso</button>
@@ -1632,9 +1917,64 @@ export const PosView: React.FC<PosViewProps> = ({
           </div>
 
           <div className="p-4 sm:p-6">
+            {/* Aviso persistente de Solo Visualización en Desktop */}
+            {isViewerOnly && (
+              <div className="mb-4 p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between gap-3 text-blue-900 shadow-xs animate-fade-in">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xl">👁️</span>
+                  <div>
+                    <span className="font-extrabold text-xs block">
+                      Modo Solo Visualización · Titular: {currentShift?.operatorName || 'Otro Operador'}
+                    </span>
+                    <span className="text-[11px] text-blue-700">
+                      Tu usuario ({user?.name || user?.username}) está en modo espectador. Solo el titular que abrió el turno puede emitir tickets o liquidar cobros.
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md border border-blue-300 uppercase shrink-0">
+                  Solo Lectura
+                </span>
+              </div>
+            )}
+
             {/* INGRESO TAB */}
             {posTab === 'entry' && (
               <form onSubmit={handleEntrySubmit} className="space-y-4 sm:space-y-6">
+                {/* Indicador de Cupo Seleccionado Arriba de Patente */}
+                {selectedSlot ? (
+                  <div className="flex items-center justify-between p-3 bg-pink-50/80 border-2 border-[#E2498A] rounded-2xl animate-fade-in shadow-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#E2498A] text-white flex items-center justify-center text-sm font-black shadow-xs">
+                        📍
+                      </div>
+                      <div>
+                        <div className="text-xs font-black uppercase text-[#E2498A] tracking-wide">
+                          Cupo Seleccionado: {selectedSlot <= 15 ? `A-${String(selectedSlot).padStart(2, '0')}` : `B-${String(selectedSlot).padStart(2, '0')}`}
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-medium">
+                          Vehículo se asignará directamente a esta plaza en Sector {selectedSlot <= 15 ? 'A' : 'B'}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSlot(null)}
+                      className="text-[10px] font-bold text-rose-600 hover:text-rose-800 bg-white border border-rose-200 px-2.5 py-1 rounded-lg cursor-pointer transition hover:bg-rose-50"
+                    >
+                      ✕ Asignación Libre
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <span>🎯</span> Asignación de plaza: <strong className="text-slate-800">Libre / Automática</strong>
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      (Haz clic en un cupo del plano 2D para fijar)
+                    </span>
+                  </div>
+                )}
+
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide">
@@ -1657,6 +1997,31 @@ export const PosView: React.FC<PosViewProps> = ({
                       onChange={(e) => setEntryPlate(e.target.value.toUpperCase())}
                     />
                   </div>
+
+                  {/* Feedback Técnico de Validación de Patente Chilena */}
+                  {entryPlate.trim().length >= 2 && (
+                    <div className="mt-2 flex items-center justify-between text-xs px-1">
+                      {plateValidation.isValidChilean ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 animate-fade-in">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          ✓ {plateValidation.formatDesc}
+                        </span>
+                      ) : plateValidation.isForeignOrCustom ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 animate-fade-in">
+                          <span>🌐</span>
+                          {plateValidation.formatDesc}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-semibold text-slate-400">
+                          Formato estándar: 4 letras + 2 dígitos (o 2 letras + 4 dígitos)
+                        </span>
+                      )}
+                      <span className="text-[10px] font-mono text-slate-400 uppercase">
+                        {entryPlate.replace(/[^a-zA-Z0-9]/g, '').length} caracteres
+                      </span>
+                    </div>
+                  )}
+
                   {detectedAgreement && (
                     <div className="mt-2 p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex justify-between items-center">
                       <span>🏢 Convenio Vigente: <strong>{detectedAgreement.companyName || detectedAgreement.contactName}</strong></span>
@@ -1753,14 +2118,20 @@ export const PosView: React.FC<PosViewProps> = ({
 
                 <button
                   type="submit"
-                  disabled={isSupervisorLiveMode || !entryPlate || entryPlate.length < 5}
+                  disabled={isSupervisorLiveMode || isShiftClosed || isViewerOnly || !entryPlate || entryPlate.replace(/[^a-zA-Z0-9]/g, '').length < 3}
                   className={`w-full py-5 text-white rounded-2xl text-lg font-extrabold transition-all flex justify-center items-center gap-3 ${
-                    isSupervisorLiveMode
+                    isShiftClosed || isViewerOnly || isSupervisorLiveMode
                       ? 'bg-slate-400 cursor-not-allowed opacity-75'
                       : 'bg-gray-900 hover:bg-black hover:shadow-lg disabled:opacity-50 cursor-pointer'
                   }`}
                 >
-                  {isSupervisorLiveMode ? '🔒 Ingreso Deshabilitado (Modo Supervisión)' : 'Emitir Ticket'}
+                  {isShiftClosed
+                    ? '🔒 Turno Cerrado (No Operativo)'
+                    : isViewerOnly
+                    ? '👁️ Solo Visualización'
+                    : isSupervisorLiveMode
+                    ? '🔒 Ingreso Deshabilitado (Modo Supervisión)'
+                    : 'Emitir Ticket'}
                 </button>
               </form>
             )}
@@ -1780,7 +2151,10 @@ export const PosView: React.FC<PosViewProps> = ({
                           <div key={v.plate} onClick={() => loadVehicleIntoExit(v)} className="p-4 bg-white border-2 border-gray-100 rounded-2xl flex justify-between items-center cursor-pointer hover:border-[#E2498A] hover:shadow-sm transition-all group">
                              <div>
                                <div className="text-xl font-extrabold text-gray-900 tabular-nums">{v.plate}</div>
-                               <div className="text-xs font-semibold text-gray-500">Cupo {v.slotCode || `A-${String(v.slot).padStart(2, '0')}`} • {v.durationMin} min</div>
+                               <div className="text-xs font-semibold text-gray-500 flex items-center gap-2">
+                                 <span>Cupo {v.slotCode || `A-${String(v.slot).padStart(2, '0')}`} • {v.durationMin} min</span>
+                                 <span className="text-slate-600 font-bold">👤 {v.client || 'Particular'}</span>
+                               </div>
                              </div>
                              <button className="px-4 py-2 bg-[#FFF5F8] text-[#E2498A] font-bold text-sm rounded-xl group-hover:bg-[#E2498A] group-hover:text-white transition-colors">Cobrar</button>
                           </div>
@@ -1795,7 +2169,12 @@ export const PosView: React.FC<PosViewProps> = ({
                   <div className="space-y-6 animate-fade-in-up">
                     <div className="flex justify-between items-start">
                        <div>
-                          <div className="text-3xl font-black text-gray-900 tracking-tight tabular-nums">{selectedExitVehicle.plate}</div>
+                          <div className="text-3xl font-black text-gray-900 tracking-tight tabular-nums flex items-center gap-3">
+                            <span>{selectedExitVehicle.plate}</span>
+                            <span className="text-sm font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
+                              👤 {selectedExitVehicle.client || 'Particular'}
+                            </span>
+                          </div>
                           <div className="text-sm font-semibold text-gray-500 mt-1">Estadía: {selectedExitVehicle.durationMin} min (Ingreso: {selectedExitVehicle.entry})</div>
                        </div>
                        <button onClick={() => { setSelectedExitVehicle(null); setExitSearchQuery(''); setAppliedDiscount(0); setAppliedSurcharge(0); }} className="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-colors">
@@ -1820,22 +2199,50 @@ export const PosView: React.FC<PosViewProps> = ({
                     </div>
 
                     <div className="flex gap-2">
-                       <button onClick={() => setPinModalType('DISCOUNT')} className="flex-1 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Aplicar Descuento</button>
-                       <button onClick={() => setPinModalType('LOST_TICKET')} className="flex-1 py-2 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100">Ticket Extraviado (Ley 20.967)</button>
+                       <button
+                         type="button"
+                         onClick={() => setPinModalType('DISCOUNT')}
+                         disabled={isShiftClosed || isViewerOnly}
+                         className={`flex-1 py-2 text-xs font-bold rounded-lg border transition ${
+                           isShiftClosed || isViewerOnly
+                             ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                             : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 cursor-pointer'
+                         }`}
+                       >
+                         Aplicar Descuento
+                       </button>
+                       <button
+                         type="button"
+                         onClick={() => setPinModalType('LOST_TICKET')}
+                         disabled={isShiftClosed || isViewerOnly}
+                         className={`flex-1 py-2 text-xs font-bold rounded-lg border transition ${
+                           isShiftClosed || isViewerOnly
+                             ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                             : 'text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100 cursor-pointer'
+                         }`}
+                       >
+                         Ticket Extraviado (Ley 20.967)
+                       </button>
                     </div>
 
                     <div className="space-y-2">
                       <button
                         onClick={handleConfirmCheckout}
-                        disabled={isSupervisorLiveMode}
+                        disabled={isSupervisorLiveMode || isShiftClosed || isViewerOnly}
                         className={`w-full py-4 text-white rounded-2xl text-base font-extrabold transition-all flex justify-center items-center gap-3 ${
-                          isSupervisorLiveMode
+                          isSupervisorLiveMode || isShiftClosed || isViewerOnly
                             ? 'bg-slate-400 cursor-not-allowed opacity-80'
                             : 'bg-[#E2498A] hover:bg-[#C83472] hover:-translate-y-0.5 hover:shadow-lg cursor-pointer'
                         }`}
                       >
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                         {isSupervisorLiveMode ? '🔒 Cobro Deshabilitado (Modo Supervisión)' : 'Confirmar Cobro & Emitir Boleta SII'}
+                         {isShiftClosed
+                           ? '🔒 Turno Cerrado (No Operativo)'
+                           : isViewerOnly
+                           ? '👁️ Solo Visualización'
+                           : isSupervisorLiveMode
+                           ? '🔒 Cobro Deshabilitado (Modo Supervisión)'
+                           : 'Confirmar Cobro & Emitir Boleta SII'}
                       </button>
 
                       <button
@@ -1845,8 +2252,23 @@ export const PosView: React.FC<PosViewProps> = ({
                             const found = tickets.find((t) => t.plateNumber === selectedExitVehicle.plate);
                             if (found) {
                               const ok = await printFiscalReceipt(found);
-                              if (ok) onShowToast('Impresión térmica ESC/POS enviada a Sunmi V2', 'success');
-                              else onShowToast('Boleta fiscal DTE lista con Timbre SII (Web Serial no conectado)', 'info');
+                              if (ok) {
+                                onShowToast('Impresión térmica ESC/POS enviada a Sunmi V2', 'success');
+                              } else {
+                                onShowToast('Impresora térmica Web Serial no detectada. Generando ticket fiscal en PDF térmico 80mm...', 'info');
+                                generateTicketPdf({
+                                  ticketNumber: found.ticketCode || found.id,
+                                  plate: found.plateNumber,
+                                  category: selectedExitVehicle.cat,
+                                  entryTime: found.entryTime ? new Date(found.entryTime).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : selectedExitVehicle.entry,
+                                  ratePerMinute: selectedExitVehicle.rate || 35,
+                                  barcodeValue: found.ticketCode || found.id,
+                                  customerName: found.customerName || selectedExitVehicle.client,
+                                  customerPhone: found.customerPhone || selectedExitVehicle.phone,
+                                  notes: found.notes || selectedExitVehicle.obs,
+                                  slot: selectedExitVehicle.slot,
+                                }, '80mm', true);
+                              }
                             } else {
                               handleConfirmCheckout();
                             }
@@ -1855,7 +2277,7 @@ export const PosView: React.FC<PosViewProps> = ({
                         className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
                       >
                         <span>🖨️</span>
-                        <span>Imprimir Boleta Térmica ESC/POS (Sunmi V2 / 58-80mm)</span>
+                        <span>Imprimir Boleta Térmica (ESC/POS o PDF 80mm)</span>
                       </button>
                     </div>
                   </div>
@@ -1872,18 +2294,26 @@ export const PosView: React.FC<PosViewProps> = ({
                  </div>
                  <button
                     onClick={() => {
+                      if (isShiftClosed) {
+                        onShowToast('El turno está cerrado. Debe aperturar un turno para registrar movimientos de caja.', 'error');
+                        return;
+                      }
+                      if (isViewerOnly) {
+                        onShowToast(`Modo Solo Visualización: Solo ${currentShift?.operatorName || 'el titular'} puede registrar movimientos de caja.`, 'error');
+                        return;
+                      }
                       if (isSupervisorLiveMode) {
                         onShowToast('Modo Supervisión: Movimientos de caja reservados al operador en turno.', 'error');
                         return;
                       }
                       onOpenManualTransaction();
                     }}
-                    disabled={isSupervisorLiveMode}
+                    disabled={isSupervisorLiveMode || isShiftClosed || isViewerOnly}
                     className={`w-full py-3 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl transition ${
-                      isSupervisorLiveMode ? 'opacity-60 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'
+                      isSupervisorLiveMode || isShiftClosed || isViewerOnly ? 'opacity-60 cursor-not-allowed' : 'hover:bg-gray-50 cursor-pointer'
                     }`}
                   >
-                    + / - Movimiento Manual {isSupervisorLiveMode ? '(Solo Cajero)' : ''}
+                    + / - Movimiento Manual {isShiftClosed ? '(Turno Cerrado)' : isViewerOnly ? '(Solo Titular)' : isSupervisorLiveMode ? '(Solo Cajero)' : ''}
                   </button>
                   <div className="mt-4 max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     {historyLogs.map((log, idx) => (
@@ -1899,66 +2329,13 @@ export const PosView: React.FC<PosViewProps> = ({
                     ))}
                  </div>
 
-                 {/* ── GRÁFICO DE VEHÍCULOS ACTIVOS POR HORA ── */}
-                 <div className="mt-5 pt-4 border-t border-gray-100 space-y-3">
-                   <div className="flex items-center justify-between">
-                     <span className="text-xs font-extrabold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
-                       <span>📊</span> Vehículos Activos por Hora (Hoy)
-                     </span>
-                     <span className="text-[11px] font-bold text-[#E2498A] bg-[#FFF5F8] px-2 py-0.5 rounded-full">
-                       En patio: {activeVehicles.length}
-                     </span>
-                   </div>
-
-                   <div className="h-36 w-full flex items-end gap-1.5 pt-3 pb-1 px-1 bg-slate-50/70 rounded-2xl border border-slate-100">
-                     {[
-                       { hour: '08:00', count: Math.max(2, Math.round(activeVehicles.length * 0.35)) },
-                       { hour: '09:00', count: Math.max(5, Math.round(activeVehicles.length * 0.6)) },
-                       { hour: '10:00', count: Math.max(9, Math.round(activeVehicles.length * 0.85)) },
-                       { hour: '11:00', count: Math.max(12, Math.round(activeVehicles.length * 0.95)) },
-                       { hour: '12:00', count: Math.max(14, Math.round(activeVehicles.length * 1.1)) },
-                       { hour: '13:00', count: Math.max(16, Math.round(activeVehicles.length * 1.05)) },
-                       { hour: '14:00', count: Math.max(15, Math.round(activeVehicles.length * 0.9)) },
-                       { hour: '15:00', count: Math.max(13, Math.round(activeVehicles.length * 0.85)) },
-                       { hour: '16:00', count: Math.max(12, Math.round(activeVehicles.length * 0.8)) },
-                       { hour: '17:00', count: Math.max(10, Math.round(activeVehicles.length * 0.75)) },
-                       { hour: '18:00', count: activeVehicles.length },
-                     ].map((point, pIdx) => {
-                       const maxCapacity = 30;
-                       const heightPercent = Math.min(100, Math.max(12, Math.round((point.count / maxCapacity) * 100)));
-                       const isCurrentHour = pIdx === 10;
-
-                       return (
-                         <div key={point.hour} className="flex-1 flex flex-col items-center h-full justify-end group relative cursor-default">
-                           <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute -top-7 bg-slate-900 text-white text-[10px] font-mono py-0.5 px-1.5 rounded pointer-events-none z-20 whitespace-nowrap shadow-sm">
-                             {point.count} autos ({point.hour})
-                           </div>
-                           <div 
-                             style={{ height: `${heightPercent}%` }} 
-                             className={`w-full rounded-t-md transition-all ${
-                               isCurrentHour 
-                                 ? 'bg-[#E2498A] shadow-xs' 
-                                 : 'bg-slate-300 hover:bg-[#E2498A]/60'
-                             }`}
-                           />
-                           <span className="text-[8px] font-mono font-bold text-slate-400 mt-1 truncate">
-                             {point.hour.slice(0, 2)}h
-                           </span>
-                         </div>
-                       );
-                     })}
-                   </div>
-                   <div className="flex justify-between items-center text-[10px] text-slate-400 font-medium px-1">
-                     <span>Entradas y salidas continuas</span>
-                     <span className="font-mono">Capacidad: 30 plazas</span>
-                   </div>
-                 </div>
+                 
               </div>
             )}
           </div>
         </div>
 
-        {/* ── RIGHT COLUMN: 2D MAP MATRIX (Agrandado a 7/12 cols) ── */}
+        {/* ── RIGHT COLUMN: 2D MAP MATRIX & TELEMETRÍA (7/12 cols) ── */}
         <div className="lg:col-span-7 space-y-6">
            <div className="bg-[#1E1E2F] text-white rounded-3xl p-6 shadow-sm border border-gray-800">
              <div className="flex justify-between items-center mb-6">
@@ -1967,7 +2344,11 @@ export const PosView: React.FC<PosViewProps> = ({
                      <span className="w-2.5 h-2.5 rounded-full bg-[#E2498A] animate-pulse"></span>
                      Plano 2D Interactivo
                    </h2>
-                   <p className="text-sm text-gray-400 font-medium mt-1">Serrano 447 • Ocupación en Tiempo Real</p>
+                   <p className="text-xs text-gray-400 font-medium mt-1 flex items-center gap-1.5">
+                     <span>Serrano 447</span>
+                     <span>•</span>
+                     <span className="text-pink-300 font-semibold">✨ Arrastra y suelta vehículos para reubicar o permutar plazas</span>
+                   </p>
                 </div>
                 <div className="bg-[#2D2D44] px-4 py-2 rounded-xl border border-gray-700 text-center">
                    <div className="text-2xl font-black text-[#E2498A] tabular-nums leading-none tracking-tight">{Math.max(0, 30 - activeVehicles.length)}</div>
@@ -1980,30 +2361,103 @@ export const PosView: React.FC<PosViewProps> = ({
                  const vehicle = activeVehicles.find((v) => v.slot === slotIndex);
                  const slotCode = slotIndex <= 15 ? `A-${String(slotIndex).padStart(2, '0')}` : `B-${String(slotIndex).padStart(2, '0')}`;
                  const isOccupied = !!vehicle;
+                 const isSelected = selectedSlot === slotIndex;
+                 const isBeingDragged = draggedSlot === slotIndex;
+                 const isDropTarget = dragOverSlot === slotIndex && draggedSlot !== slotIndex;
 
                  return (
                    <div 
                      key={slotIndex}
+                     draggable={isOccupied && !isShiftClosed && !isViewerOnly}
+                     onDragStart={(e) => {
+                       if (!isOccupied || isShiftClosed || isViewerOnly) {
+                         e.preventDefault();
+                         return;
+                       }
+                       e.dataTransfer.setData('text/plain', String(slotIndex));
+                       e.dataTransfer.effectAllowed = 'move';
+                       setDraggedSlot(slotIndex);
+                     }}
+                     onDragEnd={() => {
+                       setDraggedSlot(null);
+                       setDragOverSlot(null);
+                     }}
+                     onDragOver={(e) => {
+                       e.preventDefault();
+                       e.dataTransfer.dropEffect = 'move';
+                     }}
+                     onDragEnter={(e) => {
+                       e.preventDefault();
+                       if (draggedSlot !== null && draggedSlot !== slotIndex) {
+                         setDragOverSlot(slotIndex);
+                       }
+                     }}
+                     onDragLeave={(e) => {
+                       if (dragOverSlot === slotIndex) {
+                         setDragOverSlot(null);
+                       }
+                     }}
+                     onDrop={(e) => {
+                       e.preventDefault();
+                       const sourceStr = e.dataTransfer.getData('text/plain');
+                       const sourceNum = parseInt(sourceStr, 10);
+                       setDraggedSlot(null);
+                       setDragOverSlot(null);
+                       if (!sourceNum || isNaN(sourceNum) || sourceNum === slotIndex) return;
+
+                       try {
+                         const ok = moveOrSwapVehicleSlot(sourceNum, slotIndex);
+                         if (ok) {
+                           const targetCode = slotIndex <= 15 ? `A-${String(slotIndex).padStart(2, '0')}` : `B-${String(slotIndex).padStart(2, '0')}`;
+                           const sourceCode = sourceNum <= 15 ? `A-${String(sourceNum).padStart(2, '0')}` : `B-${String(sourceNum).padStart(2, '0')}`;
+                           onShowToast(`Vehículo reubicado con éxito de cupo ${sourceCode} a ${targetCode}.`, 'success');
+                         }
+                       } catch (err: any) {
+                         onShowToast(err.message || 'Error al reubicar vehículo', 'error');
+                       }
+                     }}
                      onClick={() => {
                         if (isOccupied) {
-                           onShowToast(`${slotCode}: Ocupado por ${vehicle.plate} (${vehicle.durationMin} min)`, 'info');
+                           onShowToast(`${slotCode}: Ocupado por ${vehicle.plate} (${vehicle.client || 'Particular'})`, 'info');
                            loadVehicleIntoExit(vehicle);
                            setPosTab('exit');
                         } else {
-                           onShowToast(`Cupo ${slotCode} está libre.`, 'success');
+                           setSelectedSlot(slotIndex);
                            setPosTab('entry');
+                           onShowToast(`Cupo ${slotCode} seleccionado para el próximo ingreso.`, 'success');
                         }
                      }}
-                     className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden group 
-                       ${isOccupied 
-                         ? 'bg-[#2D2D44] border-gray-700 hover:border-gray-500 shadow-xs' 
-                         : 'bg-emerald-950/40 border-emerald-500/70 hover:border-emerald-400 hover:bg-emerald-900/50 shadow-sm'
-                       }`}
+                     title={
+                       isOccupied && !isShiftClosed && !isViewerOnly
+                         ? 'Mantén presionado y arrastra para reubicar a otro cupo'
+                         : undefined
+                     }
+                     className={`relative flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all cursor-pointer overflow-hidden group select-none ${
+                       isBeingDragged
+                         ? 'opacity-35 scale-95 border-dashed border-[#E2498A] bg-pink-500/10'
+                         : isDropTarget
+                         ? 'ring-4 ring-[#E2498A] bg-[#E2498A]/30 border-[#E2498A] scale-105 z-30 shadow-xl'
+                         : isOccupied 
+                         ? 'bg-[#2D2D44] border-gray-700 hover:border-gray-500 shadow-xs cursor-grab active:cursor-grabbing hover:scale-[1.02]' 
+                         : isSelected
+                           ? 'bg-[#FFF5F8] border-[#E2498A] ring-4 ring-[#E2498A]/30 shadow-lg scale-105 z-20'
+                           : 'bg-emerald-950/40 border-emerald-500/70 hover:border-emerald-400 hover:bg-emerald-900/50 shadow-sm'
+                     }`}
                    >
-                     <span className={`text-[10px] font-bold mb-1 z-10 ${isOccupied ? 'text-gray-400' : 'text-emerald-400'}`}>{slotCode}</span>
+                     <div className="w-full flex items-center justify-between mb-1 z-10 px-0.5">
+                       <span className={`text-[10px] font-bold ${
+                         isOccupied ? 'text-gray-400' : isSelected ? 'text-[#E2498A]' : 'text-emerald-400'
+                       }`}>
+                         {slotCode}
+                       </span>
+                       {isOccupied && !isShiftClosed && !isViewerOnly && (
+                         <span className="text-[9px] text-gray-500 group-hover:text-pink-300 font-mono font-bold tracking-tighter" title="Arrastrar">
+                           ⠿
+                         </span>
+                       )}
+                     </div>
                      {isOccupied ? (
                        <div className="flex flex-col items-center z-10 w-full">
-                          {/* Distintivo / Silueta de Vehículo */}
                           <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#E2498A]/20 text-[#E2498A] mb-1">
                             <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                               <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-5h14v5z"/>
@@ -2012,15 +2466,29 @@ export const PosView: React.FC<PosViewProps> = ({
                             </svg>
                           </div>
                           <span className="text-sm font-black text-white tabular-nums tracking-wide">{vehicle.plate}</span>
+                          <span className="text-[10px] font-bold text-slate-300 truncate max-w-[110px] text-center mt-0.5">
+                            👤 {vehicle.client || 'Particular'}
+                          </span>
                           <span className="text-[10px] font-bold text-[#E2498A] bg-[#E2498A]/10 px-1.5 py-0.5 rounded mt-1">{vehicle.durationMin}m</span>
                        </div>
                      ) : (
                        <div className="flex flex-col items-center z-10">
-                          <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-md">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            LIBRE
-                          </span>
-                          <span className="text-[10px] font-semibold text-emerald-400/90 mt-1">Disponible</span>
+                          {isSelected ? (
+                            <>
+                              <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-white bg-[#E2498A] px-2 py-0.5 rounded-md shadow-xs">
+                                ✓ FIJADO
+                              </span>
+                              <span className="text-[10px] font-bold text-[#E2498A] mt-1">Seleccionado</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 rounded-md">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                LIBRE
+                              </span>
+                              <span className="text-[10px] font-semibold text-emerald-400/90 mt-1">Disponible</span>
+                            </>
+                          )}
                        </div>
                      )}
                    </div>
@@ -2028,6 +2496,7 @@ export const PosView: React.FC<PosViewProps> = ({
                })}
              </div>
            </div>
+
         </div>
       </div>
 

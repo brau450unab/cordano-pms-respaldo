@@ -108,7 +108,11 @@ export const ReporteFinancieroTurnoModal: React.FC<ReporteFinancieroTurnoModalPr
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const handleSystemPrint = () => {
-    printViaSystemDialog('printable-shift-report', `Reporte_Z_Turno_${shift.id}`);
+    try {
+      generateShiftClosingPdf(shift, false);
+    } catch {
+      printViaSystemDialog('printable-shift-report', `Reporte_Z_Turno_${shift.id}`);
+    }
   };
 
   const handleDownloadPdf = () => {

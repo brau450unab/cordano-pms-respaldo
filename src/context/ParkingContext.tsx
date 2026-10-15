@@ -90,6 +90,9 @@ interface ParkingContextType {
   tickets: Ticket[];
   customers: Customer[];
   currentShift: Shift;
+  isShiftOpen: boolean;
+  isShiftOwner: boolean;
+  isViewerOnly: boolean;
   tariffConfig: TariffConfig;
   tariffVersions: TariffVersion[];
   activeTariffVersion: TariffVersion;
@@ -161,6 +164,7 @@ interface ParkingContextType {
     tariffType?: TariffType
   ) => Ticket;
   assignSlotToTicket: (ticketId: string, slotCode: string) => void;
+  moveOrSwapVehicleSlot: (sourceSlotNum: number, targetSlotNum: number) => boolean;
   calculateFee: (ticket: Ticket, customExitTime?: Date) => StayCalculation;
   processPayment: (params: {
     ticketId: string;
@@ -244,7 +248,9 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [user, setUser] = useState<User>(() => {
     return INITIAL_ADMIN;
   });
-  const [isLoggedIn, setIsLoggedInState] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedInState] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && localStorage.getItem('pms_matic_is_logged_in') === 'true';
+  });
 
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
 
@@ -317,7 +323,15 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const [currentShift, setCurrentShift] = useState<Shift>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SHIFT);
-    return saved ? JSON.parse(saved) : INITIAL_SHIFT;
+    if (saved) {
+      try {
+        const parsed: Shift = JSON.parse(saved);
+        return parsed;
+      } catch (e) {
+        console.error('Error al parsear turno guardado:', e);
+      }
+    }
+    return INITIAL_SHIFT;
   });
 
   const [tariffConfig, setTariffConfig] = useState<TariffConfig>(() => {
@@ -594,11 +608,19 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       return user.permissions[permission];
     }
     if (user.role === 'administrador') return true;
-    if (permission === 'canOperatePos' || permission === 'canOpenCloseShift' || permission === 'canManageClients') {
+    if (permission === 'canOperatePos' || permission === 'canOpenCloseShift') {
       return user.role === 'operador';
     }
     return false;
   };
+
+  // Estado de turno y titularidad exclusiva del operador que lo abrió
+  const isShiftOpen = currentShift?.status === 'abierto';
+  const isShiftOwner = isShiftOpen && Boolean(
+    (user?.id && currentShift?.operatorId === user.id) ||
+    (user?.name && currentShift?.operatorName === user.name)
+  );
+  const isViewerOnly = isShiftOpen && !isShiftOwner;
 
   const addAuditLog = (
     action: AuditLog['action'],
@@ -869,6 +891,16 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const formattedPlate = plateNumber.trim().toUpperCase();
 
+    // 1. Validar que el turno esté abierto obligatoriamente
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('Punto de Venta Bloqueado: No es posible ingresar vehículos sin un turno iniciado. Es obligatorio aperturar el turno con el fondo de caja.');
+    }
+
+    // 2. Dominio exclusivo: solo el titular que abrió el turno puede ingresar vehículos
+    if (currentShift.operatorId && user.id !== currentShift.operatorId && user.name !== currentShift.operatorName) {
+      throw new Error(`Acceso Restringido: El turno actual pertenece a ${currentShift.operatorName}. Solo el titular del turno puede registrar vehículos. Los demás usuarios operan en modo solo visualizador.`);
+    }
+
     // Check anti-passback: duplicate active plate
     const existingActive = tickets.find(
       (t) => t.plateNumber === formattedPlate && t.status === 'activo'
@@ -985,6 +1017,118 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     );
   };
 
+  const moveOrSwapVehicleSlot = (sourceSlotNum: number, targetSlotNum: number): boolean => {
+    if (sourceSlotNum === targetSlotNum) return false;
+
+    // 1. Validar turno abierto
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('Punto de Venta Bloqueado: No se pueden reubicar vehículos sin un turno iniciado.');
+    }
+    // 2. Validar titularidad exclusiva
+    if (isViewerOnly) {
+      throw new Error(`Modo Solo Visualización: Solo ${currentShift.operatorName || 'el titular'} puede reubicar vehículos en el patio.`);
+    }
+
+    const sourceSlotCode = sourceSlotNum <= 15 ? `A-${String(sourceSlotNum).padStart(2, '0')}` : `B-${String(sourceSlotNum).padStart(2, '0')}`;
+    const targetSlotCode = targetSlotNum <= 15 ? `A-${String(targetSlotNum).padStart(2, '0')}` : `B-${String(targetSlotNum).padStart(2, '0')}`;
+
+    // Buscar ticket activo en el cupo origen
+    const sourceTicket = tickets.find((t) => t.status === 'activo' && (
+      t.slotCode === sourceSlotCode || 
+      parseInt(t.slotCode?.replace(/\D/g, '') || '0', 10) === sourceSlotNum
+    ));
+
+    if (!sourceTicket) {
+      return false;
+    }
+
+    // Verificar si el cupo destino ya tiene otro vehículo
+    const targetTicket = tickets.find((t) => t.status === 'activo' && (
+      t.slotCode === targetSlotCode || 
+      parseInt(t.slotCode?.replace(/\D/g, '') || '0', 10) === targetSlotNum
+    ));
+
+    if (targetTicket) {
+      // SWAP: Intercambiar plazas entre ambos vehículos
+      setTickets((prev) =>
+        prev.map((t) => {
+          if (t.id === sourceTicket.id) return { ...t, slotCode: targetSlotCode };
+          if (t.id === targetTicket.id) return { ...t, slotCode: sourceSlotCode };
+          return t;
+        })
+      );
+
+      setSlots((prev) =>
+        prev.map((s) => {
+          if (s.code === sourceSlotCode) {
+            return {
+              ...s,
+              status: 'ocupado',
+              currentTicketId: targetTicket.id,
+              plateNumber: targetTicket.plateNumber,
+              occupiedSince: targetTicket.entryTime,
+            };
+          }
+          if (s.code === targetSlotCode) {
+            return {
+              ...s,
+              status: 'ocupado',
+              currentTicketId: sourceTicket.id,
+              plateNumber: sourceTicket.plateNumber,
+              occupiedSince: sourceTicket.entryTime,
+            };
+          }
+          return s;
+        })
+      );
+
+      addAuditLog(
+        'REUBICACION_VEHICULO' as any,
+        `Permuta de plazas 2D: Vehículo ${sourceTicket.plateNumber} movido a ${targetSlotCode} y ${targetTicket.plateNumber} a ${sourceSlotCode}.`,
+        'info',
+        user?.name
+      );
+    } else {
+      // MOVE: Mover al cupo vacío de destino
+      setTickets((prev) =>
+        prev.map((t) => (t.id === sourceTicket.id ? { ...t, slotCode: targetSlotCode } : t))
+      );
+
+      setSlots((prev) =>
+        prev.map((s) => {
+          if (s.code === sourceSlotCode) {
+            return {
+              ...s,
+              status: 'disponible',
+              currentTicketId: undefined,
+              plateNumber: undefined,
+              occupiedSince: undefined,
+            };
+          }
+          if (s.code === targetSlotCode) {
+            return {
+              ...s,
+              status: 'ocupado',
+              currentTicketId: sourceTicket.id,
+              plateNumber: sourceTicket.plateNumber,
+              occupiedSince: sourceTicket.entryTime,
+            };
+          }
+          return s;
+        })
+      );
+
+      addAuditLog(
+        'REUBICACION_VEHICULO' as any,
+        `Reubicación vehicular en patio: ${sourceTicket.plateNumber} trasladado de ${sourceSlotCode} a plaza ${targetSlotCode}.`,
+        'info',
+        user?.name
+      );
+    }
+
+    return true;
+  };
+
   const calculateFee = (ticket: Ticket, customExitTime?: Date): StayCalculation => {
     // Delegar al Motor Oficial conforme a la Ley N° 20.967 con soporte de versión inmutable
     const result = calculateStayFeeLey20967(ticket, tariffConfig, customExitTime, activeTariffVersion);
@@ -1020,6 +1164,16 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       voucherNumber,
       invoiceFolio,
     } = params;
+
+    // 1. Validar que el turno esté abierto obligatoriamente
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('Punto de Venta Bloqueado: No es posible procesar cobros ni liquidar salidas sin un turno iniciado.');
+    }
+
+    // 2. Dominio exclusivo: solo el titular del turno puede procesar cobros
+    if (currentShift.operatorId && user.id !== currentShift.operatorId && user.name !== currentShift.operatorName) {
+      throw new Error(`Acceso Restringido: El turno actual pertenece a ${currentShift.operatorName}. Solo el titular del turno puede liquidar cobros. Los demás usuarios operan en modo solo visualizador.`);
+    }
 
     const ticket = tickets.find((t) => t.id === ticketId);
     if (!ticket) {
@@ -1222,6 +1376,14 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       throw new Error('El monto del movimiento debe ser superior a $0 CLP');
     }
 
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('Caja Bloqueada: No se pueden registrar movimientos de efectivo sin un turno activo.');
+    }
+
+    if (currentShift.operatorId && user.id !== currentShift.operatorId && user.name !== currentShift.operatorName) {
+      throw new Error(`Acceso Restringido: Solo el titular del turno (${currentShift.operatorName}) puede registrar movimientos de efectivo en gaveta.`);
+    }
+
     const newMovement: CashMovement = {
       id: `mov-${Date.now()}`,
       shiftId: currentShift.id,
@@ -1320,6 +1482,14 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     handoverInfo?: { transferredVehiclesCount: number; forcedExitVehiclesCount: number },
     supervisorName?: string
   ): Shift => {
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('No hay un turno abierto para cerrar.');
+    }
+
+    if (currentShift.operatorId && user.id !== currentShift.operatorId && user.name !== currentShift.operatorName && user.role !== 'administrador') {
+      throw new Error(`Acceso Restringido: Solo el titular del turno (${currentShift.operatorName}) puede realizar el arqueo y cierre.`);
+    }
+
     // Calculate expected totals from paid tickets in current shift
     const paidTickets = tickets.filter((t) => t.status === 'pagado');
     const cashTickets = paidTickets
@@ -1510,6 +1680,9 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
         tickets,
         customers,
         currentShift,
+        isShiftOpen,
+        isShiftOwner,
+        isViewerOnly,
         tariffConfig,
         tariffVersions,
         activeTariffVersion,
@@ -1541,6 +1714,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
         deleteAgreement,
         registerEntry,
         assignSlotToTicket,
+        moveOrSwapVehicleSlot,
         calculateFee,
         processPayment,
         cancelTicket,

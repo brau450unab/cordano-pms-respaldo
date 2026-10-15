@@ -6,6 +6,8 @@ export interface PatioMatrix2DProps {
   onSelectSlot?: (slotCode: string, vehicle?: PatioVehicle) => void;
   selectedSlotCode?: string | null;
   mode?: 'mobile' | 'desktop' | 'responsive';
+  onMoveOrSwapSlot?: (sourceSlotNum: number, targetSlotNum: number) => void;
+  isDraggable?: boolean;
 }
 
 export const PatioMatrix2D: React.FC<PatioMatrix2DProps> = ({
@@ -13,9 +15,13 @@ export const PatioMatrix2D: React.FC<PatioMatrix2DProps> = ({
   onSelectSlot,
   selectedSlotCode,
   mode = 'responsive',
+  onMoveOrSwapSlot,
+  isDraggable = false,
 }) => {
   const [filter, setFilter] = useState<'TODOS' | 'OCUPADOS' | 'LIBRES' | 'SOBREESTADIA'>('TODOS');
   const [searchPlate, setSearchPlate] = useState('');
+  const [draggedSlot, setDraggedSlot] = useState<number | null>(null);
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
 
   const totalSlotsCount = 30;
   const occupiedCount = activeVehicles.length;
@@ -139,13 +145,57 @@ export const PatioMatrix2D: React.FC<PatioMatrix2DProps> = ({
         {filteredSlots.map((slot) => {
           const { slotIndex, slotCode, isOccupied, isOverstay, isPMR, isEV, isAbonado, vehicle } = slot;
           const isSelected = selectedSlotCode === slotCode;
+          const isBeingDragged = draggedSlot === slotIndex;
+          const isDropTarget = dragOverSlot === slotIndex && draggedSlot !== slotIndex;
 
           return (
             <div
               key={slotIndex}
+              draggable={isOccupied && isDraggable}
+              onDragStart={(e) => {
+                if (!isOccupied || !isDraggable) return;
+                e.dataTransfer.setData('text/plain', String(slotIndex));
+                e.dataTransfer.effectAllowed = 'move';
+                setDraggedSlot(slotIndex);
+              }}
+              onDragEnd={() => {
+                setDraggedSlot(null);
+                setDragOverSlot(null);
+              }}
+              onDragOver={(e) => {
+                if (!isDraggable) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+              }}
+              onDragEnter={(e) => {
+                if (!isDraggable) return;
+                e.preventDefault();
+                if (draggedSlot !== null && draggedSlot !== slotIndex) {
+                  setDragOverSlot(slotIndex);
+                }
+              }}
+              onDragLeave={() => {
+                if (dragOverSlot === slotIndex) {
+                  setDragOverSlot(null);
+                }
+              }}
+              onDrop={(e) => {
+                if (!isDraggable || !onMoveOrSwapSlot) return;
+                e.preventDefault();
+                const srcNum = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                setDraggedSlot(null);
+                setDragOverSlot(null);
+                if (srcNum && srcNum !== slotIndex) {
+                  onMoveOrSwapSlot(srcNum, slotIndex);
+                }
+              }}
               onClick={() => onSelectSlot && onSelectSlot(slotCode, vehicle)}
-              className={`relative p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between min-h-[120px] shadow-xs active:scale-[0.98] ${
-                isSelected ? 'ring-2 ring-offset-2 ring-[#E2498A] scale-[1.02]' : ''
+              className={`relative p-3 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between min-h-[120px] shadow-xs active:scale-[0.98] select-none ${
+                isBeingDragged
+                  ? 'opacity-30 scale-95 border-dashed border-[#E2498A]'
+                  : isDropTarget
+                  ? 'ring-4 ring-[#E2498A] bg-[#E2498A]/30 border-[#E2498A] scale-105 z-20'
+                  : isSelected ? 'ring-2 ring-offset-2 ring-[#E2498A] scale-[1.02]' : ''
               } ${
                 isOccupied
                   ? isOverstay
@@ -195,6 +245,12 @@ export const PatioMatrix2D: React.FC<PatioMatrix2DProps> = ({
                     <span className="text-base font-black text-white tracking-wider tabular-nums font-mono">
                       {vehicle.plate}
                     </span>
+                  </div>
+
+                  {/* Nombre del Cliente / Titular */}
+                  <div className="text-[11px] font-bold text-slate-300 truncate mt-0.5 flex items-center gap-1">
+                    <span className="text-[10px] text-slate-400">👤</span>
+                    <span className="truncate">{vehicle.client || 'Particular'}</span>
                   </div>
 
                   {/* Indicador de Permanencia en Tiempo Real */}

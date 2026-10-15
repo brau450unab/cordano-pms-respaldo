@@ -7,13 +7,16 @@ interface ClientsViewProps {
 }
 
 export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
-  const { agreements, createAgreement, updateAgreement, deleteAgreement, tickets } = useParking();
+  const { user, agreements, createAgreement, updateAgreement, deleteAgreement, tickets } = useParking();
+
+  // Role check: Operador/cajero only has permission to view, not create or edit
+  const isOperator = user?.role === 'operador';
 
   // Active view tab: 'cards' | 'history' | 'billing'
   const [activeTab, setActiveTab] = useState<'cards' | 'history' | 'billing'>('cards');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Modal State for Create / Edit
+  // Modal State for Create / Edit / View
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAgreement, setEditingAgreement] = useState<Agreement | null>(null);
 
@@ -29,8 +32,12 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
   const [formBillingDay, setFormBillingDay] = useState(5);
   const [formAgreementType, setFormAgreementType] = useState<AgreementType>('Convenio Empresa');
 
-  // Open modal in CREATE mode
+  // Open modal in CREATE mode (restringido para operador)
   const handleOpenCreateModal = () => {
+    if (isOperator) {
+      onShowToast('El perfil de operador cajero solo tiene permisos para visualizar convenios.', 'info');
+      return;
+    }
     setEditingAgreement(null);
     setFormCompany('');
     setFormRut('');
@@ -77,6 +84,11 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
   // Save Agreement (Create or Edit)
   const handleSaveAgreement = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isOperator) {
+      onShowToast('El perfil de operador cajero solo tiene permisos para visualizar convenios.', 'error');
+      setIsModalOpen(false);
+      return;
+    }
     if (!formCompany.trim()) {
       onShowToast('El nombre de la empresa es obligatorio.', 'error');
       return;
@@ -159,6 +171,10 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
 
   // Record a payment directly from Billing Dashboard
   const handleRecordPayment = (agreement: Agreement) => {
+    if (isOperator) {
+      onShowToast('El perfil de operador cajero solo tiene permisos para visualizar convenios y cobranzas.', 'info');
+      return;
+    }
     const payAmount = agreement.debtBalance && agreement.debtBalance > 0 ? agreement.debtBalance : agreement.monthlyFeeClp;
     const newPayment = {
       id: `PAY-${Date.now()}`,
@@ -240,14 +256,21 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
             placeholder="Buscar empresa, patente, encargado..."
             className="w-64 h-10 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs tabular-nums focus:border-[#E2498A] focus:outline-none placeholder:text-[#94A3B8] shadow-xs"
           />
-          <button
-            type="button"
-            onClick={handleOpenCreateModal}
-            className="h-10 px-4 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer"
-          >
-            <span className="text-base font-extrabold">+</span>
-            <span>Crear Nuevo Convenio</span>
-          </button>
+          {isOperator ? (
+            <div className="h-10 px-3.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold flex items-center gap-2 select-none shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Modo Consulta Garita (Solo Lectura)</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleOpenCreateModal}
+              className="h-10 px-4 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white text-xs font-bold transition shadow-sm flex items-center gap-2 cursor-pointer"
+            >
+              <span className="text-base font-extrabold">+</span>
+              <span>Crear Nuevo Convenio</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -373,7 +396,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                   </div>
 
                   <span className="text-xs font-bold text-[#E2498A] group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                    Editar ➔
+                    {isOperator ? 'Ver Detalle ➔' : 'Editar ➔'}
                   </span>
                 </div>
               </div>
@@ -383,13 +406,19 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
           {filteredAgreements.length === 0 && (
             <div className="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-300">
               <p className="text-sm font-semibold">No se encontraron convenios registrados con ese criterio.</p>
-              <button
-                type="button"
-                onClick={handleOpenCreateModal}
-                className="mt-3 px-4 py-2 bg-[#E2498A] text-white text-xs font-bold rounded-xl shadow-xs"
-              >
-                Crear el primer convenio
-              </button>
+              {!isOperator ? (
+                <button
+                  type="button"
+                  onClick={handleOpenCreateModal}
+                  className="mt-3 px-4 py-2 bg-[#E2498A] hover:bg-[#C83472] text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  Crear el primer convenio
+                </button>
+              ) : (
+                <p className="mt-2 text-xs text-slate-400">
+                  Acceso de garita en modo consulta. Para dar de alta convenios, solicítelo a supervisión o administración.
+                </p>
+              )}
             </div>
           )}
         </div>
@@ -546,7 +575,7 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                           )}
                         </td>
                         <td className="py-3 px-4 text-right space-x-2 font-sans">
-                          {balance > 0 && (
+                          {balance > 0 && !isOperator && (
                             <button
                               type="button"
                               onClick={() => handleRecordPayment(agreement)}
@@ -579,9 +608,20 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-xl w-full overflow-hidden animate-fade-in-up">
             {/* Modal Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-base font-extrabold text-[#1E1E2F]">
-                {editingAgreement ? `Editar Convenio: ${editingAgreement.companyName}` : 'Crear Nuevo Convenio Comercial'}
-              </h3>
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-base font-extrabold text-[#1E1E2F]">
+                  {isOperator
+                    ? `Detalle de Convenio: ${editingAgreement?.companyName || 'Sin datos'}`
+                    : editingAgreement
+                      ? `Editar Convenio: ${editingAgreement.companyName}`
+                      : 'Crear Nuevo Convenio Comercial'}
+                </h3>
+                {isOperator && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    Solo Lectura (Garita)
+                  </span>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
@@ -599,20 +639,22 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                   <input
                     type="text"
                     required
+                    disabled={isOperator}
                     value={formCompany}
                     onChange={(e) => setFormCompany(e.target.value)}
                     placeholder="Ej. Clínica Tarapacá / Notaría Serrano"
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-semibold focus:border-[#E2498A] focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 font-semibold focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                   />
                 </div>
                 <div>
                   <label className="block font-bold text-slate-600 mb-1">RUT Empresa (Opcional)</label>
                   <input
                     type="text"
+                    disabled={isOperator}
                     value={formRut}
                     onChange={(e) => setFormRut(e.target.value)}
                     placeholder="76.123.456-7"
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono focus:border-[#E2498A] focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 font-mono focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                   />
                 </div>
               </div>
@@ -622,30 +664,33 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                   <label className="block font-bold text-slate-600 mb-1">Datos del Encargado</label>
                   <input
                     type="text"
+                    disabled={isOperator}
                     value={formManager}
                     onChange={(e) => setFormManager(e.target.value)}
                     placeholder="Nombre Contacto"
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:border-[#E2498A] focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                   />
                 </div>
                 <div>
                   <label className="block font-bold text-slate-600 mb-1">Teléfono / WhatsApp</label>
                   <input
                     type="text"
+                    disabled={isOperator}
                     value={formPhone}
                     onChange={(e) => setFormPhone(e.target.value)}
                     placeholder="+56 9 1234 5678"
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono focus:border-[#E2498A] focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 font-mono focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                   />
                 </div>
                 <div>
                   <label className="block font-bold text-slate-600 mb-1">Correo Electrónico</label>
                   <input
                     type="email"
+                    disabled={isOperator}
                     value={formEmail}
                     onChange={(e) => setFormEmail(e.target.value)}
                     placeholder="contacto@empresa.cl"
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 focus:border-[#E2498A] focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                   />
                 </div>
               </div>
@@ -658,10 +703,11 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                 <textarea
                   rows={2}
                   required
+                  disabled={isOperator}
                   value={formPlatesInput}
                   onChange={(e) => setFormPlatesInput(e.target.value.toUpperCase())}
                   placeholder="Ej. RTPK10, LMWQ88, BBCC22, DDFF44"
-                  className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-mono uppercase font-bold focus:border-[#E2498A] focus:outline-none"
+                  className={`w-full p-3 rounded-xl border border-slate-200 font-mono uppercase font-bold focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                 />
                 <span className="text-[11px] text-slate-500">
                   {parsedPlates.length} vehículos identificados: {parsedPlates.join(', ') || 'Ninguno'}
@@ -676,9 +722,10 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                     type="number"
                     min="0"
                     step="1000"
+                    disabled={isOperator}
                     value={formFeePerVehicle}
                     onChange={(e) => setFormFeePerVehicle(parseInt(e.target.value) || 0)}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold focus:border-[#E2498A] focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 font-mono font-bold focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                   />
                 </div>
                 <div>
@@ -687,9 +734,10 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                     type="number"
                     min="0"
                     step="500"
+                    disabled={isOperator}
                     value={formExtraCharges}
                     onChange={(e) => setFormExtraCharges(parseInt(e.target.value) || 0)}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono focus:border-[#E2498A] focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 font-mono focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                   />
                 </div>
                 <div>
@@ -698,9 +746,10 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
                     type="number"
                     min="1"
                     max="31"
+                    disabled={isOperator}
                     value={formBillingDay}
                     onChange={(e) => setFormBillingDay(parseInt(e.target.value) || 5)}
-                    className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50 font-mono focus:border-[#E2498A] focus:outline-none"
+                    className={`w-full h-10 px-3 rounded-xl border border-slate-200 font-mono focus:border-[#E2498A] focus:outline-none ${isOperator ? 'bg-slate-100 text-slate-700 cursor-not-allowed' : 'bg-slate-50'}`}
                   />
                 </div>
               </div>
@@ -720,37 +769,54 @@ export const ClientsView: React.FC<ClientsViewProps> = ({ onShowToast }) => {
 
               {/* Botones de Acción */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                {editingAgreement ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm(`¿Eliminar convenio "${editingAgreement.companyName}"?`)) {
-                        deleteAgreement(editingAgreement.id);
-                        setIsModalOpen(false);
-                        onShowToast('Convenio eliminado.', 'info');
-                      }
-                    }}
-                    className="px-3 py-2 text-rose-600 hover:text-rose-800 font-bold text-xs"
-                  >
-                    Eliminar Convenio
-                  </button>
-                ) : <div />}
+                {isOperator ? (
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-[11px] text-slate-500 italic">
+                      Perfil de operador cajero en modo visualización. Acciones de creación y edición restringidas.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs shadow-sm cursor-pointer transition-colors"
+                    >
+                      Cerrar Consulta
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {editingAgreement ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`¿Eliminar convenio "${editingAgreement.companyName}"?`)) {
+                            deleteAgreement(editingAgreement.id);
+                            setIsModalOpen(false);
+                            onShowToast('Convenio eliminado.', 'info');
+                          }
+                        }}
+                        className="px-3 py-2 text-rose-600 hover:text-rose-800 font-bold text-xs cursor-pointer"
+                      >
+                        Eliminar Convenio
+                      </button>
+                    ) : <div />}
 
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white font-bold text-xs shadow-sm cursor-pointer"
-                  >
-                    Guardar Convenio
-                  </button>
-                </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsModalOpen(false)}
+                        className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-5 py-2 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white font-bold text-xs shadow-sm cursor-pointer"
+                      >
+                        Guardar Convenio
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </form>
           </div>

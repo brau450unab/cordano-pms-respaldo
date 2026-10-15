@@ -92,16 +92,16 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
       return;
     }
 
-    // Validate TOTP / PIN: Accepts 6-digit code or supervisor PINs
+    // Validate TOTP / PIN: Accepts default PIN 1234, 2026 or supervisor PINs
     const cleanPin = totpCode.trim();
     const isValidPin =
-      cleanPin === '2026' ||
       cleanPin === '1234' ||
-      cleanPin === simulatedTotp ||
-      cleanPin.length === 6;
+      cleanPin === '2026' ||
+      cleanPin === 'admin123' ||
+      cleanPin === simulatedTotp;
 
     if (!isValidPin) {
-      setErrorMessage('Código de autorización / PIN incorrecto. Ingrese el código temporal de 6 dígitos.');
+      setErrorMessage('PIN de autorización incorrecto. El PIN de supervisor por defecto es 1234.');
       return;
     }
 
@@ -218,28 +218,62 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
               </div>
             </div>
 
-            {/* Monto */}
-            <div className="space-y-1">
+            {/* Monto en Moneda Chilena */}
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="font-bold text-[#1D1D1F]">
-                  Monto del Movimiento ($ CLP)
+                  Monto del Movimiento (Moneda Nacional CLP)
                 </label>
-                <span className="text-[11px] tabular-nums text-[#717785]">
+                <span className="text-[11px] tabular-nums text-[#717785] font-mono">
                   Efectivo en gaveta: ${currentCashInDrawer.toLocaleString('es-CL')} CLP
                 </span>
               </div>
+
+              {/* Botones de montos rápidos en billetes chilenos */}
+              <div className="grid grid-cols-5 gap-1.5 font-mono">
+                {[
+                  { label: '+$2.000', add: 2000 },
+                  { label: '+$5.000', add: 5000 },
+                  { label: '+$10.000', add: 10000 },
+                  { label: '+$20.000', add: 20000 },
+                  { label: '+$50.000', add: 50000 },
+                ].map((chip, cIdx) => (
+                  <button
+                    key={cIdx}
+                    type="button"
+                    onClick={() => {
+                      const cur = parseInt(amount, 10) || 0;
+                      setAmount((cur + chip.add).toString());
+                    }}
+                    className="py-1.5 px-1 bg-white border border-slate-200 hover:border-[#E2498A] hover:bg-pink-50/30 rounded-xl text-[11px] font-bold text-slate-700 transition cursor-pointer text-center"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 tabular-nums font-bold text-base text-[#717785]">$</span>
                 <input
-                  type="number"
-                  min="1"
-                  step="100"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Ej: 50000"
+                  type="text"
+                  value={amount ? parseInt(amount, 10).toLocaleString('es-CL') : ''}
+                  onChange={(e) => {
+                    const rawDigits = e.target.value.replace(/\D/g, '');
+                    setAmount(rawDigits ? parseInt(rawDigits, 10).toString() : '');
+                  }}
+                  placeholder="Ej: 50.000"
                   required
-                  className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-[#c1c6d6] tabular-nums font-bold text-base text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white transition"
+                  className="w-full pl-8 pr-20 py-2.5 rounded-xl border border-[#c1c6d6] tabular-nums font-mono font-bold text-base text-[#1D1D1F] outline-none focus:border-[#E2498A] bg-white transition shadow-inner"
                 />
+                {amount && (
+                  <button
+                    type="button"
+                    onClick={() => setAmount('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded cursor-pointer"
+                  >
+                    Borrar
+                  </button>
+                )}
               </div>
             </div>
 
@@ -295,10 +329,10 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-[#1D1D1F] flex items-center gap-1.5">
                     <KeyRound className="w-3.5 h-3.5 text-[#0F172A]" />
-                    <span>Código Temporal / PIN:</span>
+                    <span>PIN de Supervisor:</span>
                   </label>
-                  <span className="text-[10px] tabular-nums text-[#2D2D44] bg-[#1E1E2F] px-2 py-0.5 rounded font-bold">
-                    Demo: {simulatedTotp}
+                  <span className="text-[10px] tabular-nums text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md font-bold font-mono">
+                    PIN por defecto: 1234
                   </span>
                 </div>
                 <input
@@ -306,18 +340,18 @@ export const ModalMovimientoCaja: React.FC<ModalMovimientoCajaProps> = ({
                   maxLength={6}
                   value={totpCode}
                   onChange={(e) => setTotpCode(e.target.value)}
-                  placeholder="Código o PIN (2026)..."
+                  placeholder="1234"
                   required
-                  className="w-full px-3 py-2.5 text-center tracking-widest rounded-xl border border-[#c1c6d6] tabular-nums font-black text-sm text-[#1D1D1F] outline-none focus:border-[#0F172A] bg-white transition shadow-xs"
+                  className="w-full px-3 py-2.5 text-center tracking-widest rounded-xl border border-[#c1c6d6] tabular-nums font-mono font-black text-sm text-[#1D1D1F] outline-none focus:border-[#E2498A] bg-white transition shadow-xs"
                 />
                 <div className="flex items-center justify-between text-[10px] text-[#717785]">
-                  <span>PIN 2026 o Authenticator</span>
+                  <span>PIN de Jefatura (1234 o 2026)</span>
                   <button
                     type="button"
-                    onClick={() => setTotpCode(simulatedTotp)}
-                    className="text-[#0F172A] font-bold hover:underline cursor-pointer"
+                    onClick={() => setTotpCode('1234')}
+                    className="text-[#E2498A] font-bold hover:underline cursor-pointer"
                   >
-                    Usar Demo Code
+                    Usar PIN 1234
                   </button>
                 </div>
               </div>

@@ -11,8 +11,8 @@ interface PlatformNavbarProps {
   onInitiateOpenShift?: () => void;
   onOpenCommandPalette?: () => void;
   onLogout?: () => void;
-  activeMobileTab?: 'plano' | 'cronologia' | 'supervision';
-  onSelectMobileTab?: (tab: 'plano' | 'cronologia' | 'supervision') => void;
+  activeMobileTab?: 'supervision' | 'patio' | 'flujo' | 'reportes' | 'ajustes' | 'plano' | 'cronologia' | string;
+  onSelectMobileTab?: (tab: any) => void;
 }
 
 export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
@@ -24,7 +24,7 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
   onInitiateOpenShift,
   onOpenCommandPalette,
   onLogout,
-  activeMobileTab = 'plano',
+  activeMobileTab = 'supervision',
   onSelectMobileTab,
 }) => {
   const { currentShift, user, tickets, slots, setUserRole } = useParking();
@@ -54,55 +54,6 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
     });
   }, [activeVehicles]);
 
-  const paidTickets = useMemo(() => {
-    return tickets.filter((t) => t.status === 'pagado');
-  }, [tickets]);
-
-  const shiftRevenue = useMemo(() => {
-    return paidTickets.reduce((sum, t) => sum + (t.totalAmount || 0), 0);
-  }, [paidTickets]);
-
-  const revenueByMethod = useMemo(() => {
-    const cash = paidTickets
-      .filter((t) => t.paymentMethod === 'efectivo')
-      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
-    const pos = paidTickets
-      .filter((t) => t.paymentMethod === 'tarjeta_debito' || t.paymentMethod === 'tarjeta_credito')
-      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
-    const transfer = paidTickets
-      .filter((t) => t.paymentMethod === 'transferencia' || t.paymentMethod === 'convenio')
-      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
-    return { cash, pos, transfer };
-  }, [paidTickets]);
-
-  // Hourly vehicles arrivals
-  const hourlyVehicles = useMemo(() => {
-    const hoursMap: Record<string, number> = {
-      '08:00': 0,
-      '10:00': 0,
-      '12:00': 0,
-      '14:00': 0,
-      '16:00': 0,
-      '18:00': 0,
-      '20:00': 0,
-    };
-    tickets.forEach((t) => {
-      const d = new Date(t.entryTime);
-      const h = d.getHours();
-      if (h < 10) hoursMap['08:00']++;
-      else if (h < 12) hoursMap['10:00']++;
-      else if (h < 14) hoursMap['12:00']++;
-      else if (h < 16) hoursMap['14:00']++;
-      else if (h < 18) hoursMap['16:00']++;
-      else if (h < 20) hoursMap['18:00']++;
-      else hoursMap['20:00']++;
-    });
-    return Object.entries(hoursMap).map(([hour, count]) => ({
-      hour,
-      count: Math.max(count, Math.round(activeVehicles.length * 0.3)),
-    }));
-  }, [tickets, activeVehicles]);
-
   // Recent timeline events
   const recentMovements = useMemo(() => {
     const list: { id: string; type: 'INGRESO' | 'SALIDA'; plate: string; time: string; slotCode?: string; }[] = [];
@@ -125,6 +76,75 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
       }
     });
     return list.slice(-5).reverse();
+  }, [tickets]);
+
+  // Distribución horaria de ingresos vehiculares (Gráfico por hora para supervisión)
+  const hourlyEntries = useMemo(() => {
+    const hoursMap: Record<number, number> = {};
+    for (let h = 8; h <= 21; h++) hoursMap[h] = 0;
+
+    tickets.forEach((t) => {
+      const d = new Date(t.entryTime);
+      const h = d.getHours();
+      if (h >= 8 && h <= 21) {
+        hoursMap[h] = (hoursMap[h] || 0) + 1;
+      }
+    });
+
+    const slots = [
+      { label: '08h', count: (hoursMap[8] || 0) + (hoursMap[9] || 0) },
+      { label: '10h', count: (hoursMap[10] || 0) + (hoursMap[11] || 0) },
+      { label: '12h', count: (hoursMap[12] || 0) + (hoursMap[13] || 0) },
+      { label: '14h', count: (hoursMap[14] || 0) + (hoursMap[15] || 0) },
+      { label: '16h', count: (hoursMap[16] || 0) + (hoursMap[17] || 0) },
+      { label: '18h', count: (hoursMap[18] || 0) + (hoursMap[19] || 0) },
+      { label: '20h', count: (hoursMap[20] || 0) + (hoursMap[21] || 0) },
+    ];
+    const maxVal = Math.max(1, ...slots.map((s) => s.count));
+    return { slots, maxVal };
+  }, [tickets]);
+
+  // Registro de transacciones del día e ingreso de dineros durante la jornada
+  const dailyTransactions = useMemo(() => {
+    const paidTickets = tickets.filter((t) => t.status === 'pagado');
+    const cashTotal = paidTickets
+      .filter((t) => t.paymentMethod === 'efectivo')
+      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+    const posTotal = paidTickets
+      .filter((t) => t.paymentMethod === 'tarjeta_debito' || t.paymentMethod === 'tarjeta_credito')
+      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+    const transferTotal = paidTickets
+      .filter((t) => t.paymentMethod === 'transferencia' || t.paymentMethod === 'convenio')
+      .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+    const totalCollected = cashTotal + posTotal + transferTotal;
+
+    const recentTx = paidTickets
+      .slice(-5)
+      .reverse()
+      .map((t) => ({
+        id: t.id,
+        plate: t.plateNumber,
+        category: t.vehicleType,
+        amount: t.totalAmount || 0,
+        method:
+          t.paymentMethod === 'efectivo'
+            ? 'Efectivo'
+            : t.paymentMethod === 'tarjeta_debito' || t.paymentMethod === 'tarjeta_credito'
+            ? 'Tarjeta POS'
+            : 'Transferencia',
+        time: t.exitTime
+          ? new Date(t.exitTime).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+          : '---',
+      }));
+
+    return {
+      totalCollected,
+      cashTotal,
+      posTotal,
+      transferTotal,
+      count: paidTickets.length,
+      recentTx,
+    };
   }, [tickets]);
 
   useEffect(() => {
@@ -153,11 +173,12 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
   
 
   const rawNavItems: { id: AppScreen; label: string; icon: string; requiresAdmin?: boolean }[] = [
-    { id: 'pos',     label: 'Garita POS', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
-    { id: 'menu',    label: 'Dashboard',  icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
-    { id: 'map',     label: 'Plano 2D',   icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
-    { id: 'clients', label: 'Convenios',  icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-    { id: 'reports', label: 'Auditoría',  icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', requiresAdmin: true },
+    { id: 'menu',     label: 'Dashboard',    icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
+    { id: 'pos',      label: 'Garita POS',   icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
+    { id: 'map',      label: 'Patio 2D',     icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
+    { id: 'clients',  label: 'Convenios',    icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+    { id: 'reports',  label: 'Reportes & BI', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', requiresAdmin: true },
+    { id: 'settings', label: user?.role === 'administrador' || user?.role === 'supervisor' ? 'Ajustes' : 'Mi Perfil', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
   ];
 
   const primaryNavItems = rawNavItems.filter((item) => {
@@ -169,16 +190,17 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
 
   const isActive = (id: AppScreen) =>
     currentScreen === id ||
-    (id === 'menu'    && currentScreen === 'inicio') ||
-    (id === 'pos'     && ['operacion_salida','operacion_ingreso'].includes(currentScreen)) ||
-    (id === 'map'     && currentScreen === 'operacion_layout') ||
-    (id === 'reports' && ['reportes_dashboard','reportes_auditoria','reportes_database'].includes(currentScreen));
+    (id === 'menu'     && currentScreen === 'inicio') ||
+    (id === 'pos'      && ['operacion_salida','operacion_ingreso'].includes(currentScreen)) ||
+    (id === 'map'      && currentScreen === 'operacion_layout') ||
+    (id === 'reports'  && ['reportes_dashboard','reportes_auditoria','reportes_database'].includes(currentScreen)) ||
+    (id === 'settings' && ['config_tarifas','config_sistema'].includes(currentScreen));
 
   const initials = operatorName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
   return (
     <>
-      <nav className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 bg-[#2D2D44] text-[#D1D5DB] sticky top-0 z-50 font-sans border-b border-slate-600 shadow-sm">
+      <nav className="flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 bg-[#2D2D44] text-[#D1D5DB] sticky top-0 z-50 font-sans border-b border-slate-600 shadow-sm">
         {/* LEFT: BRAND */}
         <div 
           onClick={() => onNavigate('landing')} 
@@ -186,41 +208,26 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
           title="Ir a Landing Page Principal"
         >
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#E2498A] flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
-             <span className="text-white font-black text-base sm:text-lg">C</span>
+             <span className="text-white font-black text-base sm:text-lg">P</span>
           </div>
           <div className="flex flex-col">
              <span className="font-extrabold text-white text-sm sm:text-base tracking-tight leading-none group-hover:text-pink-300 transition-colors">
-               Cordano<span className="text-[#E2498A]"> Parking Ops</span>
+               PARKING <span className="text-[#E2498A]">OPS</span>
              </span>
-             <span className="text-[9px] sm:text-[10px] text-gray-400 font-semibold mt-0.5 tracking-wide hidden xs:inline">Serrano 447</span>
+             <span className="text-[9px] sm:text-[10px] text-gray-400 font-semibold mt-0.5 tracking-wide hidden xs:inline">Cordano</span>
           </div>
-
-          {/* Role Indicator Badge */}
-          {user?.role === 'administrador' ? (
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-950 text-purple-300 border border-purple-700/80">
-              👁️ Supervisión Admin
-            </span>
-          ) : user?.role === 'supervisor' ? (
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-700/80">
-              🛡️ Supervisor
-            </span>
-          ) : (
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-pink-950 text-pink-300 border border-pink-700/80">
-              👷 Operador Garita
-            </span>
-          )}
         </div>
 
-        {/* CENTER: PILL NAVIGATION (Ocupa libremente el espacio disponible de manera equilibrada y sin barra de scroll) */}
-        <div className="hidden md:flex flex-1 items-center justify-center mx-2 lg:mx-6 min-w-0">
-          <div className="w-full max-w-4xl flex items-center p-1 bg-[#1E1E2F] rounded-xl border border-slate-600 gap-1 sm:gap-1.5">
+        {/* CENTER: PILL NAVIGATION (Exclusivo para pantallas desktop lg+; en móvil la navegación está centralizada en el dock inferior y panel sándwich) */}
+        <div className="hidden lg:flex items-center justify-center shrink-0">
+          <div className="flex items-center p-1 bg-[#1E1E2F] rounded-xl border border-slate-600 gap-1 sm:gap-1.5 shrink-0">
             {primaryNavItems.map((item) => {
               const active = isActive(item.id);
               return (
                 <button
                   key={item.id}
                   onClick={() => onNavigate(item.id)}
-                  className={`flex-1 min-w-0 h-9 px-2 sm:px-3 lg:px-4 flex items-center justify-center gap-1.5 rounded-lg text-xs lg:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  className={`h-9 px-2 sm:px-2.5 lg:px-3 flex items-center justify-center gap-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                     active 
                       ? 'bg-slate-600 text-white shadow-sm' 
                       : 'text-[#9CA3AF] hover:text-white hover:bg-slate-600/50'
@@ -237,37 +244,49 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
         </div>
 
         {/* RIGHT: TOOLS & PROFILE */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           
-          {/* Search (Icon-only on mobile/narrow screens to prevent clipping) */}
+          {/* Search (Visible en tablet y desktop; en móvil disponible en el panel sándwich) */}
           <button 
             onClick={onOpenCommandPalette}
-            className="flex items-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3 bg-[#1E1E2F] hover:bg-slate-600 border border-slate-600 rounded-lg text-xs sm:text-sm font-semibold text-[#9CA3AF] transition-colors cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 h-8 sm:h-9 px-2.5 sm:px-3 bg-[#1E1E2F] hover:bg-slate-600 border border-slate-600 rounded-lg text-xs sm:text-sm font-semibold text-[#9CA3AF] transition-colors cursor-pointer shrink-0"
             title="Buscar patente o folio (Ctrl+K)"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <span className="hidden sm:inline">Buscar</span>
-            <div className="hidden xl:flex items-center justify-center w-4 h-4 ml-1 rounded bg-[#2D2D44] border border-slate-600 text-[9px] font-bold text-gray-500">
+            <span className="hidden xl:inline">Buscar</span>
+            <div className="hidden 2xl:flex items-center justify-center w-4 h-4 ml-1 rounded bg-[#2D2D44] border border-slate-600 text-[9px] font-bold text-gray-500">
               K
             </div>
           </button>
 
-          {/* Live Shift Timer Widget in Top Navbar (Solo temporizador según indicación) */}
+          {/* Live Shift Widget in Top Navbar (Temporizador ergonómico; botones anchos en desktop) */}
           {isShiftActive ? (
-            <div 
-              id="persistent-shift-widget-nav" 
-              className="flex items-center gap-2 h-8 sm:h-9 px-2.5 sm:px-3 bg-[#1E1E2F] border border-emerald-500/40 rounded-xl shadow-xs"
-              title="Turno en curso activo"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="text-white text-xs sm:text-sm font-mono font-black tabular-nums tracking-wider">
-                {shiftTimer || internalTimer}
-              </span>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div 
+                id="persistent-shift-widget-nav" 
+                className="flex items-center gap-2 h-8 sm:h-9 px-2.5 sm:px-3 bg-[#1E1E2F] border border-emerald-500/40 rounded-xl shadow-xs"
+                title="Turno en curso activo"
+              >
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-white text-xs sm:text-sm font-mono font-black tabular-nums tracking-wider">
+                  {shiftTimer || internalTimer}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => onNavigate('operacion_cierre')}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[11px] sm:text-xs font-black rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                title="Arqueo ciego y cierre de turno"
+              >
+                <span>🔒</span>
+                <span>Cerrar Turno</span>
+              </button>
             </div>
           ) : (
             <div 
@@ -278,23 +297,23 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
                 <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 hidden md:inline">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
                   Sin Turno
                 </span>
               </div>
 
               <button
                 onClick={onInitiateOpenShift}
-                className="flex items-center gap-1 px-2.5 sm:px-3 py-1 bg-[#E2498A] hover:bg-[#C83472] text-white text-[11px] sm:text-xs font-black rounded-lg shadow-sm transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                className="hidden sm:flex items-center gap-1 px-2.5 sm:px-3 py-1 bg-[#E2498A] hover:bg-[#C83472] text-white text-[11px] sm:text-xs font-black rounded-lg shadow-sm transition-all active:scale-95 cursor-pointer whitespace-nowrap"
                 title="Iniciar nuevo turno con fondo de gaveta y checklist"
               >
-                <span>🚀 Iniciar</span>
+                <span>🚀 Iniciar Turno</span>
               </button>
             </div>
           )}
 
           {/* Clock (Hidden on narrow screens) */}
-          <div className="text-xs sm:text-sm font-semibold text-[#9CA3AF] tabular-nums hidden lg:block">
+          <div className="text-xs sm:text-sm font-semibold text-[#9CA3AF] tabular-nums hidden 2xl:block">
             {currentTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
           </div>
 
@@ -302,7 +321,7 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
           <button 
             type="button"
             onClick={() => setIsMobileDrawerOpen(true)}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E2498A] text-white flex items-center justify-center font-bold text-xs shadow-sm hover:ring-2 hover:ring-[#E2498A]/50 transition-all focus:outline-none cursor-pointer active:scale-95 shrink-0"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E2498A] hover:bg-[#C83472] text-white flex items-center justify-center font-bold text-xs shadow-md ring-2 ring-pink-500/20 hover:ring-[#E2498A]/60 transition-all focus:outline-none cursor-pointer active:scale-95 shrink-0"
             title="Abrir panel lateral de supervisión"
             aria-label="Abrir panel lateral de supervisión"
           >
@@ -326,13 +345,13 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
             <div className="p-4 border-b border-slate-700/80 flex items-center justify-between bg-[#2D2D44] sticky top-0 z-20">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[#E2498A] flex items-center justify-center text-white font-black text-sm shadow-sm">
-                  C
+                  P
                 </div>
                 <div>
                   <h3 className="font-extrabold text-sm tracking-tight text-white leading-none">
-                    Cordano<span className="text-[#E2498A]"> Parking Ops</span>
+                    PARKING <span className="text-[#E2498A]">OPS</span>
                   </h3>
-                  <span className="text-[10px] text-pink-300 font-bold uppercase tracking-wider">Supervisión en Vivo</span>
+                  <span className="text-[10px] text-pink-300 font-bold uppercase tracking-wider">Cordano Iquique · Supervisión</span>
                 </div>
               </div>
               <button
@@ -345,8 +364,8 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
               </button>
             </div>
 
-            {/* Contenido scrolleable con padding inferior para evitar solapamientos */}
-            <div className="flex-1 p-4 space-y-4 pb-28">
+            {/* Contenido scrolleable con padding inferior generoso para evitar solapamientos con docks táctiles */}
+            <div className="flex-1 p-4 space-y-4 pb-32">
               {/* 2. Tarjeta del Supervisor & Conmutador RBAC */}
               <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
                 <div className="flex items-center gap-3">
@@ -413,18 +432,14 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-gray-400 block font-sans">Fondo Inicial Gaveta</span>
-                    <span className="text-sm font-black text-amber-400 font-mono tabular-nums">
-                      $ 50.000 CLP
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-950/80 text-amber-300 border border-amber-800/80">
-                    Sencillo Validado
+                <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between text-xs font-mono">
+                  <span className="text-[11px] text-gray-400 font-sans">Fondo Inicial Gaveta:</span>
+                  <span className="font-bold text-amber-300 font-mono tabular-nums">
+                    $ {(currentShift?.initialCash || 50000).toLocaleString('es-CL')} CLP
                   </span>
                 </div>
 
+                {/* Botón de Acción de Turno en Menú Lateral */}
                 {isShiftActive ? (
                   <button
                     type="button"
@@ -432,7 +447,7 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
                       onNavigate('operacion_cierre');
                       setIsMobileDrawerOpen(false);
                     }}
-                    className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-98"
+                    className="w-full min-h-[46px] py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-98"
                   >
                     <span>🔒</span>
                     <span>Arqueo Ciego / Cerrar Turno</span>
@@ -444,7 +459,7 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
                       if (onInitiateOpenShift) onInitiateOpenShift();
                       setIsMobileDrawerOpen(false);
                     }}
-                    className="w-full min-h-[44px] py-2.5 px-3 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-98"
+                    className="w-full min-h-[46px] py-2.5 px-3 rounded-xl bg-[#E2498A] hover:bg-[#C83472] text-white text-xs font-extrabold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-98"
                   >
                     <span>🚀</span>
                     <span>Iniciar Turno con Fondo $50.000</span>
@@ -498,44 +513,54 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
                 )}
               </div>
 
-              {/* 5. Gráfico de Vehículos Ingresados por Hora */}
-              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
+              {/* 5. GRÁFICO: CANTIDAD DE VEHÍCULOS INGRESADOS POR HORA (SUPERVISIÓN) */}
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3 font-sans">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
-                    Ingreso de Vehículos por Hora
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">📊</span>
+                    <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
+                      Ingresos por Hora (Hoy)
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold text-[#E2498A] bg-[#E2498A]/10 px-2 py-0.5 rounded-full font-mono">
+                    Total: {tickets.length} veh.
                   </span>
-                  <span className="text-[10px] text-gray-400 font-mono">Hoy</span>
                 </div>
 
-                <div className="h-28 pt-4 flex items-end justify-between gap-1 border-b border-slate-700 pb-2">
-                  {(() => {
-                    const maxVal = Math.max(...hourlyVehicles.map((h) => h.count), 1);
-                    return hourlyVehicles.map((item) => {
-                      const barHeight = Math.max(12, Math.round((item.count / maxVal) * 100));
-                      return (
-                        <div key={item.hour} className="flex-1 flex flex-col items-center gap-1">
-                          <span className="text-[9px] font-mono font-bold text-pink-300 tabular-nums">
-                            {item.count}
-                          </span>
-                          <div className="w-full max-w-[20px] bg-slate-800 rounded-t h-20 flex items-end">
-                            <div 
-                              className="w-full bg-[#E2498A] hover:bg-[#C83472] rounded-t transition-all duration-300"
-                              style={{ height: `${barHeight}%` }}
-                              title={`${item.count} vehículos a las ${item.hour}`}
-                            />
-                          </div>
-                          <span className="text-[8px] font-mono text-gray-400 truncate w-full text-center">
-                            {item.hour.split(':')[0]}h
-                          </span>
-                        </div>
-                      );
-                    });
-                  })()}
+                {/* Gráfico de Barras Ergonómico */}
+                <div className="h-32 w-full flex items-end gap-1.5 pt-3 pb-1 bg-[#1E1E2F] rounded-xl border border-slate-800 px-2">
+                  {hourlyEntries.slots.map((point) => {
+                    const heightPercent = Math.min(100, Math.max(14, Math.round((point.count / hourlyEntries.maxVal) * 100)));
+                    const isPeak = point.count > 0 && point.count === hourlyEntries.maxVal;
+
+                    return (
+                      <div key={point.label} className="flex-1 flex flex-col items-center h-full justify-end group">
+                        <span className="text-[9px] font-mono font-bold text-gray-400 mb-1 opacity-80 group-hover:opacity-100 tabular-nums">
+                          {point.count}
+                        </span>
+                        <div
+                          style={{ height: `${heightPercent}%` }}
+                          className={`w-full rounded-t transition-all duration-300 ${
+                            isPeak
+                              ? 'bg-[#E2498A] shadow-[0_0_8px_rgba(226,73,138,0.6)]'
+                              : 'bg-slate-600 group-hover:bg-[#E2498A]/70'
+                          }`}
+                        />
+                        <span className={`text-[9px] font-mono mt-1 ${isPeak ? 'text-pink-300 font-black' : 'text-gray-400'}`}>
+                          {point.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono pt-0.5">
+                  <span>Horario garita: 08:00 a 22:00</span>
+                  <span className="text-pink-300 font-bold">Punta destacada</span>
                 </div>
               </div>
 
               {/* 6. Cronograma de Movimientos en Vivo */}
-              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3 font-sans">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
                     Cronograma de Movimientos
@@ -544,7 +569,7 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
                 </div>
 
                 {recentMovements.length === 0 ? (
-                  <div className="p-3 text-center text-xs text-gray-400">
+                  <div className="p-3 text-center text-xs text-gray-400 bg-[#1E1E2F] rounded-xl border border-slate-800">
                     Sin movimientos recientes registrados en el turno.
                   </div>
                 ) : (
@@ -572,146 +597,91 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
                 )}
               </div>
 
-              {/* 7. Registro de Transacciones del Día (Solo Administrador / Supervisor para Arqueo Ciego) */}
-              {(user?.role === 'administrador' || user?.role === 'supervisor') ? (
-                <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3">
-                  <div className="flex items-center justify-between">
+              {/* 7. REGISTRO DE TRANSACCIONES DEL DÍA (FLUJO DE DINERO) */}
+              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-3 font-sans">
+                <div className="flex items-center justify-between border-b border-slate-700/60 pb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">💰</span>
                     <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
-                      Registro de Dineros del Día
-                    </span>
-                    <span className="text-xs font-mono font-black text-pink-300 tabular-nums">
-                      ${shiftRevenue.toLocaleString('es-CL')}
+                      Transacciones del Día
                     </span>
                   </div>
+                  <span className="text-sm font-black text-[#E2498A] font-mono tabular-nums">
+                    $ {dailyTransactions.totalCollected.toLocaleString('es-CL')}
+                  </span>
+                </div>
 
-                  <div className="space-y-2 text-xs">
-                    {/* Efectivo */}
-                    <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span>💵</span>
-                        <div>
-                          <span className="text-white font-bold block">Efectivo Recaudado</span>
-                          <span className="text-[10px] text-gray-400 font-mono">
-                            Gaveta con fondo: ${(revenueByMethod.cash + 50000).toLocaleString('es-CL')}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="font-mono font-extrabold text-emerald-400 tabular-nums">
-                        ${revenueByMethod.cash.toLocaleString('es-CL')}
-                      </span>
-                    </div>
-
-                    {/* POS Transbank */}
-                    <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span>💳</span>
-                        <div>
-                          <span className="text-white font-bold block">Transbank / POS</span>
-                          <span className="text-[10px] text-gray-400 font-mono">Tarjetas Débito &amp; Crédito</span>
-                        </div>
-                      </div>
-                      <span className="font-mono font-extrabold text-sky-400 tabular-nums">
-                        ${revenueByMethod.pos.toLocaleString('es-CL')}
-                      </span>
-                    </div>
-
-                    {/* Transferencias / Convenios */}
-                    <div className="p-2.5 rounded-xl bg-[#1E1E2F] border border-slate-800 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span>📄</span>
-                        <div>
-                          <span className="text-white font-bold block">Convenios &amp; Transferencias</span>
-                          <span className="text-[10px] text-gray-400 font-mono">Abonados corporativos</span>
-                        </div>
-                      </div>
-                      <span className="font-mono font-extrabold text-purple-400 tabular-nums">
-                        ${revenueByMethod.transfer.toLocaleString('es-CL')}
-                      </span>
-                    </div>
-
-                    <div className="pt-1 flex items-center justify-between text-[11px] font-mono text-gray-400">
-                      <span>Tickets liquidados hoy:</span>
-                      <span className="text-white font-bold">{paidTickets.length} operaciones</span>
-                    </div>
+                {/* Desglose de Canales de Pago */}
+                <div className="grid grid-cols-3 gap-1.5 text-center font-mono">
+                  <div className="p-2 rounded-xl bg-[#1E1E2F] border border-slate-800">
+                    <span className="text-[9px] text-gray-400 block font-sans">Efectivo</span>
+                    <span className="text-xs font-bold text-emerald-400 tabular-nums">
+                      ${dailyTransactions.cashTotal.toLocaleString('es-CL')}
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-[#1E1E2F] border border-slate-800">
+                    <span className="text-[9px] text-gray-400 block font-sans">Tarjeta POS</span>
+                    <span className="text-xs font-bold text-blue-400 tabular-nums">
+                      ${dailyTransactions.posTotal.toLocaleString('es-CL')}
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-[#1E1E2F] border border-slate-800">
+                    <span className="text-[9px] text-gray-400 block font-sans">Transfer / Conv</span>
+                    <span className="text-xs font-bold text-purple-400 tabular-nums">
+                      ${dailyTransactions.transferTotal.toLocaleString('es-CL')}
+                    </span>
                   </div>
                 </div>
-              ) : (
-                <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider">
-                      Arqueo de Turno
-                    </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800">
-                      MODALIDAD CIEGA
-                    </span>
+
+                {/* Lista de Últimas Transacciones del Día */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="text-[10px] uppercase font-bold text-gray-400 font-mono">
+                    Últimas Liquidaciones ({dailyTransactions.count})
                   </div>
-                  <p className="text-xs text-gray-400 leading-relaxed">
-                    La recaudación acumulada se audita tras el cierre definitivo de gaveta. Declare el total físico de efectivo y comprobantes en <strong>Arqueo Ciego</strong>.
-                  </p>
-                </div>
-              )}
 
-              {/* 8. Accesos Rápidos a la Plataforma (Botones de >= 48px, sin solapamiento) */}
-              <div className="p-3.5 rounded-2xl bg-[#252538] border border-slate-700 space-y-2">
-                <span className="text-[11px] font-mono font-bold text-gray-300 uppercase tracking-wider block mb-1">
-                  Accesos a la Plataforma
-                </span>
-
-                {[
-                  { id: 'pos' as AppScreen, label: 'Garita POS (Cobro & Tickets)', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', badge: 'Principal' },
-                  { id: 'menu' as AppScreen, label: 'Dashboard Operativo', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },
-                  { id: 'map' as AppScreen, label: 'Plano 2D Interactivo', icon: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
-                  { id: 'clients' as AppScreen, label: 'Convenios & Flotas', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
-                  { id: 'reports' as AppScreen, label: 'Auditoría & Cierres Z', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', requiresAdmin: true },
-                  { id: 'support' as AppScreen, label: 'Centro de Soporte & SOPs', icon: 'M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z' },
-                  { id: 'settings' as AppScreen, label: (user?.role === 'administrador' || user?.role === 'supervisor') ? 'Ajustes del Sistema & Presets' : 'Ajustes de Garita & Hardware', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z', requiresAdmin: false },
-                ]
-                  .filter((item) => !item.requiresAdmin || (user?.role === 'administrador' || user?.role === 'supervisor'))
-                  .map((item) => {
-                    const active = isActive(item.id);
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          onNavigate(item.id);
-                          setIsMobileDrawerOpen(false);
-                        }}
-                        className={`w-full min-h-[48px] flex items-center justify-between p-3 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-98 ${
-                          active
-                            ? 'bg-[#E2498A] text-white shadow-md'
-                            : 'text-gray-200 hover:bg-[#2D2D44] hover:text-white bg-[#1E1E2F] border border-slate-800'
-                        }`}
+                  {dailyTransactions.recentTx.length === 0 ? (
+                    <div className="p-3 text-center text-xs text-gray-400 bg-[#1E1E2F] rounded-xl border border-slate-800">
+                      Sin cobros liquidados hoy hasta el momento.
+                    </div>
+                  ) : (
+                    dailyTransactions.recentTx.map((tx) => (
+                      <div
+                        key={tx.id}
+                        className="flex items-center justify-between p-2 rounded-xl bg-[#1E1E2F] border border-slate-800 text-xs font-mono"
                       >
-                        <div className="flex items-center gap-3">
-                          <svg className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-pink-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={item.icon} />
-                          </svg>
-                          <span>{item.label}</span>
-                        </div>
-                        {item.badge && (
-                          <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-white/20 text-white font-mono font-bold">
-                            {item.badge}
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-white text-[11px]">{tx.plate}</span>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-gray-300 font-sans">
+                            {tx.method}
                           </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-gray-400">{tx.time}</span>
+                          <span className="font-bold text-[#E2498A] tabular-nums">
+                            +${tx.amount.toLocaleString('es-CL')}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
-              {/* 9. Footer: Buscar & Cerrar Sesión */}
+              {/* 8. Footer: Buscar & Cerrar Sesión */}
               <div className="space-y-2 pt-2">
                 <button
                   type="button"
                   onClick={() => {
-                    if (onOpenCommandPalette) onOpenCommandPalette();
+                    onNavigate('settings');
                     setIsMobileDrawerOpen(false);
                   }}
                   className="w-full min-h-[48px] py-2.5 px-3 rounded-xl bg-[#2D2D44] hover:bg-slate-700 text-gray-300 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer active:scale-98"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg className="w-4 h-4 text-[#E2498A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span>Buscar Patente o Folio</span>
+                  <span>Acceso a Configuraciones</span>
                 </button>
 
                 <button
@@ -752,7 +722,7 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
               <span className="text-[10px] mt-0.5 whitespace-nowrap">Garita POS</span>
             </button>
 
-            {/* Operador Tab 2: Patio 2D */}
+            {/* Operador Tab 2: Plano 2D */}
             <button
               type="button"
               onClick={() => onNavigate('map')}
@@ -766,7 +736,7 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
               <svg className={`w-5 h-5 ${isActive('map') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('map') ? "2.5" : "2"} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              <span className="text-[10px] mt-0.5 whitespace-nowrap">Patio 2D</span>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Plano 2D</span>
             </button>
 
             {/* Operador Tab 3: Arqueo Ciego */}
@@ -808,16 +778,19 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
             {/* Supervisor Tab 1: Supervisión */}
             <button
               type="button"
-              onClick={() => onNavigate('menu')}
+              onClick={() => {
+                if (onSelectMobileTab) onSelectMobileTab('supervision');
+                onNavigate('menu');
+              }}
               className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
-                isActive('menu')
+                activeMobileTab === 'supervision' || (!activeMobileTab && isActive('menu'))
                   ? 'text-[#E2498A] font-black'
                   : 'text-gray-400 font-medium hover:text-white'
               }`}
               aria-label="Ver supervisión gerencial"
             >
-              <svg className={`w-5 h-5 ${isActive('menu') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('menu') ? "2.5" : "2"} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              <svg className={`w-5 h-5 ${activeMobileTab === 'supervision' || (!activeMobileTab && isActive('menu')) ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeMobileTab === 'supervision' || (!activeMobileTab && isActive('menu')) ? "2.5" : "2"} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               <span className="text-[10px] mt-0.5 whitespace-nowrap">Supervisión</span>
             </button>
@@ -826,74 +799,80 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (onSelectMobileTab) onSelectMobileTab('plano');
-                onNavigate('pos');
+                if (onSelectMobileTab) onSelectMobileTab('patio');
+                onNavigate('map');
               }}
               className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
-                isActive('pos') && activeMobileTab === 'plano'
+                activeMobileTab === 'patio' || activeMobileTab === 'plano' || (!activeMobileTab && isActive('map'))
                   ? 'text-[#E2498A] font-black'
                   : 'text-gray-400 font-medium hover:text-white'
               }`}
               aria-label="Ver plano de patio 2D"
             >
-              <svg className={`w-5 h-5 ${isActive('pos') && activeMobileTab === 'plano' ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('pos') && activeMobileTab === 'plano' ? "2.5" : "2"} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              <svg className={`w-5 h-5 ${activeMobileTab === 'patio' || activeMobileTab === 'plano' || (!activeMobileTab && isActive('map')) ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeMobileTab === 'patio' || activeMobileTab === 'plano' || (!activeMobileTab && isActive('map')) ? "2.5" : "2"} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
               <span className="text-[10px] mt-0.5 whitespace-nowrap">Patio 2D</span>
             </button>
 
-            {/* Supervisor Tab 3: Cronología */}
+            {/* Supervisor Tab 3: Flujo en Vivo */}
             <button
               type="button"
               onClick={() => {
-                if (onSelectMobileTab) onSelectMobileTab('cronologia');
+                if (onSelectMobileTab) onSelectMobileTab('flujo');
                 onNavigate('pos');
               }}
               className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
-                isActive('pos') && activeMobileTab === 'cronologia'
+                activeMobileTab === 'flujo' || activeMobileTab === 'cronologia'
                   ? 'text-[#E2498A] font-black'
                   : 'text-gray-400 font-medium hover:text-white'
               }`}
-              aria-label="Ver cronología de movimientos"
+              aria-label="Ver flujo y cronología de movimientos"
             >
-              <svg className={`w-5 h-5 ${isActive('pos') && activeMobileTab === 'cronologia' ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('pos') && activeMobileTab === 'cronologia' ? "2.5" : "2"} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg className={`w-5 h-5 ${activeMobileTab === 'flujo' || activeMobileTab === 'cronologia' ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeMobileTab === 'flujo' || activeMobileTab === 'cronologia' ? "2.5" : "2"} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-[10px] mt-0.5 whitespace-nowrap">Cronología</span>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Flujo</span>
             </button>
 
-            {/* Supervisor Tab 4: Reportes Z */}
+            {/* Supervisor Tab 4: Reportes */}
             <button
               type="button"
-              onClick={() => onNavigate('reports')}
+              onClick={() => {
+                if (onSelectMobileTab) onSelectMobileTab('reportes');
+                onNavigate('reports');
+              }}
               className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
-                isActive('reports')
+                activeMobileTab === 'reportes' || (!activeMobileTab && isActive('reports'))
                   ? 'text-[#E2498A] font-black'
                   : 'text-gray-400 font-medium hover:text-white'
               }`}
-              aria-label="Ver cortes Z y auditoría"
+              aria-label="Ver reportes y auditoría"
             >
-              <svg className={`w-5 h-5 ${isActive('reports') ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('reports') ? "2.5" : "2"} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg className={`w-5 h-5 ${activeMobileTab === 'reportes' || (!activeMobileTab && isActive('reports')) ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeMobileTab === 'reportes' || (!activeMobileTab && isActive('reports')) ? "2.5" : "2"} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              <span className="text-[10px] mt-0.5 whitespace-nowrap">Cortes Z</span>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Reportes</span>
             </button>
 
-            {/* Supervisor Tab 5: Menú */}
+            {/* Supervisor Tab 5: Ajustes */}
             <button
               type="button"
-              onClick={() => setIsMobileDrawerOpen(true)}
+              onClick={() => {
+                if (onSelectMobileTab) onSelectMobileTab('ajustes');
+                onNavigate('settings');
+              }}
               className={`min-h-[48px] min-w-[48px] flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all cursor-pointer active:scale-95 ${
-                isMobileDrawerOpen || (!isActive('menu') && !isActive('pos') && !isActive('reports'))
+                activeMobileTab === 'ajustes' || (!activeMobileTab && isActive('settings'))
                   ? 'text-[#E2498A] font-black'
                   : 'text-gray-400 font-medium hover:text-white'
               }`}
-              aria-label="Abrir menú de opciones"
+              aria-label="Abrir ajustes del sistema"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              <svg className={`w-5 h-5 ${activeMobileTab === 'ajustes' || (!activeMobileTab && isActive('settings')) ? 'text-[#E2498A]' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={activeMobileTab === 'ajustes' || (!activeMobileTab && isActive('settings')) ? "2.5" : "2"} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="text-[10px] mt-0.5 whitespace-nowrap">Menú</span>
+              <span className="text-[10px] mt-0.5 whitespace-nowrap">Ajustes</span>
             </button>
           </>
         )}
