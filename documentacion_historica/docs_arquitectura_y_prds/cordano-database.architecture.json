@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Estructura de Base de Datos y Backend — CORDANO PMS V1 & ERP",
+    "output": "docs/cordano-database-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "hot-operational-path",
+        "label": "Operación Garita y Memoria",
+        "focus": ["pos_terminal", "api_gateway", "redis_plates", "redis_slots", "thermal_printer"],
+        "note": "Flujo de ultra-baja latencia en caliente (<2ms) durante el turno activo en garita."
+      },
+      {
+        "id": "atomic-migration-path",
+        "label": "Cierre Ciego y Persistencia",
+        "focus": ["shift_engine", "ds_shifts", "ds_vehicles", "ds_audit"],
+        "note": "Empaquetado transaccional y migración atómica a Google Cloud Datastore al cerrar turno."
+      },
+      {
+        "id": "erp-reporting-path",
+        "label": "Reportería y Balances ERP",
+        "focus": ["ds_shifts", "google_sheets", "erp_analytics"],
+        "note": "Sincronización automática de balances contables hacia Google Sheets y Dashboard ERP."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "pos_terminal",
+      "type": "frontend",
+      "label": "Cockpit Garita",
+      "sublabel": "POS Web / Tablet",
+      "pos": [40, 240],
+      "size": [130, 60]
+    },
+    {
+      "id": "thermal_printer",
+      "type": "external",
+      "label": "Ticket Térmico",
+      "sublabel": "Código Barras 128",
+      "pos": [40, 360],
+      "size": [130, 60]
+    },
+    {
+      "id": "api_gateway",
+      "type": "backend",
+      "brand": "google-cloud",
+      "label": "API Cloud Run",
+      "sublabel": "cordano-pms-v1 :8080",
+      "pos": [250, 240],
+      "size": [130, 60]
+    },
+    {
+      "id": "redis_plates",
+      "type": "database",
+      "brand": "redis",
+      "label": "active_plates",
+      "sublabel": "Set Anti-Passback <2ms",
+      "pos": [250, 120],
+      "size": [130, 60]
+    },
+    {
+      "id": "shift_engine",
+      "type": "security",
+      "label": "Motor Cierre Ciego",
+      "sublabel": "Arqueo y Descuadre",
+      "pos": [470, 240],
+      "size": [130, 60]
+    },
+    {
+      "id": "redis_slots",
+      "type": "database",
+      "brand": "redis",
+      "label": "slots:30 & shift",
+      "sublabel": "Estado Vivo en RAM",
+      "pos": [470, 120],
+      "size": [130, 60]
+    },
+    {
+      "id": "ds_vehicles",
+      "type": "database",
+      "brand": "google-cloud",
+      "label": "VehicleProfiles",
+      "sublabel": "Frecuencia y Mora",
+      "pos": [470, 360],
+      "size": [130, 60]
+    },
+    {
+      "id": "ds_shifts",
+      "type": "database",
+      "brand": "google-cloud",
+      "label": "Shifts Entity",
+      "sublabel": "Consolidado Contable",
+      "pos": [690, 240],
+      "size": [130, 60]
+    },
+    {
+      "id": "google_sheets",
+      "type": "external",
+      "label": "Google Sheets",
+      "sublabel": "Planilla ParkOps",
+      "pos": [690, 120],
+      "size": [130, 60]
+    },
+    {
+      "id": "ds_audit",
+      "type": "security",
+      "brand": "google-cloud",
+      "label": "AuditTrail",
+      "sublabel": "Hashes Inmutables",
+      "pos": [690, 360],
+      "size": [130, 60]
+    },
+    {
+      "id": "erp_analytics",
+      "type": "frontend",
+      "label": "Dashboard ERP",
+      "sublabel": "Métricas y Cuadres",
+      "pos": [910, 240],
+      "size": [130, 60]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Google Cloud Platform: gen-lang-client-0862587160 (us-west1)",
+      "wraps": ["api_gateway", "shift_engine", "redis_plates", "redis_slots", "ds_shifts", "ds_vehicles", "ds_audit"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Capa en Memoria (Estado en Caliente)",
+      "wraps": ["redis_plates", "redis_slots"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "pos-to-api",
+      "from": "pos_terminal",
+      "to": "api_gateway",
+      "label": "HTTPS :8080",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pos-to-printer",
+      "from": "pos_terminal",
+      "to": "thermal_printer",
+      "label": "ESC/POS",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "api-to-plates",
+      "from": "api_gateway",
+      "to": "redis_plates",
+      "label": "Anti-Passback",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "api-to-engine",
+      "from": "api_gateway",
+      "to": "shift_engine",
+      "label": "Declarar Caja"
+    },
+    {
+      "id": "engine-to-slots",
+      "from": "shift_engine",
+      "to": "redis_slots",
+      "label": "Turno en Vivo",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "engine-to-vehicles",
+      "from": "shift_engine",
+      "to": "ds_vehicles",
+      "label": "Métricas Mora",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "engine-to-shifts",
+      "from": "shift_engine",
+      "to": "ds_shifts",
+      "label": "Migración Atómica",
+      "variant": "emphasis"
+    },
+    {
+      "id": "shifts-to-sheets",
+      "from": "ds_shifts",
+      "to": "google_sheets",
+      "label": "Sync Turno",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "shifts-to-audit",
+      "from": "ds_shifts",
+      "to": "ds_audit",
+      "label": "Hash Sellado",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "shifts-to-erp",
+      "from": "ds_shifts",
+      "to": "erp_analytics",
+      "label": "Balances ERP"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Operación Garita (Serrano 447)",
+      "items": [
+        "Cockpit web/tablet sin scroll para check-in (<10s) y check-out",
+        "Impresora térmica emite tickets canónicos como respaldo físico"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Caché en Memoria (Redis)",
+      "items": [
+        "Anti-Passback indexado en <2ms con SET atómico en RAM",
+        "Matriz 30 slots y cronómetros en vivo sin I/O en disco",
+        "Acumuladores vivos de recaudación por turno"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Persistencia & ERP (Cloud Datastore)",
+      "items": [
+        "Cierre ciego transaccional con empaquetado atómico de turno",
+        "Perfiles de patentes para fidelización y sobreestadías",
+        "Bitácora AuditTrail sellada con hashes y PIN de supervisor",
+        "Sincronización directa hacia Google Sheets oficial"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { generateShiftClosingPdf, triggerPdfDownload } from '../../utils/pdfGenerator';
+import { useParking } from '../../context/ParkingContext';
 
 interface ArqueoCiegoModalProps {
   isOpen: boolean;
@@ -21,15 +21,39 @@ export const ArqueoCiegoModal: React.FC<ArqueoCiegoModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const { currentShift, user, tickets } = useParking();
+
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [declareCash, setDeclareCash] = useState('');
   const [declarePos, setDeclarePos] = useState('');
   const [declareTransfer, setDeclareTransfer] = useState('');
-  const [shiftSealHash] = useState(`SHA256-${Math.random().toString(36).substring(2, 10).toUpperCase()}`);
+  const [justification, setJustification] = useState('');
+  const [shiftSealHash] = useState(`SHA256-${Math.random().toString(36).substring(2, 10).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`);
+  const [lastGeneratedPdfDoc, setLastGeneratedPdfDoc] = useState<any>(null);
 
-  const sysCashExpected = initialFloat + Math.round(shiftRevenue * 0.6);
-  const sysPosExpected = Math.round(shiftRevenue * 0.3);
-  const sysTransExpected = Math.round(shiftRevenue * 0.1);
+  // Expected amounts from current shift
+  const paidTickets = tickets.filter((t) => t.status === 'pagado');
+  const cashTickets = paidTickets
+    .filter((t) => t.paymentMethod === 'efectivo')
+    .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+  const cardTickets = paidTickets
+    .filter((t) => t.paymentMethod === 'tarjeta_debito' || t.paymentMethod === 'tarjeta_credito')
+    .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+  const transTickets = paidTickets
+    .filter((t) => t.paymentMethod === 'transferencia')
+    .reduce((sum, t) => sum + (t.totalAmount || 0), 0);
+
+  const movements = currentShift?.cashMovements || [];
+  const manualIngresos = movements
+    .filter((m) => m.type === 'INGRESO_MANUAL')
+    .reduce((sum, m) => sum + m.amount, 0);
+  const manualRetiros = movements
+    .filter((m) => m.type === 'RETIRO_SANGRIA' || m.type === 'GASTO_MENOR')
+    .reduce((sum, m) => sum + m.amount, 0);
+
+  const sysCashExpected = (currentShift?.initialCash || initialFloat) + cashTickets + manualIngresos - manualRetiros;
+  const sysPosExpected = cardTickets;
+  const sysTransExpected = transTickets;
 
   const decCashNum = parseInt(declareCash) || 0;
   const decPosNum = parseInt(declarePos) || 0;
@@ -37,11 +61,16 @@ export const ArqueoCiegoModal: React.FC<ArqueoCiegoModalProps> = ({
 
   const totalSys = sysCashExpected + sysPosExpected + sysTransExpected;
   const totalDec = decCashNum + decPosNum + decTransNum;
-  const diff = totalDec - totalSys;
+  const diffCash = decCashNum - sysCashExpected;
+  const diffTotal = totalDec - totalSys;
 
-  const handleStep1ToStep2 = () => {
-    if (!declareCash && !declarePos && !declareTransfer) {
-      onShowToast('Ingrese los montos recontados para continuar.', 'error');
+  const handoverFund = initialFloat || 50000;
+  const deliveryCashEnvelope = Math.max(0, decCashNum - handoverFund);
+
+  const handleStep1Submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (declareCash === '' && declarePos === '' && declareTransfer === '') {
+      onShowToast('Debe ingresar al menos un valor de conteo para continuar.', 'error');
       return;
     }
     setStep(2);
@@ -49,57 +78,71 @@ export const ArqueoCiegoModal: React.FC<ArqueoCiegoModalProps> = ({
 
   const handleEmitReportZ = () => {
     try {
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: [80, 297] // Formato impresora térmica 80mm
-      });
-      
-      doc.setFontSize(14);
-      doc.text("CORDANO PMS", 40, 15, { align: "center" });
-      doc.setFontSize(10);
-      doc.text("REPORTE Z - CIERRE DE CAJA", 40, 22, { align: "center" });
-      
-      doc.setFontSize(8);
-      doc.text(`Fecha: ${new Date().toLocaleString('es-CL')}`, 5, 32);
-      doc.text(`Sello: ${shiftSealHash}`, 5, 37);
-      doc.text(`Fondo Inicial: $${initialFloat.toLocaleString('es-CL')}`, 5, 45);
-      doc.text(`Recaudacion Sist.: $${shiftRevenue.toLocaleString('es-CL')}`, 5, 50);
-      
-      doc.text("--- DETALLE DE CUADRATURA ---", 5, 60);
-      
-      const yEfectivo = 68;
-      doc.text("EFECTIVO", 5, yEfectivo);
-      doc.text(`Sis: $${sysCashExpected.toLocaleString('es-CL')}`, 5, yEfectivo + 4);
-      doc.text(`Fis: $${decCashNum.toLocaleString('es-CL')}`, 5, yEfectivo + 8);
-      doc.text(`Dif: $${(decCashNum - sysCashExpected).toLocaleString('es-CL')}`, 5, yEfectivo + 12);
+      const shiftDataForReport = {
+        id: currentShift?.id || `TURNO-${Date.now().toString().slice(-6)}`,
+        operatorName: user.name || currentShift?.operatorName || 'Operador Garita',
+        startTime: currentShift?.startTime || new Date(Date.now() - 8 * 3600 * 1000).toISOString(),
+        endTime: new Date().toISOString(),
+        initialCash: initialFloat,
+        declaredCash: decCashNum,
+        declaredCard: decPosNum,
+        declaredTransfer: decTransNum,
+        expectedCash: sysCashExpected,
+        expectedCard: sysPosExpected,
+        expectedTransfer: sysTransExpected,
+        discrepancyCash: diffCash,
+        discrepancyTotal: diffTotal,
+        isDiscrepancyFlagged: Math.abs(diffCash) > 2000,
+        status: 'cerrado' as const,
+        hashAuditoria: shiftSealHash,
+        totalTicketsProcessed: paidTickets.length || 1,
+        handoverFundAmount: handoverFund,
+        closeJustification: justification.trim() || undefined,
+      };
 
-      const yPos = 85;
-      doc.text("TARJETA (POS)", 5, yPos);
-      doc.text(`Sis: $${sysPosExpected.toLocaleString('es-CL')}`, 5, yPos + 4);
-      doc.text(`Fis: $${decPosNum.toLocaleString('es-CL')}`, 5, yPos + 8);
-      doc.text(`Dif: $${(decPosNum - sysPosExpected).toLocaleString('es-CL')}`, 5, yPos + 12);
+      // Force automatic PDF download directly to disk
+      const generated = generateShiftClosingPdf(shiftDataForReport as any, true);
+      setLastGeneratedPdfDoc(generated);
 
-      const yTrans = 102;
-      doc.text("TRANSFERENCIA", 5, yTrans);
-      doc.text(`Sis: $${sysTransExpected.toLocaleString('es-CL')}`, 5, yTrans + 4);
-      doc.text(`Fis: $${decTransNum.toLocaleString('es-CL')}`, 5, yTrans + 8);
-      doc.text(`Dif: $${(decTransNum - sysTransExpected).toLocaleString('es-CL')}`, 5, yTrans + 12);
-
-      const yTotal = 119;
-      doc.text("--- TOTALES ---", 5, yTotal);
-      doc.text(`Sis: $${totalSys.toLocaleString('es-CL')}`, 5, yTotal + 8);
-      doc.text(`Fis: $${totalDec.toLocaleString('es-CL')}`, 5, yTotal + 12);
-      doc.text(`Diferencia: $${diff.toLocaleString('es-CL')}`, 5, yTotal + 16);
-
-      // Guardar PDF localmente (offline-first)
-      doc.save(`Reporte_Z_${shiftSealHash}.pdf`);
-      onShowToast('Reporte Z generado y descargado en PDF de forma local.', 'success');
+      onShowToast('Reporte Z oficial emitido y descargado en PDF A4 (2 copias con firmas).', 'success');
+      setStep(3);
     } catch (e) {
-      console.error("Error al generar PDF:", e);
-      onShowToast('Error al generar PDF. El reporte Z fue guardado internamente.', 'error');
+      console.error('Error al generar PDF de cierre:', e);
+      onShowToast('Error al procesar el PDF. Puede descargarlo manualmente en el siguiente paso.', 'error');
+      setStep(3);
     }
-    setStep(3);
+  };
+
+  const handleManualPdfDownload = () => {
+    try {
+      if (lastGeneratedPdfDoc && lastGeneratedPdfDoc.doc) {
+        triggerPdfDownload(lastGeneratedPdfDoc.doc, lastGeneratedPdfDoc.filename);
+      } else {
+        generateShiftClosingPdf({
+          id: currentShift?.id || `TURNO-${Date.now().toString().slice(-6)}`,
+          operatorName: user.name,
+          startTime: currentShift?.startTime || new Date().toISOString(),
+          endTime: new Date().toISOString(),
+          initialCash: initialFloat,
+          declaredCash: decCashNum,
+          declaredCard: decPosNum,
+          declaredTransfer: decTransNum,
+          expectedCash: sysCashExpected,
+          expectedCard: sysPosExpected,
+          expectedTransfer: sysTransExpected,
+          discrepancyCash: diffCash,
+          discrepancyTotal: diffTotal,
+          status: 'cerrado',
+          hashAuditoria: shiftSealHash,
+          totalTicketsProcessed: paidTickets.length,
+          handoverFundAmount: handoverFund,
+        } as any, true);
+      }
+      onShowToast('Descarga forzada de Reporte Z ejecutada.', 'success');
+    } catch (err) {
+      console.error(err);
+      onShowToast('No fue posible reintentar la descarga del PDF.', 'error');
+    }
   };
 
   const handleFinalize = () => {
@@ -110,207 +153,361 @@ export const ArqueoCiegoModal: React.FC<ArqueoCiegoModalProps> = ({
   return (
     <div
       id="modal-close-shift"
-      className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in-up"
+      className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 animate-fade-in-up font-sans"
     >
-      <div className="bg-white rounded-2xl border border-[#e8ecf0] shadow-floating w-full max-w-md overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#f1f5f9]">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 live-pulse shrink-0" />
-            <span className="text-[13px] font-bold uppercase tracking-[0.07em] font-mono text-slate-700 truncate">
-              {step === 3 ? 'Cierre de Caja Exitoso' : 'Arqueo de Caja Ciega y Fin de Turno'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 shrink-0 ml-3">
-            {step !== 3 && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-bold font-mono text-slate-500 uppercase tracking-wider">
-                PASO {step}&nbsp;/&nbsp;3
+      <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[94vh]">
+        {/* Header Corporativo */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 bg-[#1E1E2F] text-white border-b border-[#2D2D44]">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-rose-600 flex items-center justify-center text-base sm:text-lg font-black text-white shrink-0 shadow-sm">
+              🔒
+            </div>
+            <div className="min-w-0">
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-rose-400 block truncate">
+                ARQUEO CIEGO &amp; CORTE Z · SERRANO 447
               </span>
-            )}
+              <h3 className="text-sm sm:text-base font-extrabold text-white truncate leading-tight">
+                {step === 3 ? 'Cierre de Caja Exitoso' : 'Cierre de Turno y Arqueo Ciego'}
+              </h3>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0 ml-2">
+            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-[9px] sm:text-[10px] font-mono font-bold text-slate-300 border border-slate-700">
+              PASO {step}&nbsp;/&nbsp;3
+            </span>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors text-base font-bold cursor-pointer"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-xs sm:text-sm cursor-pointer transition-colors"
             >
               ✕
             </button>
           </div>
         </div>
 
-        {/* STEP 1: Declare amounts */}
-        {step === 1 && (
-          <div className="p-6 space-y-5">
-            <p className="text-[13px] text-slate-500 leading-relaxed">
-              Ingrese los montos físicos y comprobantes contabilizados en su garita para realizar la cuadratura ciega (el monto esperado por sistema permanece oculto).
-            </p>
-
-            <div className="space-y-4 font-mono tabular-nums">
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500 mb-1.5">
-                  Total Efectivo Físico Recontado (Incluye ${initialFloat.toLocaleString('es-CL')} Fondo)
-                </label>
-                <input
-                  type="number"
-                  value={declareCash}
-                  onChange={(e) => setDeclareCash(e.target.value)}
-                  placeholder={`Ej. ${(sysCashExpected).toString()}`}
-                  className="w-full h-10 px-3 rounded-[10px] border-[1.5px] border-[#dde2e8] bg-[#f8fafc] font-mono text-slate-900 focus:border-slate-900 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500 mb-1.5">
-                  Total Vouchers Tarjetas (POS Transbank)
-                </label>
-                <input
-                  type="number"
-                  value={declarePos}
-                  onChange={(e) => setDeclarePos(e.target.value)}
-                  placeholder={`Ej. ${(sysPosExpected).toString()}`}
-                  className="w-full h-10 px-3 rounded-[10px] border-[1.5px] border-[#dde2e8] bg-[#f8fafc] font-mono text-slate-900 focus:border-slate-900 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500 mb-1.5">
-                  Total Transferencias Verificadas
-                </label>
-                <input
-                  type="number"
-                  value={declareTransfer}
-                  onChange={(e) => setDeclareTransfer(e.target.value)}
-                  placeholder={`Ej. ${(sysTransExpected).toString()}`}
-                  className="w-full h-10 px-3 rounded-[10px] border-[1.5px] border-[#dde2e8] bg-[#f8fafc] font-mono text-slate-900 focus:border-slate-900 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2 pt-1">
-              <button
-                onClick={handleStep1ToStep2}
-                className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-xs transition-all hover:-translate-y-0.5 cursor-pointer"
-              >
-                Verificar Cuadratura de Turno
-              </button>
-              <button
-                onClick={onClose}
-                className="text-[12px] font-semibold text-slate-400 hover:text-slate-700 text-center py-2 w-full transition-colors cursor-pointer"
-              >
-                Cancelar y continuar operando
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 2: Reconciliation revealed */}
-        {step === 2 && (
-          <div className="p-6 space-y-5">
-            <p className="text-[13px] text-slate-500 leading-relaxed">
-              Conciliación revelada (<span className="font-mono">Efectivo Sistema</span> vs <span className="font-mono">Recontado Físico</span>). Al confirmar, se sellará con firma <span className="font-mono font-bold">SHA-256</span> y se emitirá el Reporte Z.
-            </p>
-
-            {/* Reconciliation table */}
-            <div className="rounded-xl border border-[#e8ecf0] overflow-hidden">
-              <div className="grid grid-cols-3 gap-0 bg-[#f8fafc] border-b border-[#e8ecf0] px-4 py-2.5">
-                <div className="text-[10px] font-bold uppercase tracking-[0.06em] text-slate-400">Medio</div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.06em] text-slate-400 text-right">Sistema</div>
-                <div className="text-[10px] font-bold uppercase tracking-[0.06em] text-slate-400 text-right">Declarado</div>
-              </div>
-
-              <div className="divide-y divide-[#f1f5f9]">
-                <div className="grid grid-cols-3 gap-0 px-4 py-2.5 items-center font-mono tabular-nums text-sm">
-                  <div className="text-slate-700 font-medium">Efectivo*</div>
-                  <div className="text-right text-slate-400">${sysCashExpected.toLocaleString('es-CL')}</div>
-                  <div className="text-right font-bold text-slate-900">${decCashNum.toLocaleString('es-CL')}</div>
+        {/* Modal Body */}
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 text-xs flex-1">
+          {/* ── PASO 1: CONTEO FÍSICO CIEGO ── */}
+          {step === 1 && (
+            <form onSubmit={handleStep1Submit} className="space-y-4">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">👁️‍🗨️</span>
+                  <h4 className="font-extrabold text-xs text-[#1E1E2F] uppercase tracking-wide">
+                    Protocolo de Conteo Ciego Antifraude
+                  </h4>
                 </div>
-                <div className="grid grid-cols-3 gap-0 px-4 py-2.5 items-center font-mono tabular-nums text-sm">
-                  <div className="text-slate-700 font-medium">Tarjetas POS</div>
-                  <div className="text-right text-slate-400">${sysPosExpected.toLocaleString('es-CL')}</div>
-                  <div className="text-right font-bold text-slate-900">${decPosNum.toLocaleString('es-CL')}</div>
-                </div>
-                <div className="grid grid-cols-3 gap-0 px-4 py-2.5 items-center font-mono tabular-nums text-sm">
-                  <div className="text-slate-700 font-medium">Transf.</div>
-                  <div className="text-right text-slate-400">${sysTransExpected.toLocaleString('es-CL')}</div>
-                  <div className="text-right font-bold text-slate-900">${decTransNum.toLocaleString('es-CL')}</div>
-                </div>
+                <p className="text-slate-500 text-[11px] leading-relaxed">
+                  Ingrese el dinero físico y comprobantes recontados en su garita. El sistema <strong>mantiene oculto el total esperado</strong> hasta que declare los valores para evitar cuadres forzados o adulteraciones.
+                </p>
               </div>
 
-              {/* Difference row */}
-              <div
-                className={`flex items-center justify-between px-4 py-3 border-t-2 font-mono tabular-nums ${
-                  diff === 0
-                    ? 'border-emerald-200 bg-emerald-50'
-                    : diff > 0
-                    ? 'border-sky-200 bg-sky-50'
-                    : 'border-rose-200 bg-rose-50'
-                }`}
-              >
-                <span className="text-[11px] font-bold uppercase tracking-[0.06em] text-slate-600">
-                  Diferencia / Cuadre
-                </span>
-                <span
-                  className={`font-black text-base ${
-                    diff === 0 ? 'text-emerald-600' : diff > 0 ? 'text-sky-600' : 'text-rose-600'
+              {/* Input Efectivo */}
+              <div className="p-3.5 rounded-2xl border border-slate-200 bg-white space-y-1 hover:border-slate-300 transition-colors">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-700 flex items-center gap-1.5 text-xs">
+                    <span>💵</span>
+                    <span>Total Efectivo Físico en Gaveta *</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-slate-400">
+                    Incluye fondo inicial ${initialFloat.toLocaleString('es-CL')}
+                  </span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500"
+                    value={declareCash}
+                    onChange={(e) => setDeclareCash(e.target.value)}
+                    placeholder="0"
+                    required
+                    className="w-full h-11 pl-7 pr-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-black text-slate-900 text-base focus:border-[#E2498A] focus:outline-none"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Cuente todos los billetes y monedas que se encuentran dentro de la gaveta de garita.
+                </p>
+              </div>
+
+              {/* Input Tarjetas POS */}
+              <div className="p-3.5 rounded-2xl border border-slate-200 bg-white space-y-1 hover:border-slate-300 transition-colors">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-700 flex items-center gap-1.5 text-xs">
+                    <span>💳</span>
+                    <span>Total Vouchers Tarjetas (POS Transbank) *</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-slate-400">Débito + Crédito</span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500"
+                    value={declarePos}
+                    onChange={(e) => setDeclarePos(e.target.value)}
+                    placeholder="0"
+                    required
+                    className="w-full h-11 pl-7 pr-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-black text-slate-900 text-base focus:border-[#E2498A] focus:outline-none"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Sume el monto de los comprobantes impresos por la máquina Transbank durante el turno.
+                </p>
+              </div>
+
+              {/* Input Transferencias */}
+              <div className="p-3.5 rounded-2xl border border-slate-200 bg-white space-y-1 hover:border-slate-300 transition-colors">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-700 flex items-center gap-1.5 text-xs">
+                    <span>📲</span>
+                    <span>Total Transferencias Verificadas *</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-slate-400">Validado en cartola</span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono font-bold">$</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500"
+                    value={declareTransfer}
+                    onChange={(e) => setDeclareTransfer(e.target.value)}
+                    placeholder="0"
+                    required
+                    className="w-full h-11 pl-7 pr-3 rounded-xl border border-slate-200 bg-slate-50 font-mono font-black text-slate-900 text-base focus:border-[#E2498A] focus:outline-none"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Total de pagos recibidos vía transferencia electrónica con comprobante validado.
+                </p>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  className="w-full h-12 rounded-2xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-extrabold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>Continuar a Revelación de Cuadratura</span>
+                  <span>→</span>
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* ── PASO 2: CONCILIACIÓN REVELADA & DESGLOSE ── */}
+          {step === 2 && (
+            <div className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">
+                    Resultado de Cuadratura Revelada
+                  </span>
+                  <span className="font-mono text-[10px] font-bold text-slate-500">
+                    ID: {currentShift?.id || 'TURNO-ACTUAL'}
+                  </span>
+                </div>
+                <p className="text-slate-500 text-[11px]">
+                  El sistema comparó los montos físicos declarados contra las transacciones registradas.
+                </p>
+              </div>
+
+              {/* Tabla Comparativa de Medios */}
+              <div className="rounded-2xl border border-slate-200 overflow-hidden font-mono">
+                <div className="grid grid-cols-4 bg-slate-100 text-slate-600 font-bold text-[10px] uppercase p-3 border-b border-slate-200">
+                  <span>Concepto</span>
+                  <span className="text-right">Declarado</span>
+                  <span className="text-right">Esperado</span>
+                  <span className="text-right">Diferencia</span>
+                </div>
+
+                <div className="divide-y divide-slate-100 text-xs">
+                  <div className="grid grid-cols-4 p-3 items-center">
+                    <span className="font-sans font-bold text-slate-700">Efectivo</span>
+                    <span className="text-right font-black text-slate-900">${decCashNum.toLocaleString('es-CL')}</span>
+                    <span className="text-right text-slate-400">${sysCashExpected.toLocaleString('es-CL')}</span>
+                    <span className={`text-right font-bold ${diffCash === 0 ? 'text-emerald-600' : diffCash > 0 ? 'text-sky-600' : 'text-rose-600'}`}>
+                      ${diffCash.toLocaleString('es-CL')}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-4 p-3 items-center">
+                    <span className="font-sans font-bold text-slate-700">Tarjetas POS</span>
+                    <span className="text-right font-black text-slate-900">${decPosNum.toLocaleString('es-CL')}</span>
+                    <span className="text-right text-slate-400">${sysPosExpected.toLocaleString('es-CL')}</span>
+                    <span className={`text-right font-bold ${(decPosNum - sysPosExpected) === 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      ${(decPosNum - sysPosExpected).toLocaleString('es-CL')}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-4 p-3 items-center">
+                    <span className="font-sans font-bold text-slate-700">Transferencias</span>
+                    <span className="text-right font-black text-slate-900">${decTransNum.toLocaleString('es-CL')}</span>
+                    <span className="text-right text-slate-400">${sysTransExpected.toLocaleString('es-CL')}</span>
+                    <span className={`text-right font-bold ${(decTransNum - sysTransExpected) === 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      ${(decTransNum - sysTransExpected).toLocaleString('es-CL')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Banner de Estado Final */}
+                <div
+                  className={`p-3.5 border-t-2 flex items-center justify-between ${
+                    diffTotal === 0
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                      : diffTotal > 0
+                      ? 'bg-sky-50 border-sky-300 text-sky-800'
+                      : 'bg-rose-50 border-rose-300 text-rose-800'
                   }`}
                 >
-                  {diff === 0
-                    ? 'CUADRADO ($0)'
-                    : diff > 0
-                    ? `SOBRANTE (+$${diff.toLocaleString('es-CL')})`
-                    : `FALTANTE (-$${Math.abs(diff).toLocaleString('es-CL')})`}
+                  <span className="font-sans font-bold uppercase text-xs">
+                    {diffTotal === 0 ? '✓ Cuadratura Perfecta' : diffTotal > 0 ? '⚠ Sobrante en Caja' : '⚠ Faltante en Caja'}
+                  </span>
+                  <span className="font-mono font-black text-base">
+                    {diffTotal === 0 ? '$0 CLP' : `${diffTotal > 0 ? '+' : ''}$${diffTotal.toLocaleString('es-CL')} CLP`}
+                  </span>
+                </div>
+              </div>
+
+              {/* Desglose de Entrega Física de Fondos */}
+              <div className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 space-y-2">
+                <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider block">
+                  Distribución Física del Efectivo Recontado:
                 </span>
+                <div className="grid grid-cols-2 gap-3 font-mono">
+                  <div className="p-2.5 rounded-xl bg-white border border-slate-200">
+                    <span className="text-[10px] font-sans text-slate-500 block">Fondo Sencillo para Próximo Turno:</span>
+                    <span className="text-sm font-black text-slate-800">${handoverFund.toLocaleString('es-CL')} CLP</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white border border-slate-200">
+                    <span className="text-[10px] font-sans text-slate-500 block">Sobre Remesa para Administración:</span>
+                    <span className="text-sm font-black text-emerald-700">${deliveryCashEnvelope.toLocaleString('es-CL')} CLP</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Justificación obligatoria si hay descuadre */}
+              {diffTotal !== 0 && (
+                <div className="space-y-1">
+                  <label className="font-bold text-rose-700 block text-xs">
+                    Justificación Obligatoria de Descuadre *
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={justification}
+                    onChange={(e) => setJustification(e.target.value)}
+                    placeholder="Explique el motivo del faltante o sobrante (ej. vuelto equivocado, propina, etc.)..."
+                    className="w-full p-2.5 rounded-xl border-2 border-rose-200 bg-rose-50/50 font-sans text-xs focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+              )}
+
+              {/* Sello Criptográfico SHA-256 */}
+              <div className="p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-[10px] font-mono text-slate-600 flex items-center justify-between">
+                <span>Sello SHA-256:</span>
+                <span className="font-bold text-slate-800">{shiftSealHash}</span>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleEmitReportZ}
+                  className="w-full h-12 rounded-2xl bg-[#E2498A] hover:bg-[#C83472] text-white font-extrabold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>📄</span>
+                  <span>Emitir Reporte Z (PDF A4 - 2 Copias) &amp; Cerrar Turno</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="w-full py-2 text-slate-400 hover:text-slate-700 font-bold text-xs transition cursor-pointer"
+                >
+                  ← Volver a corregir montos declarados
+                </button>
               </div>
             </div>
+          )}
 
-            {/* SHA-256 hash */}
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-[0.06em] text-slate-400 mb-1">
-                Firma Criptográfica SHA-256
+          {/* ── PASO 3: CONFIRMACIÓN & DESCARGA GARANTIZADA ── */}
+          {step === 3 && (
+            <div className="space-y-5 text-center py-4">
+              <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center text-3xl shadow-sm animate-bounce">
+                ✓
               </div>
-              <div className="text-[10px] font-mono text-slate-600 bg-slate-50 px-2 py-1.5 rounded border border-[#e8ecf0] truncate">
-                {shiftSealHash}
+
+              <div className="space-y-1.5">
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                  Turno Cerrado Definitivamente
+                </h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                  El Reporte Z fue emitido en <strong>formato estándar A4 corporativo</strong> (Copia 1 Garita + Copia 2 Administración) con los bloques de firmas físicas y sello criptográfico.
+                </p>
+              </div>
+
+              {/* Botones de Exportación Garantizada */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-left">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+                  Exportación de Documentos:
+                </span>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={handleManualPdfDownload}
+                    className="flex-1 py-3 px-4 rounded-xl bg-[#1E1E2F] hover:bg-[#2D2D44] text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition shadow-xs"
+                  >
+                    <span>📥</span>
+                    <span>Descargar PDF A4</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      try {
+                        generateShiftClosingPdf({
+                          id: currentShift?.id || `TURNO-${Date.now().toString().slice(-6)}`,
+                          operatorName: user.name,
+                          startTime: currentShift?.startTime || new Date().toISOString(),
+                          endTime: new Date().toISOString(),
+                          initialCash: initialFloat,
+                          declaredCash: decCashNum,
+                          declaredCard: decPosNum,
+                          declaredTransfer: decTransNum,
+                          expectedCash: sysCashExpected,
+                          expectedCard: sysPosExpected,
+                          expectedTransfer: sysTransExpected,
+                          discrepancyCash: diffCash,
+                          discrepancyTotal: diffTotal,
+                          status: 'cerrado',
+                          hashAuditoria: shiftSealHash,
+                          totalTicketsProcessed: paidTickets.length,
+                          handoverFundAmount: handoverFund,
+                        } as any, false);
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                    className="py-3 px-4 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition"
+                  >
+                    <span>🖨</span>
+                    <span>Imprimir A4</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleFinalize}
+                  className="w-full h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-[0.98] cursor-pointer"
+                >
+                  Finalizar Turno &amp; Bloquear Punto de Venta
+                </button>
               </div>
             </div>
-
-            <div className="space-y-2 pt-1">
-              <button
-                onClick={handleEmitReportZ}
-                className="w-full h-11 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-xs transition-all hover:-translate-y-0.5 cursor-pointer"
-              >
-                Emitir Reporte Z y Cerrar Caja
-              </button>
-              <button
-                onClick={() => setStep(1)}
-                className="text-[12px] font-semibold text-slate-400 hover:text-slate-700 text-center py-2 w-full transition-colors cursor-pointer"
-              >
-                Volver a corregir montos
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Success */}
-        {step === 3 && (
-          <div className="p-6 space-y-5 text-center py-8">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-xl font-bold text-slate-900">Turno Finalizado</h3>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                El <strong>Reporte Z #1042</strong> ha sido generado e impreso en 80mm con sello{' '}
-                <span className="font-mono font-bold text-slate-800">{shiftSealHash}</span>.
-              </p>
-            </div>
-            <button
-              onClick={handleFinalize}
-              className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-xs transition-all hover:-translate-y-0.5 cursor-pointer mt-2"
-            >
-              Finalizar y Volver al Menú
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

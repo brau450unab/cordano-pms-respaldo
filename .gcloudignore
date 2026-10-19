@@ -1,4 +1,12 @@
 .gcloudignore
-node_modules/
-.git/
+.git
+.gitignore
+node_modules
+dist
+.gemini
+.system_generated
 *.log
+documentacion_historica
+tester-army-e2e
+.e2e
+.agent

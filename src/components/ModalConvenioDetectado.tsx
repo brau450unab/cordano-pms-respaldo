@@ -178,7 +178,7 @@ export const ModalConvenioDetectado: React.FC<ModalConvenioDetectadoProps> = ({
             <div className="bg-[#FFF5F8]/70 border border-blue-100 rounded-2xl p-3.5 text-xs text-blue-900 flex items-start space-x-2.5">
               <ShieldCheck className="w-4 h-4 text-[#2D2D44] shrink-0 mt-0.5" />
               <div className="leading-relaxed">
-                <span className="font-bold block">Política Operativa Cordano PMS:</span>
+                <span className="font-bold block">Política Operativa Cordano Parking Ops:</span>
                 Este vehículo <span className="font-bold">no cancela ticket de ingreso ni salida en caja</span>. 
                 Se emite registro para control de estadía y consume <span className="font-bold">1 cupo general de aforo</span> (sin reserva fija de slot).
               </div>

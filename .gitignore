@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Production build outputs
+dist/
+
+# E2E Test artifacts
+.e2e/report.json
+.e2e/results/
+.e2e/logs/
+
+# Environment and local secrets
+.env
+.env.local
+.env.*.local
+
+# IDE and agent caches
+.gemini/
+.system_generated/
+*.log
+
+# OS files
+Thumbs.db
+[Dd]esktop.ini

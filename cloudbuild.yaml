@@ -1,0 +1,56 @@
+# ==============================================================================
+# CORDANO PMS — Pipeline Automatizado de Google Cloud Build
+# ==============================================================================
+# Permite construir la imagen Docker y desplegarla en Cloud Run automáticamente
+# mediante 'gcloud builds submit' o mediante un disparador (trigger) en GitHub.
+# ==============================================================================
+
+steps:
+  # 1. Compilar imagen Docker con cache y tags de versión
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/cordano-pms:$BUILD_ID'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/cordano-pms:latest'
+      - '.'
+
+  # 2. Subir imagen al registro de contenedores del proyecto de Google Cloud
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/cordano-pms:$BUILD_ID'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/cordano-pms:latest'
+
+  # 3. Desplegar en Google Cloud Run (us-west1, puerto 8080, acceso público)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'cordano-pms'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/cordano-pms:$BUILD_ID'
+      - '--region'
+      - 'us-west1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+
+images:
+  - 'gcr.io/$PROJECT_ID/cordano-pms:$BUILD_ID'
+  - 'gcr.io/$PROJECT_ID/cordano-pms:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

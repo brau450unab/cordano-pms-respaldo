@@ -23,19 +23,28 @@ import {
   Customer,
   ChecklistItem,
   TariffType,
-  Agreement
+  Agreement,
+  TariffVersion,
+  UserPermissions
 } from '../types';
 import {
   INITIAL_OPERATOR,
   INITIAL_ADMIN,
+  INITIAL_SUPERVISOR,
   INITIAL_TARIFF_CONFIG,
+  INITIAL_TARIFF_VERSIONS,
   INITIAL_SLOTS,
   INITIAL_TICKETS,
   INITIAL_SHIFT,
   INITIAL_AUDIT_LOGS,
   INITIAL_CUSTOMERS,
-  INITIAL_AGREEMENTS
+  INITIAL_AGREEMENTS,
+  ROLE_PERMISSIONS,
 } from '../data/mockData';
+import { calculateStayFeeLey20967 } from '../services/tariffEngine';
+import { emitFiscalDte, generateDailySalesReportRVD, DailySalesReportRVD } from '../services/fiscal/siiBillingService';
+import { cordanoOfflineDB } from '../services/db/offlineStorage';
+import { EscPosDriver } from '../services/hardware/escPosDriver';
 
 export const computeAgreementStatus = (validUntil: string): 'al_dia' | 'por_vencer' | 'vencido' => {
   const now = new Date();
@@ -67,7 +76,9 @@ const DEFAULT_CHECKLIST_TASKS: ChecklistItem[] = [
 
 interface ParkingContextType {
   user: User;
-  setUserRole: (role: 'operador' | 'administrador') => void;
+  setUser: React.Dispatch<React.SetStateAction<User>>;
+  setUserRole: (role: 'operador' | 'supervisor' | 'administrador') => void;
+  hasPermission: (permission: keyof UserPermissions) => boolean;
   isLoggedIn: boolean;
   setIsLoggedIn: (loggedIn: boolean) => void;
   logout: () => void;
@@ -79,7 +90,12 @@ interface ParkingContextType {
   tickets: Ticket[];
   customers: Customer[];
   currentShift: Shift;
+  isShiftOpen: boolean;
+  isShiftOwner: boolean;
+  isViewerOnly: boolean;
   tariffConfig: TariffConfig;
+  tariffVersions: TariffVersion[];
+  activeTariffVersion: TariffVersion;
   auditLogs: AuditLog[];
   
   pendingApprovals: any[];
@@ -90,6 +106,8 @@ interface ParkingContextType {
   isFirebaseConnected: boolean;
   syncQueueCount: number;
   cashToleranceClp: number;
+  keyboardShortcutsEnabled: boolean;
+  setKeyboardShortcutsEnabled: (enabled: boolean) => void;
   
   // Checklist State & Actions
   checklistTasks: ChecklistItem[];
@@ -146,6 +164,7 @@ interface ParkingContextType {
     tariffType?: TariffType
   ) => Ticket;
   assignSlotToTicket: (ticketId: string, slotCode: string) => void;
+  moveOrSwapVehicleSlot: (sourceSlotNum: number, targetSlotNum: number) => boolean;
   calculateFee: (ticket: Ticket, customExitTime?: Date) => StayCalculation;
   processPayment: (params: {
     ticketId: string;
@@ -160,7 +179,7 @@ interface ParkingContextType {
   }) => { ticket: Ticket; changeAmount: number };
   cancelTicket: (ticketId: string, reason: string, adminPass: string) => boolean;
   updateSlotStatus: (slotCode: string, newStatus: SlotStatus) => void;
-  updateTariffConfig: (newConfig: TariffConfig) => void;
+  updateTariffConfig: (newConfig: TariffConfig, reason?: string) => void;
   registerCashMovement: (
     type: 'INGRESO_MANUAL' | 'RETIRO_SANGRIA' | 'GASTO_MENOR',
     amount: number,
@@ -174,29 +193,63 @@ interface ParkingContextType {
   signShiftCopy: (copyType: 'caja' | 'operador') => void;
   addAuditLog: (action: AuditLog['action'], details: string, severity?: AuditLog['severity'], authorizedBy?: string) => void;
   openNewShift: (initialCash: number, breakdown?: ChileanCashBreakdown) => void;
+
+  // Hardware & SII
+  printEntryTicket: (ticket: Ticket) => Promise<boolean>;
+  printFiscalReceipt: (ticket: Ticket) => Promise<boolean>;
+  dailyRvd: DailySalesReportRVD | null;
+  generateRvdReport: () => DailySalesReportRVD;
 }
 
 const ParkingContext = createContext<ParkingContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  SLOTS: 'pms_matic_slots',
-  TICKETS: 'pms_matic_tickets',
-  SHIFT: 'pms_matic_shift',
-  TARIFF: 'pms_matic_tariff',
-  AUDIT: 'pms_matic_audit',
-  CUSTOMERS: 'pms_matic_customers',
-  CHECKLIST: 'pms_matic_checklist',
-  AGREEMENTS: 'pms_matic_agreements',
+  SLOTS: 'cordano_slots_v3',
+  TICKETS: 'cordano_tickets_v3',
+  SHIFT: 'cordano_shift_v3',
+  TARIFF: 'cordano_tariff_v3',
+  AUDIT: 'cordano_audit_v3',
+  CUSTOMERS: 'cordano_customers_v3',
+  CHECKLIST: 'cordano_checklist_v3',
+  AGREEMENTS: 'cordano_agreements_v3',
+  KEYBOARD_SHORTCUTS: 'cordano_keyboard_shortcuts_enabled',
 };
 
+// Limpieza automática de datos demo de versiones anteriores en localStorage
+if (typeof window !== 'undefined' && !localStorage.getItem('cordano_demo_data_purged_v3')) {
+  try {
+    localStorage.removeItem('pms_matic_slots');
+    localStorage.removeItem('pms_matic_tickets');
+    localStorage.removeItem('pms_matic_shift');
+    localStorage.removeItem('pms_matic_audit');
+    localStorage.removeItem('pms_matic_customers');
+    localStorage.removeItem('pms_matic_agreements');
+    localStorage.removeItem('pms_matic_shift_history');
+    localStorage.removeItem('pms_matic_offline_shifts');
+    localStorage.removeItem('pms_matic_user_role');
+    localStorage.removeItem('pms_matic_is_logged_in');
+    localStorage.setItem('cordano_demo_data_purged_v3', 'true');
+  } catch (e) {
+    console.warn('Limpieza de caché de demostración completada:', e);
+  }
+}
+
 export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [keyboardShortcutsEnabled, setKeyboardShortcutsEnabledState] = useState<boolean>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.KEYBOARD_SHORTCUTS);
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  const setKeyboardShortcutsEnabled = (enabled: boolean) => {
+    setKeyboardShortcutsEnabledState(enabled);
+    localStorage.setItem(STORAGE_KEYS.KEYBOARD_SHORTCUTS, enabled ? 'true' : 'false');
+  };
+
   const [user, setUser] = useState<User>(() => {
-    const savedRole = localStorage.getItem('pms_matic_user_role');
-    if (savedRole === 'administrador') return INITIAL_ADMIN;
-    return INITIAL_OPERATOR;
+    return INITIAL_ADMIN;
   });
   const [isLoggedIn, setIsLoggedInState] = useState<boolean>(() => {
-    return localStorage.getItem('pms_matic_is_logged_in') === 'true';
+    return typeof window !== 'undefined' && localStorage.getItem('pms_matic_is_logged_in') === 'true';
   });
 
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
@@ -270,13 +323,37 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const [currentShift, setCurrentShift] = useState<Shift>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.SHIFT);
-    return saved ? JSON.parse(saved) : INITIAL_SHIFT;
+    if (saved) {
+      try {
+        const parsed: Shift = JSON.parse(saved);
+        return parsed;
+      } catch (e) {
+        console.error('Error al parsear turno guardado:', e);
+      }
+    }
+    return INITIAL_SHIFT;
   });
 
   const [tariffConfig, setTariffConfig] = useState<TariffConfig>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.TARIFF);
     return saved ? JSON.parse(saved) : INITIAL_TARIFF_CONFIG;
   });
+
+  const [tariffVersions, setTariffVersions] = useState<TariffVersion[]>(() => {
+    const saved = localStorage.getItem('cordano_tariff_versions');
+    return saved ? JSON.parse(saved) : INITIAL_TARIFF_VERSIONS;
+  });
+
+  const activeTariffVersion =
+    tariffVersions.find((v) => !v.effectiveUntil) ||
+    tariffVersions[tariffVersions.length - 1] ||
+    INITIAL_TARIFF_VERSIONS[0];
+
+  const [dailyRvd, setDailyRvd] = useState<DailySalesReportRVD | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('cordano_tariff_versions', JSON.stringify(tariffVersions));
+  }, [tariffVersions]);
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.AUDIT);
@@ -340,7 +417,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const [isFirebaseConnected, setIsFirebaseConnected] = useState<boolean>(true);
 
-  // Helper para persistencia asíncrona en Firestore
+  // Helper para persistencia asíncrona en Firestore con cola de contingencia Outbox
   const persistToFirestore = async (collectionName: string, docId: string, data: any) => {
     try {
       const cleanData = JSON.parse(JSON.stringify(data));
@@ -348,16 +425,21 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       setIsFirebaseConnected(true);
     } catch (err: any) {
       setIsFirebaseConnected(false);
+      // Encolar automáticamente en IndexedDB para sincronizar al volver la red
+      cordanoOfflineDB.enqueueSyncItem(collectionName, docId, data, 'UPDATE').catch(console.warn);
     }
   };
 
-  // Listeners en tiempo real para sincronización multidispotivo (tickets, slots, convenios)
+  // Listeners en tiempo real para sincronización multidispotivo (tickets, slots, convenios, turnos, auditoría)
   useEffect(() => {
     let unsubTickets: (() => void) | undefined;
     let unsubSlots: (() => void) | undefined;
     let unsubAgreements: (() => void) | undefined;
+    let unsubShifts: (() => void) | undefined;
+    let unsubAuditLogs: (() => void) | undefined;
 
     try {
+      // 1. Sincronización de tickets
       unsubTickets = onSnapshot(
         collection(db, COLLECTIONS.TICKETS),
         (snapshot) => {
@@ -376,6 +458,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
       );
 
+      // 2. Sincronización de las 30 plazas de Serrano 447
       unsubSlots = onSnapshot(
         collection(db, COLLECTIONS.SLOTS),
         (snapshot) => {
@@ -393,6 +476,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
         }
       );
 
+      // 3. Sincronización de convenios y abonados
       unsubAgreements = onSnapshot(
         collection(db, COLLECTIONS.AGREEMENTS),
         (snapshot) => {
@@ -414,14 +498,79 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
           setIsFirebaseConnected(false);
         }
       );
+
+      // 4. Sincronización de turnos de caja
+      unsubShifts = onSnapshot(
+        collection(db, COLLECTIONS.SHIFTS),
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const remoteShifts: Shift[] = [];
+            snapshot.forEach((d) => remoteShifts.push(d.data() as Shift));
+            if (remoteShifts.length > 0) {
+              remoteShifts.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+              const activeRemote = remoteShifts.find((s) => s.status === 'abierto') || remoteShifts[0];
+              if (activeRemote) {
+                setCurrentShift(activeRemote);
+              }
+            }
+          }
+        },
+        () => {
+          setIsFirebaseConnected(false);
+        }
+      );
+
+      // 5. Sincronización de bitácora de auditoría inmutable
+      unsubAuditLogs = onSnapshot(
+        collection(db, COLLECTIONS.AUDIT_LOGS),
+        (snapshot) => {
+          if (!snapshot.empty) {
+            const remoteLogs: AuditLog[] = [];
+            snapshot.forEach((d) => remoteLogs.push(d.data() as AuditLog));
+            if (remoteLogs.length > 0) {
+              remoteLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+              setAuditLogs(remoteLogs);
+            }
+          }
+        },
+        () => {
+          setIsFirebaseConnected(false);
+        }
+      );
     } catch {
       setIsFirebaseConnected(false);
+    }
+
+    // Manejador de reconexión de red para procesar transacciones encoladas offline
+    const handleOnline = () => {
+      setIsFirebaseConnected(true);
+      cordanoOfflineDB.replayOutboxQueue(db).then((synced) => {
+        if (synced > 0) {
+          console.info(`[Cordano Outbox] ${synced} transacciones offline sincronizadas exitosamente con Firestore.`);
+        }
+      }).catch(console.warn);
+    };
+
+    const handleOffline = () => {
+      setIsFirebaseConnected(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Intentar replay inicial en arranque si hay conexión
+    if (typeof navigator !== 'undefined' && navigator.onLine) {
+      cordanoOfflineDB.replayOutboxQueue(db).catch(console.warn);
     }
 
     return () => {
       unsubTickets?.();
       unsubSlots?.();
       unsubAgreements?.();
+      unsubShifts?.();
+      unsubAuditLogs?.();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
@@ -444,14 +593,34 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => clearInterval(timer);
   }, [checklistSnoozeRemainingSeconds, currentShift.checklistCompleted]);
 
-  const setUserRole = (role: 'operador' | 'administrador') => {
+  const setUserRole = (role: 'operador' | 'supervisor' | 'administrador') => {
     localStorage.setItem('pms_matic_user_role', role);
-    if (role === 'administrador') {
-      setUser(INITIAL_ADMIN);
-    } else {
-      setUser(INITIAL_OPERATOR);
-    }
+    setUser({
+      ...INITIAL_ADMIN,
+      role,
+      permissions: ROLE_PERMISSIONS[role],
+    });
   };
+
+  const hasPermission = (permission: keyof UserPermissions): boolean => {
+    if (!user) return false;
+    if (user.permissions && typeof user.permissions[permission] === 'boolean') {
+      return user.permissions[permission];
+    }
+    if (user.role === 'administrador') return true;
+    if (permission === 'canOperatePos' || permission === 'canOpenCloseShift') {
+      return user.role === 'operador';
+    }
+    return false;
+  };
+
+  // Estado de turno y titularidad exclusiva del operador que lo abrió
+  const isShiftOpen = currentShift?.status === 'abierto';
+  const isShiftOwner = isShiftOpen && Boolean(
+    (user?.id && currentShift?.operatorId === user.id) ||
+    (user?.name && currentShift?.operatorName === user.name)
+  );
+  const isViewerOnly = isShiftOpen && !isShiftOwner;
 
   const addAuditLog = (
     action: AuditLog['action'],
@@ -471,6 +640,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     };
     setAuditLogs((prev) => [newLog, ...prev]);
     persistToFirestore(COLLECTIONS.AUDIT_LOGS, newLog.id, newLog);
+    cordanoOfflineDB.saveAuditLog(newLog).catch(console.warn);
 
     if (isOffline) {
       setSyncQueueCount((c) => c + 1);
@@ -721,6 +891,16 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const formattedPlate = plateNumber.trim().toUpperCase();
 
+    // 1. Validar que el turno esté abierto obligatoriamente
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('Punto de Venta Bloqueado: No es posible ingresar vehículos sin un turno iniciado. Es obligatorio aperturar el turno con el fondo de caja.');
+    }
+
+    // 2. Dominio exclusivo: solo el titular que abrió el turno puede ingresar vehículos
+    if (currentShift.operatorId && user.id !== currentShift.operatorId && user.name !== currentShift.operatorName) {
+      throw new Error(`Acceso Restringido: El turno actual pertenece a ${currentShift.operatorName}. Solo el titular del turno puede registrar vehículos. Los demás usuarios operan en modo solo visualizador.`);
+    }
+
     // Check anti-passback: duplicate active plate
     const existingActive = tickets.find(
       (t) => t.plateNumber === formattedPlate && t.status === 'activo'
@@ -731,6 +911,8 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const nowIso = new Date().toISOString();
     const ticketCode = `T-${Math.floor(10000 + Math.random() * 90000)}`;
+
+    const activeRate = tariffConfig.vehicleRates[vehicleType] || tariffConfig.vehicleRates['Automóvil'];
 
     const newTicket: Ticket = {
       id: `t-${Date.now()}`,
@@ -745,11 +927,16 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       customerPhone,
       customerEmail,
       tariffType: tariffType === 'convenio' || tariffType === 'especial' ? 'especial' : 'estandar',
+      tariffVersionId: activeTariffVersion.id,
+      frozenRate: { ...activeRate },
+      frozenBillingModel: tariffConfig.billingModel,
+      isLostTicketResolvedByPlate: false,
       operatorEntryName: user.name,
     };
 
     setTickets((prev) => [newTicket, ...prev]);
     persistToFirestore(COLLECTIONS.TICKETS, newTicket.id, newTicket);
+    cordanoOfflineDB.saveTicket(newTicket).catch(console.warn);
 
     // Update slot status if assigned directly
     if (slotCode && slotCode !== 'SIN_ASIGNAR') {
@@ -830,77 +1017,128 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     );
   };
 
+  const moveOrSwapVehicleSlot = (sourceSlotNum: number, targetSlotNum: number): boolean => {
+    if (sourceSlotNum === targetSlotNum) return false;
+
+    // 1. Validar turno abierto
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('Punto de Venta Bloqueado: No se pueden reubicar vehículos sin un turno iniciado.');
+    }
+    // 2. Validar titularidad exclusiva
+    if (isViewerOnly) {
+      throw new Error(`Modo Solo Visualización: Solo ${currentShift.operatorName || 'el titular'} puede reubicar vehículos en el patio.`);
+    }
+
+    const sourceSlotCode = sourceSlotNum <= 15 ? `A-${String(sourceSlotNum).padStart(2, '0')}` : `B-${String(sourceSlotNum).padStart(2, '0')}`;
+    const targetSlotCode = targetSlotNum <= 15 ? `A-${String(targetSlotNum).padStart(2, '0')}` : `B-${String(targetSlotNum).padStart(2, '0')}`;
+
+    // Buscar ticket activo en el cupo origen
+    const sourceTicket = tickets.find((t) => t.status === 'activo' && (
+      t.slotCode === sourceSlotCode || 
+      parseInt(t.slotCode?.replace(/\D/g, '') || '0', 10) === sourceSlotNum
+    ));
+
+    if (!sourceTicket) {
+      return false;
+    }
+
+    // Verificar si el cupo destino ya tiene otro vehículo
+    const targetTicket = tickets.find((t) => t.status === 'activo' && (
+      t.slotCode === targetSlotCode || 
+      parseInt(t.slotCode?.replace(/\D/g, '') || '0', 10) === targetSlotNum
+    ));
+
+    if (targetTicket) {
+      // SWAP: Intercambiar plazas entre ambos vehículos
+      setTickets((prev) =>
+        prev.map((t) => {
+          if (t.id === sourceTicket.id) return { ...t, slotCode: targetSlotCode };
+          if (t.id === targetTicket.id) return { ...t, slotCode: sourceSlotCode };
+          return t;
+        })
+      );
+
+      setSlots((prev) =>
+        prev.map((s) => {
+          if (s.code === sourceSlotCode) {
+            return {
+              ...s,
+              status: 'ocupado',
+              currentTicketId: targetTicket.id,
+              plateNumber: targetTicket.plateNumber,
+              occupiedSince: targetTicket.entryTime,
+            };
+          }
+          if (s.code === targetSlotCode) {
+            return {
+              ...s,
+              status: 'ocupado',
+              currentTicketId: sourceTicket.id,
+              plateNumber: sourceTicket.plateNumber,
+              occupiedSince: sourceTicket.entryTime,
+            };
+          }
+          return s;
+        })
+      );
+
+      addAuditLog(
+        'REUBICACION_VEHICULO' as any,
+        `Permuta de plazas 2D: Vehículo ${sourceTicket.plateNumber} movido a ${targetSlotCode} y ${targetTicket.plateNumber} a ${sourceSlotCode}.`,
+        'info',
+        user?.name
+      );
+    } else {
+      // MOVE: Mover al cupo vacío de destino
+      setTickets((prev) =>
+        prev.map((t) => (t.id === sourceTicket.id ? { ...t, slotCode: targetSlotCode } : t))
+      );
+
+      setSlots((prev) =>
+        prev.map((s) => {
+          if (s.code === sourceSlotCode) {
+            return {
+              ...s,
+              status: 'disponible',
+              currentTicketId: undefined,
+              plateNumber: undefined,
+              occupiedSince: undefined,
+            };
+          }
+          if (s.code === targetSlotCode) {
+            return {
+              ...s,
+              status: 'ocupado',
+              currentTicketId: sourceTicket.id,
+              plateNumber: sourceTicket.plateNumber,
+              occupiedSince: sourceTicket.entryTime,
+            };
+          }
+          return s;
+        })
+      );
+
+      addAuditLog(
+        'REUBICACION_VEHICULO' as any,
+        `Reubicación vehicular en patio: ${sourceTicket.plateNumber} trasladado de ${sourceSlotCode} a plaza ${targetSlotCode}.`,
+        'info',
+        user?.name
+      );
+    }
+
+    return true;
+  };
+
   const calculateFee = (ticket: Ticket, customExitTime?: Date): StayCalculation => {
-    const entry = new Date(ticket.entryTime);
-    const exit = customExitTime || new Date();
-    const diffMs = exit.getTime() - entry.getTime();
-    const durationMinutes = Math.max(1, Math.ceil(diffMs / (1000 * 60)));
-
-    // Exención total de cobro por minuto para Abonados Mensuales o Convenios Comerciales
-    const hasAgreement = ticket.notes?.includes('CONVENIO') || Boolean(findAgreementByPlate(ticket.plateNumber));
-    if (hasAgreement) {
-      return {
-        durationMinutes,
-        subtotalAmount: 0,
-        totalAmount: 0,
-        isGracePeriod: false,
-        nightSurcharge: 0,
-        weekendSurcharge: 0,
-      };
-    }
-
-    let rate = tariffConfig.vehicleRates[ticket.vehicleType] || tariffConfig.vehicleRates['Automóvil'];
-
-    // Special rate discount if applicable
-    if (ticket.tariffType === 'especial') {
-      rate = {
-        minuteRate: Math.round(rate.minuteRate * 0.8), // 20% de descuento convenio
-        hourlyRate: Math.round(rate.hourlyRate * 0.8),
-        maxDailyRate: Math.round(rate.maxDailyRate * 0.8),
-      };
-    }
-
-    // Check grace period
-    if (durationMinutes <= tariffConfig.gracePeriodMinutes) {
-      return {
-        durationMinutes,
-        subtotalAmount: 0,
-        totalAmount: 0,
-        isGracePeriod: true,
-        nightSurcharge: 0,
-        weekendSurcharge: 0,
-      };
-    }
-
-    // Billable minutes
-    let rawSubtotal = durationMinutes * rate.minuteRate;
-
-    // Apply daily cap if applicable
-    const days = Math.floor(durationMinutes / (24 * 60));
-    const remainingMinutes = durationMinutes % (24 * 60);
-    const dailyCappedAmount = (days * rate.maxDailyRate) + Math.min(remainingMinutes * rate.minuteRate, rate.maxDailyRate);
-    rawSubtotal = Math.min(rawSubtotal, dailyCappedAmount);
-
-    // Night surcharge check (between 22:00 and 06:00)
-    const exitHour = exit.getHours();
-    const isNight = exitHour >= 22 || exitHour < 6;
-    const nightSurcharge = isNight ? Math.round(rawSubtotal * (tariffConfig.nightSurchargePercent / 100)) : 0;
-
-    // Weekend surcharge
-    const isWeekend = exit.getDay() === 0 || exit.getDay() === 6;
-    const weekendSurcharge = isWeekend ? Math.round(rawSubtotal * (tariffConfig.weekendSurchargePercent / 100)) : 0;
-
-    // Round total to nearest $100 CLP according to Chilean cash law and parking standard
-    const rawTotal = rawSubtotal + nightSurcharge + weekendSurcharge;
-    const totalAmount = Math.ceil(rawTotal / 100) * 100;
-
+    // Delegar al Motor Oficial conforme a la Ley N° 20.967 con soporte de versión inmutable
+    const result = calculateStayFeeLey20967(ticket, tariffConfig, customExitTime, activeTariffVersion);
     return {
-      durationMinutes,
-      subtotalAmount: Math.round(rawSubtotal),
-      totalAmount,
-      isGracePeriod: false,
-      nightSurcharge,
-      weekendSurcharge,
+      durationMinutes: result.durationMinutes,
+      subtotalAmount: result.subtotalAmount,
+      totalAmount: result.totalAmount,
+      isGracePeriod: result.isGracePeriod,
+      nightSurcharge: result.nightSurcharge,
+      weekendSurcharge: result.weekendSurcharge,
     };
   };
 
@@ -927,6 +1165,16 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       invoiceFolio,
     } = params;
 
+    // 1. Validar que el turno esté abierto obligatoriamente
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('Punto de Venta Bloqueado: No es posible procesar cobros ni liquidar salidas sin un turno iniciado.');
+    }
+
+    // 2. Dominio exclusivo: solo el titular del turno puede procesar cobros
+    if (currentShift.operatorId && user.id !== currentShift.operatorId && user.name !== currentShift.operatorName) {
+      throw new Error(`Acceso Restringido: El turno actual pertenece a ${currentShift.operatorName}. Solo el titular del turno puede liquidar cobros. Los demás usuarios operan en modo solo visualizador.`);
+    }
+
     const ticket = tickets.find((t) => t.id === ticketId);
     if (!ticket) {
       throw new Error('Ticket no encontrado');
@@ -935,16 +1183,24 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const exitIso = new Date().toISOString();
     let { durationMinutes, totalAmount: computedAmount } = calculateFee(ticket, new Date(exitIso));
 
-    if (isLostTicket) {
-      computedAmount = tariffConfig.lostTicketFee;
-    }
-
+    // Conforme a la Ley 20.967, ante pérdida de ticket el cobro se realiza estrictamente por tiempo efectivo rastreado por patente, sin multas punitivas fijas.
     const finalTotal = Math.max(0, computedAmount - discountAmount);
     const changeAmount = Math.max(0, paidAmount - finalTotal);
 
     if (paidAmount < finalTotal) {
       throw new Error(`El monto pagado ($${paidAmount.toLocaleString('es-CL')}) es inferior al total a cobrar ($${finalTotal.toLocaleString('es-CL')})`);
     }
+
+    // Emisión obligatoria de Boleta Electrónica SII (Tipo 39 Afecta o 41 Exenta) con Timbre Electrónico DTE (<TED>)
+    const fiscalDoc = emitFiscalDte(
+      {
+        ...ticket,
+        totalAmount: finalTotal,
+        durationMinutes,
+        invoiceFolio,
+      },
+      tariffConfig.taxDocumentType
+    );
 
     const updatedTicket: Ticket = {
       ...ticket,
@@ -954,12 +1210,16 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       discountAmount,
       discountReason,
       isLostTicket,
+      isLostTicketResolvedByPlate: isLostTicket,
       totalAmount: finalTotal,
       paidAmount,
       changeAmount,
       paymentMethod,
       voucherNumber,
-      invoiceFolio,
+      invoiceFolio: fiscalDoc.folio,
+      dteFolio: fiscalDoc.folio,
+      dteType: fiscalDoc.documentType,
+      tedXml: fiscalDoc.tedXml,
       status: 'pagado',
       operatorExitName: user.name,
     };
@@ -967,6 +1227,11 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     // Update state
     setTickets((prev) => prev.map((t) => (t.id === ticketId ? updatedTicket : t)));
     persistToFirestore(COLLECTIONS.TICKETS, updatedTicket.id, updatedTicket);
+    cordanoOfflineDB.saveTicket(updatedTicket).catch(console.warn);
+
+    if (isOffline) {
+      cordanoOfflineDB.enqueueSyncItem('tickets', updatedTicket.id, updatedTicket, 'UPDATE').catch(console.warn);
+    }
 
     // Free slot
     if (ticket.slotCode && ticket.slotCode !== 'SIN_ASIGNAR') {
@@ -1000,7 +1265,7 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (isLostTicket) {
       addAuditLog(
         'SOBREESCRITURA_SALIDA',
-        `Cobro de Ticket Perdido ($${tariffConfig.lostTicketFee.toLocaleString('es-CL')} CLP) aplicado a patente ${ticket.plateNumber}`,
+        `Salida por Ticket Extraviado para patente ${ticket.plateNumber}. Conforme a Ley 20.967, se cobró tiempo efectivo real (${durationMinutes} min = $${finalTotal.toLocaleString('es-CL')} CLP) sin multas punitivas.`,
         'warning',
         authorizedByAdmin || user.name
       );
@@ -1055,11 +1320,46 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     );
   };
 
-  const updateTariffConfig = (newConfig: TariffConfig) => {
-    setTariffConfig(newConfig);
+  const updateTariffConfig = (newConfig: TariffConfig, reason?: string) => {
+    const nowIso = new Date().toISOString();
+    const newVersionNumber = tariffVersions.length + 1;
+    const newVersionId = `tar-v${newVersionNumber}-${Date.now()}`;
+
+    // Cerrar vigencia de la versión previa activa
+    const updatedVersions = tariffVersions.map((v) =>
+      !v.effectiveUntil ? { ...v, effectiveUntil: nowIso } : v
+    );
+
+    const newVersion: TariffVersion = {
+      id: newVersionId,
+      versionNumber: newVersionNumber,
+      effectiveFrom: nowIso,
+      billingModel: newConfig.billingModel,
+      taxDocumentType: newConfig.taxDocumentType,
+      gracePeriodMinutes: newConfig.gracePeriodMinutes,
+      nightSurchargePercent: newConfig.nightSurchargePercent,
+      weekendSurchargePercent: newConfig.weekendSurchargePercent,
+      vehicleRates: newConfig.vehicleRates,
+      subsequentTrancheRates: newConfig.subsequentTrancheRates,
+      createdBy: user.name,
+      reason: reason || 'Actualización de tarifa autorizada por Administración',
+    };
+
+    const finalVersions = [...updatedVersions, newVersion];
+    setTariffVersions(finalVersions);
+    localStorage.setItem('cordano_tariff_versions', JSON.stringify(finalVersions));
+    cordanoOfflineDB.saveTariffVersion(newVersion).catch(console.warn);
+
+    const configWithActiveVersion = {
+      ...newConfig,
+      activeVersionId: newVersionId,
+    };
+    setTariffConfig(configWithActiveVersion);
+    localStorage.setItem(STORAGE_KEYS.TARIFF, JSON.stringify(configWithActiveVersion));
+
     addAuditLog(
       'CAMBIO_TARIFA',
-      `Configuración de tarifas modificada por ${user.name}. Período de gracia: ${newConfig.gracePeriodMinutes}m, Multa ticket perdido: $${newConfig.lostTicketFee.toLocaleString('es-CL')}`,
+      `Nueva versión tarifaria inmutable v${newVersionNumber} publicada por ${user.name}. Modalidad: ${newConfig.billingModel}, Gracia: ${newConfig.gracePeriodMinutes}m, DTE: Boleta Tipo ${newConfig.taxDocumentType}. Los vehículos activos en patio conservan su tarifa congelada.`,
       'warning'
     );
   };
@@ -1074,6 +1374,14 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
   ): CashMovement => {
     if (amount <= 0) {
       throw new Error('El monto del movimiento debe ser superior a $0 CLP');
+    }
+
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('Caja Bloqueada: No se pueden registrar movimientos de efectivo sin un turno activo.');
+    }
+
+    if (currentShift.operatorId && user.id !== currentShift.operatorId && user.name !== currentShift.operatorName) {
+      throw new Error(`Acceso Restringido: Solo el titular del turno (${currentShift.operatorName}) puede registrar movimientos de efectivo en gaveta.`);
     }
 
     const newMovement: CashMovement = {
@@ -1174,6 +1482,14 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     handoverInfo?: { transferredVehiclesCount: number; forcedExitVehiclesCount: number },
     supervisorName?: string
   ): Shift => {
+    if (!currentShift || currentShift.status !== 'abierto') {
+      throw new Error('No hay un turno abierto para cerrar.');
+    }
+
+    if (currentShift.operatorId && user.id !== currentShift.operatorId && user.name !== currentShift.operatorName && user.role !== 'administrador') {
+      throw new Error(`Acceso Restringido: Solo el titular del turno (${currentShift.operatorName}) puede realizar el arqueo y cierre.`);
+    }
+
     // Calculate expected totals from paid tickets in current shift
     const paidTickets = tickets.filter((t) => t.status === 'pagado');
     const cashTickets = paidTickets
@@ -1205,12 +1521,15 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
     const discrepancyTotal = totalDeclared - totalExpected;
     const isDiscrepancyFlagged = Math.abs(discrepancyCash) > cashToleranceClp;
 
+    // Generación de Resumen de Ventas Diarias (RVD) legal para el SII
+    const rvd = generateDailySalesReportRVD(currentShift, paidTickets);
+    setDailyRvd(rvd);
+
     const auditHash = `CPMS-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
     const closedShift: Shift = {
       ...currentShift,
-      
-        endTime: new Date().toISOString(),
+      endTime: new Date().toISOString(),
       declaredCash,
       declaredCard,
       declaredTransfer,
@@ -1226,16 +1545,20 @@ export const ParkingProvider: React.FC<{ children: ReactNode }> = ({ children })
       supervisorName: supervisorName || (supervisorPin ? 'Supervisor Autorizante' : undefined),
       transferredVehiclesCount: handoverInfo?.transferredVehiclesCount ?? 0,
       forcedExitVehiclesCount: handoverInfo?.forcedExitVehiclesCount ?? 0,
-      
       status: 'cerrado',
-totalTicketsProcessed: paidTickets.length,
+      totalTicketsProcessed: paidTickets.length,
       signedCopy1Caja: true,
       signedCopy2Operador: false,
       offlineSyncStatus: isOffline ? 'pending_sync' : 'synced',
       hashAuditoria: auditHash,
+      hash: auditHash,
+      rvdStatus: 'emitido',
+      rvdFolio: rvd.folioRvd,
+      rvdSummaryXml: rvd.xmlRvd,
     };
 
     setCurrentShift(closedShift);
+    cordanoOfflineDB.saveShift(closedShift).catch(console.warn);
 
     // Persist in local storage history array
     try {
@@ -1258,7 +1581,7 @@ totalTicketsProcessed: paidTickets.length,
 
     addAuditLog(
       'CIERRE_CAJA_CIEGO',
-      `Cierre de caja ciego procesado por ${user.name}. Declarado: $${totalDeclared.toLocaleString('es-CL')} | Esperado: $${totalExpected.toLocaleString('es-CL')} (Diferencia: $${discrepancyTotal.toLocaleString('es-CL')} CLP)${isDiscrepancyFlagged ? ' [DESCUADRADO > $2.000 CLP]' : ''}${justification ? ` - Justificación: ${justification}` : ''}`,
+      `Cierre de caja ciego procesado por ${user.name}. Declarado: $${totalDeclared.toLocaleString('es-CL')} | Esperado: $${totalExpected.toLocaleString('es-CL')} (Diferencia: $${discrepancyTotal.toLocaleString('es-CL')} CLP). RVD Folio: ${rvd.folioRvd}${isDiscrepancyFlagged ? ' [DESCUADRADO > $2.000 CLP]' : ''}${justification ? ` - Justificación: ${justification}` : ''}`,
       isDiscrepancyFlagged ? 'critical' : discrepancyTotal !== 0 ? 'warning' : 'info',
       supervisorPin ? `Supervisor (${supervisorName || 'PIN Verificado'})` : undefined
     );
@@ -1284,13 +1607,14 @@ totalTicketsProcessed: paidTickets.length,
     );
   };
 
-  const openNewShift = (initialCash: number, breakdown?: ChileanCashBreakdown) => {
+  const openNewShift = (initialCash: number = 50000, breakdown?: ChileanCashBreakdown) => {
+    const validatedInitialCash = initialCash > 0 ? initialCash : 50000;
     const newShift: Shift = {
       id: `SHIFT-${Math.floor(1000 + Math.random() * 9000)}`,
       operatorId: user.id,
       operatorName: user.name,
       startTime: new Date().toISOString(),
-      initialCash,
+      initialCash: validatedInitialCash,
       initialCashBreakdown: breakdown,
       cashMovements: [],
       status: 'abierto',
@@ -1303,18 +1627,48 @@ totalTicketsProcessed: paidTickets.length,
 
     setCurrentShift(newShift);
     persistToFirestore(COLLECTIONS.SHIFTS, newShift.id, newShift);
+    cordanoOfflineDB.saveShift(newShift).catch(console.warn);
 
     addAuditLog(
       'APERTURA_TURNO',
-      `Nuevo turno iniciado (${newShift.id}) por ${user.name} con fondo inicial de $${initialCash.toLocaleString('es-CL')} CLP`
+      `Nuevo turno iniciado (${newShift.id}) por ${user.name} con fondo inicial de $ ${validatedInitialCash.toLocaleString('es-CL')} CLP`
     );
+  };
+
+  // Hardware thermal printing
+  const printEntryTicket = async (ticket: Ticket): Promise<boolean> => {
+    try {
+      const bytes = EscPosDriver.buildEntryTicketBytes(ticket);
+      return await EscPosDriver.printViaWebSerial(bytes);
+    } catch {
+      return false;
+    }
+  };
+
+  const printFiscalReceipt = async (ticket: Ticket): Promise<boolean> => {
+    try {
+      const fiscalDoc = emitFiscalDte(ticket, ticket.dteType || tariffConfig.taxDocumentType);
+      const bytes = EscPosDriver.buildFiscalReceiptBytes(fiscalDoc);
+      return await EscPosDriver.printViaWebSerial(bytes);
+    } catch {
+      return false;
+    }
+  };
+
+  const generateRvdReport = (): DailySalesReportRVD => {
+    const paidTickets = tickets.filter((t) => t.status === 'pagado');
+    const report = generateDailySalesReportRVD(currentShift, paidTickets);
+    setDailyRvd(report);
+    return report;
   };
 
   return (
     <ParkingContext.Provider
       value={{
         user,
+        setUser,
         setUserRole,
+        hasPermission,
         isLoggedIn,
         setIsLoggedIn,
         logout,
@@ -1326,16 +1680,23 @@ totalTicketsProcessed: paidTickets.length,
         tickets,
         customers,
         currentShift,
+        isShiftOpen,
+        isShiftOwner,
+        isViewerOnly,
         tariffConfig,
+        tariffVersions,
+        activeTariffVersion,
         auditLogs,
         isOffline,
         setIsOffline,
         isFirebaseConnected,
         syncQueueCount,
-          pendingApprovals,
-          addPendingApproval,
-          resolvePendingApproval,
+        pendingApprovals,
+        addPendingApproval,
+        resolvePendingApproval,
         cashToleranceClp,
+        keyboardShortcutsEnabled,
+        setKeyboardShortcutsEnabled,
         checklistTasks,
         isChecklistModalOpen,
         setIsChecklistModalOpen,
@@ -1353,6 +1714,7 @@ totalTicketsProcessed: paidTickets.length,
         deleteAgreement,
         registerEntry,
         assignSlotToTicket,
+        moveOrSwapVehicleSlot,
         calculateFee,
         processPayment,
         cancelTicket,
@@ -1364,6 +1726,10 @@ totalTicketsProcessed: paidTickets.length,
         addAuditLog,
         openNewShift,
         signShiftCopy,
+        printEntryTicket,
+        printFiscalReceipt,
+        dailyRvd,
+        generateRvdReport,
       }}
     >
       {children}

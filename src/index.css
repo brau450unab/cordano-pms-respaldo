@@ -188,6 +188,27 @@
   animation: fadeInUp 0.22s var(--ease-smooth) both;
 }
 
+/* Carrusel continuo sin cortes (Show Reel Infinito) */
+@keyframes marqueeContinuous {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-carousel-infinite {
+  display: flex;
+  width: max-content;
+  animation: marqueeContinuous 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-carousel-infinite:hover {
+  animation-play-state: paused;
+}
+
 /* Scrollbar refinado */
 ::-webkit-scrollbar {
   width: 5px;
@@ -226,4 +247,307 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
     font-variant-numeric: tabular-nums !important;
     font-feature-settings: "tnum" 1 !important;
+}
+
+/* ── TEMAS DE USUARIO (ÁMBITO INTERIOR EXCLUSIVO) ── */
+/* El espacio de trabajo interior recibe [data-user-theme]. La landing page NUNCA se ve afectada. */
+
+/* 1. MODO OSCURO (GARITA NOCTURNA) */
+[data-user-theme="dark"] {
+  --surface-app:     #1E1E2F;
+  --surface-base:    #2D2D44;
+  --surface-raised:  #2D2D44;
+  --surface-sunken:  #141420;
+  --surface-dark:    #0F0F1A;
+  --surface-overlay: rgba(15, 15, 26, 0.85);
+
+  --border-subtle:   #3B3B54;
+  --border-default:  #4A4A68;
+  --border-strong:   #606082;
+  --border-dark:     #2D2D44;
+
+  --text-primary:    #F8FAFC;
+  --text-secondary:  #CBD5E1;
+  --text-tertiary:   #94A3B8;
+  --text-inverted:   #1E1E2F;
+
+  --accent-primary:  #E2498A;
+
+  background-color: #1E1E2F !important;
+  color: #F8FAFC !important;
+}
+
+/* Base Surfaces & Containers */
+[data-user-theme="dark"] #view-settings,
+[data-user-theme="dark"] #view-menu,
+[data-user-theme="dark"] #view-reports,
+[data-user-theme="dark"] #view-pos,
+[data-user-theme="dark"] #view-clients,
+[data-user-theme="dark"] #view-map,
+[data-user-theme="dark"] aside,
+[data-user-theme="dark"] nav,
+[data-user-theme="dark"] header,
+[data-user-theme="dark"] [class*="bg-white"],
+[data-user-theme="dark"] [class*="bg-[#FFFFFF]"],
+[data-user-theme="dark"] [class*="bg-[#F8FAFC]"],
+[data-user-theme="dark"] [class*="bg-[#FEF9F5]"],
+[data-user-theme="dark"] [class*="bg-[#FFF5F8]"],
+[data-user-theme="dark"] [class*="bg-[#FDF1EC]"],
+[data-user-theme="dark"] [class*="bg-[#F1F5F9]"] {
+  background-color: #2D2D44 !important;
+  color: #F8FAFC !important;
+  border-color: #4A4A68 !important;
+}
+
+/* Inner / Sunken Sub-surfaces & Sub-cards */
+[data-user-theme="dark"] [class*="bg-slate-50"],
+[data-user-theme="dark"] [class*="bg-slate-100"],
+[data-user-theme="dark"] [class*="bg-gray-50"],
+[data-user-theme="dark"] [class*="bg-gray-100"] {
+  background-color: #1E1E2F !important;
+  color: #F8FAFC !important;
+  border-color: #3B3B54 !important;
+}
+
+/* Neutral Pills, Tooltip Question Marks, and Slate Badges */
+[data-user-theme="dark"] [class*="bg-slate-200"],
+[data-user-theme="dark"] [class*="bg-slate-300"] {
+  background-color: #3B3B54 !important;
+  color: #E2E8F0 !important;
+  border-color: #4A4A68 !important;
+}
+
+/* Semantic Alert / Badge Backgrounds (Translucent dark tints instead of blinding light boxes) */
+[data-user-theme="dark"] [class*="bg-blue-50"],
+[data-user-theme="dark"] [class*="bg-blue-100"] {
+  background-color: rgba(30, 58, 138, 0.35) !important;
+  border-color: rgba(96, 165, 250, 0.4) !important;
+  color: #93C5FD !important;
+}
+
+[data-user-theme="dark"] [class*="bg-purple-50"],
+[data-user-theme="dark"] [class*="bg-purple-100"] {
+  background-color: rgba(88, 28, 135, 0.35) !important;
+  border-color: rgba(192, 132, 252, 0.4) !important;
+  color: #D8B4FE !important;
+}
+
+[data-user-theme="dark"] [class*="bg-amber-50"],
+[data-user-theme="dark"] [class*="bg-amber-100"] {
+  background-color: rgba(120, 53, 15, 0.35) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  color: #FCD34D !important;
+}
+
+[data-user-theme="dark"] [class*="bg-emerald-50"],
+[data-user-theme="dark"] [class*="bg-emerald-100"] {
+  background-color: rgba(6, 78, 59, 0.35) !important;
+  border-color: rgba(52, 211, 153, 0.4) !important;
+  color: #6EE7B7 !important;
+}
+
+[data-user-theme="dark"] [class*="bg-rose-50"],
+[data-user-theme="dark"] [class*="bg-rose-100"] {
+  background-color: rgba(136, 19, 55, 0.35) !important;
+  border-color: rgba(251, 113, 133, 0.4) !important;
+  color: #FDA4AF !important;
+}
+
+[data-user-theme="dark"] [class*="bg-pink-50"],
+[data-user-theme="dark"] [class*="bg-pink-100"] {
+  background-color: rgba(131, 24, 67, 0.35) !important;
+  border-color: rgba(244, 114, 182, 0.4) !important;
+  color: #F472B6 !important;
+}
+
+/* ── BULLETPROOF TYPOGRAPHY CONTRAST IN DARK MODE ── */
+
+/* 1. Main Headings & High-Emphasis Titles */
+[data-user-theme="dark"] h1,
+[data-user-theme="dark"] h2,
+[data-user-theme="dark"] h3,
+[data-user-theme="dark"] h4,
+[data-user-theme="dark"] h5,
+[data-user-theme="dark"] h6,
+[data-user-theme="dark"] .brand-text,
+[data-user-theme="dark"] .font-display,
+[data-user-theme="dark"] .text-slate-900,
+[data-user-theme="dark"] .text-slate-800,
+[data-user-theme="dark"] .text-gray-900,
+[data-user-theme="dark"] .text-gray-800,
+[data-user-theme="dark"] .text-black,
+[data-user-theme="dark"] [class*="text-[#1E1E2F]"],
+[data-user-theme="dark"] [class*="text-[#2C1338]"] {
+  color: #F8FAFC !important;
+}
+
+/* 2. Secondary Text, Body Labels & Form Labels */
+[data-user-theme="dark"] label,
+[data-user-theme="dark"] .text-slate-700,
+[data-user-theme="dark"] .text-slate-600,
+[data-user-theme="dark"] .text-gray-700,
+[data-user-theme="dark"] .text-gray-600 {
+  color: #E2E8F0 !important;
+}
+
+/* 3. Descriptions, Subtitles & Muted Metadata */
+[data-user-theme="dark"] .text-slate-500,
+[data-user-theme="dark"] .text-slate-400,
+[data-user-theme="dark"] .text-gray-500,
+[data-user-theme="dark"] .text-gray-400,
+[data-user-theme="dark"] [class*="text-[#64748B]"] {
+  color: #94A3B8 !important;
+}
+
+/* 4. Semantic Color Tone Balancing for Dark Backgrounds */
+[data-user-theme="dark"] .text-purple-950,
+[data-user-theme="dark"] .text-purple-900,
+[data-user-theme="dark"] .text-purple-800,
+[data-user-theme="dark"] .text-purple-700 {
+  color: #D8B4FE !important;
+}
+
+[data-user-theme="dark"] .text-blue-950,
+[data-user-theme="dark"] .text-blue-900,
+[data-user-theme="dark"] .text-blue-800,
+[data-user-theme="dark"] .text-blue-700 {
+  color: #93C5FD !important;
+}
+
+[data-user-theme="dark"] .text-amber-950,
+[data-user-theme="dark"] .text-amber-900,
+[data-user-theme="dark"] .text-amber-800 {
+  color: #FCD34D !important;
+}
+
+[data-user-theme="dark"] .text-emerald-950,
+[data-user-theme="dark"] .text-emerald-900,
+[data-user-theme="dark"] .text-emerald-800,
+[data-user-theme="dark"] .text-emerald-700 {
+  color: #6EE7B7 !important;
+}
+
+[data-user-theme="dark"] .text-rose-950,
+[data-user-theme="dark"] .text-rose-900,
+[data-user-theme="dark"] .text-rose-800,
+[data-user-theme="dark"] .text-rose-700 {
+  color: #FDA4AF !important;
+}
+
+/* 5. Tables & Grids */
+[data-user-theme="dark"] table thead tr,
+[data-user-theme="dark"] table th {
+  background-color: #1E1E2F !important;
+  color: #CBD5E1 !important;
+  border-color: #3B3B54 !important;
+}
+
+[data-user-theme="dark"] table td {
+  border-color: #3B3B54 !important;
+  color: #F8FAFC;
+}
+
+[data-user-theme="dark"] table tr:hover,
+[data-user-theme="dark"] [class*="hover:bg-slate-50"]:hover,
+[data-user-theme="dark"] [class*="hover:bg-slate-100"]:hover {
+  background-color: #383856 !important;
+}
+
+[data-user-theme="dark"] [class*="divide-slate"],
+[data-user-theme="dark"] [class*="divide-gray"] {
+  border-color: #3B3B54 !important;
+}
+
+/* 6. Form Controls, Inputs & Selects */
+[data-user-theme="dark"] input,
+[data-user-theme="dark"] select,
+[data-user-theme="dark"] textarea {
+  background-color: #1E1E2F !important;
+  color: #F8FAFC !important;
+  border-color: #4A4A68 !important;
+}
+
+[data-user-theme="dark"] input::placeholder,
+[data-user-theme="dark"] textarea::placeholder {
+  color: #64748B !important;
+}
+
+[data-user-theme="dark"] select option {
+  background-color: #1E1E2F !important;
+  color: #F8FAFC !important;
+}
+
+/* 7. Chilean License Plate Chip (Preserve crisp white plate with dark typography) */
+[data-user-theme="dark"] .license-plate-chip {
+  background-color: #FFFFFF !important;
+  color: #1E1E2F !important;
+  border: 1.5px solid #CBD5E1 !important;
+}
+
+/* 8. KBD and Keyboard Badges */
+[data-user-theme="dark"] .kbd-chip {
+  background-color: #1E1E2F !important;
+  border-color: #4A4A68 !important;
+  color: #CBD5E1 !important;
+}
+
+/* 9. Universal Border Consistency */
+[data-user-theme="dark"] [class*="border-slate-100"],
+[data-user-theme="dark"] [class*="border-slate-200"],
+[data-user-theme="dark"] [class*="border-slate-300"],
+[data-user-theme="dark"] [class*="border-gray-100"],
+[data-user-theme="dark"] [class*="border-gray-200"],
+[data-user-theme="dark"] [class*="border-[#E2E8F0]"],
+[data-user-theme="dark"] [class*="border-[#E5DBDF]"],
+[data-user-theme="dark"] [class*="border-[#EDE4E2]"] {
+  border-color: #3B3B54 !important;
+}
+
+/* 2. TEMA ALTERNATIVO OCÉANO (SLATE BLUE / NAVY) */
+[data-user-theme="ocean"] {
+  --surface-app:     #F0F4F8;
+  --surface-base:    #FFFFFF;
+  --surface-raised:  #FFFFFF;
+  --surface-sunken:  #E2E8F0;
+  --surface-dark:    #0F172A;
+  --surface-overlay: rgba(15, 23, 42, 0.7);
+
+  --border-subtle:   #E2E8F0;
+  --border-default:  #CBD5E1;
+  --border-strong:   #94A3B8;
+  --border-dark:     #1E293B;
+
+  --text-primary:    #0F172A;
+  --text-secondary:  #334155;
+  --text-tertiary:   #64748B;
+  --text-inverted:   #FFFFFF;
+
+  --accent-primary:  #2563EB;
+
+  background-color: #F0F4F8 !important;
+}
+
+[data-user-theme="ocean"] [class*="bg-[#E2498A]"] {
+  background-color: #2563EB !important;
+}
+
+[data-user-theme="ocean"] [class*="text-[#E2498A]"] {
+  color: #2563EB !important;
+}
+
+[data-user-theme="ocean"] [class*="border-[#E2498A]"] {
+  border-color: #2563EB !important;
+}
+
+/* ── MODO TABLET (ACCESIBILIDAD Y PANTALLA TÁCTIL) ── */
+html.tablet-mode button,
+html.tablet-mode input,
+html.tablet-mode select,
+html.tablet-mode a {
+  min-height: 44px;
+}
+
+html.tablet-mode .touch-target {
+  min-height: 48px;
+  min-width: 48px;
 }

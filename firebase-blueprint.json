@@ -2,89 +2,114 @@
   "entities": {
     "Ticket": {
       "title": "Ticket",
-      "description": "Registro de ingreso, permanencia y cobro de un vehículo",
+      "description": "Registro transaccional de estadía conforme a Ley N° 20.967 (gracia de 15 min, sin multas punitivas)",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "ticketNumber": { "type": "string" },
+        "ticketCode": { "type": "string" },
         "plateNumber": { "type": "string" },
-        "vehicleType": { "type": "string" },
+        "vehicleType": { "type": "string", "enum": ["Automóvil", "Camioneta", "Motocicleta", "Furgón / SUV"] },
         "slotCode": { "type": "string" },
         "entryTime": { "type": "string" },
         "exitTime": { "type": "string" },
-        "status": { "type": "string", "enum": ["activo", "pagado", "fuga", "anulado"] },
-        "appliedRateType": { "type": "string" },
+        "status": { "type": "string", "enum": ["activo", "pagado", "anulado"] },
+        "durationMinutes": { "type": "number" },
+        "subtotalAmount": { "type": "number" },
+        "discountAmount": { "type": "number" },
+        "discountReason": { "type": "string" },
+        "isLostTicket": { "type": "boolean" },
+        "isLostTicketResolvedByPlate": { "type": "boolean" },
         "totalAmount": { "type": "number" },
         "paidAmount": { "type": "number" },
-        "paymentMethod": { "type": "string" },
-        "operatorId": { "type": "string" },
-        "notes": { "type": "string" },
-        "isExempt": { "type": "boolean" },
-        "shiftId": { "type": "string" }
+        "changeAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["efectivo", "tarjeta_debito", "tarjeta_credito", "transferencia", "convenio"] },
+        "tariffVersionId": { "type": "string" },
+        "operatorEntryName": { "type": "string" },
+        "operatorExitName": { "type": "string" },
+        "voucherNumber": { "type": "string" },
+        "dteFolio": { "type": "string" },
+        "dteType": { "type": "number", "enum": [39, 41] },
+        "tedXml": { "type": "string" }
       },
-      "required": ["id", "ticketNumber", "plateNumber", "vehicleType", "slotCode", "entryTime", "status"]
+      "required": ["id", "ticketCode", "plateNumber", "vehicleType", "slotCode", "entryTime", "status", "operatorEntryName"]
     },
     "Shift": {
       "title": "Shift",
-      "description": "Turno de caja operativa, fondo de cambio y arqueo ciego",
+      "description": "Control de turno operativo de garita: fondo inicial de $ 50.000 CLP, arqueo ciego en 3 pasos y sello SHA-256",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "shiftNumber": { "type": "number" },
         "operatorId": { "type": "string" },
         "operatorName": { "type": "string" },
-        "openedAt": { "type": "string" },
-        "closedAt": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
         "status": { "type": "string", "enum": ["abierto", "cerrado"] },
-        "initialCashFloat": { "type": "number" },
+        "initialCash": { "type": "number", "default": 50000 },
+        "initialCashBreakdown": { "type": "object" },
         "declaredCash": { "type": "number" },
-        "theoreticalCash": { "type": "number" },
-        "declaredDigital": { "type": "number" },
-        "discrepancy": { "type": "number" },
+        "declaredCard": { "type": "number" },
+        "declaredTransfer": { "type": "number" },
+        "declaredCashBreakdown": { "type": "object" },
+        "handoverFundAmount": { "type": "number" },
+        "expectedCash": { "type": "number" },
+        "expectedCard": { "type": "number" },
+        "expectedTransfer": { "type": "number" },
+        "expectedTotal": { "type": "number" },
+        "totalDifference": { "type": "number" },
+        "discrepancyCash": { "type": "number" },
+        "isDiscrepancyFlagged": { "type": "boolean" },
         "closeJustification": { "type": "string" },
-        "transferredVehiclesCount": { "type": "number" },
-        "hashAuditoria": { "type": "string" }
+        "hash": { "type": "string" },
+        "hashAuditoria": { "type": "string" },
+        "authorizedBySupervisorPin": { "type": "string" },
+        "supervisorName": { "type": "string" },
+        "pendingApprovals": { "type": "array" },
+        "signedCopy1Caja": { "type": "boolean" },
+        "signedCopy2Operador": { "type": "boolean" },
+        "checklistCompleted": { "type": "boolean" }
       },
-      "required": ["id", "operatorId", "operatorName", "openedAt", "status", "initialCashFloat"]
+      "required": ["id", "operatorId", "operatorName", "startTime", "initialCash", "status"]
     },
     "ParkingSlot": {
       "title": "ParkingSlot",
-      "description": "Estado de ocupación de cada uno de los 32 slots de estacionamiento",
+      "description": "Distribución física de las 30 plazas exactas de Serrano 447 (Sector A: 01-15 techado, Sector B: 16-30 general)",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "code": { "type": "string" },
-        "sector": { "type": "string" },
-        "vehicleType": { "type": "string" },
+        "zone": { "type": "string", "enum": ["Zona A (Techado)", "Zona B (General)", "Zona C (Preferencial)"] },
         "status": { "type": "string", "enum": ["disponible", "ocupado", "reservado", "mantenimiento"] },
         "currentTicketId": { "type": "string" },
-        "currentPlate": { "type": "string" }
+        "occupiedSince": { "type": "string" },
+        "plateNumber": { "type": "string" }
       },
-      "required": ["id", "code", "sector", "status"]
+      "required": ["id", "code", "zone", "status"]
     },
     "Agreement": {
       "title": "Agreement",
-      "description": "Convenios corporativos y abonados mensuales de vehículos",
+      "description": "Convenios corporativos y abonados mensuales en recinto Serrano 447",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "plateNumber": { "type": "string" },
-        "agreementType": { "type": "string" },
+        "plates": { "type": "array", "items": { "type": "string" } },
         "companyName": { "type": "string" },
         "contactName": { "type": "string" },
         "rutCompany": { "type": "string" },
         "phone": { "type": "string" },
         "email": { "type": "string" },
-        "monthlyRate": { "type": "number" },
+        "agreementType": { "type": "string", "enum": ["Convenio Mensual", "Convenio Comercial", "Convenio Empresa", "Servicio Nocturno"] },
+        "monthlyFeeClp": { "type": "number" },
         "validUntil": { "type": "string" },
         "status": { "type": "string", "enum": ["al_dia", "por_vencer", "vencido"] },
-        "notes": { "type": "string" }
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" }
       },
-      "required": ["id", "plateNumber", "agreementType", "companyName", "validUntil", "status"]
+      "required": ["id", "plateNumber", "companyName", "agreementType", "monthlyFeeClp", "validUntil", "status"]
     },
     "CashMovement": {
       "title": "CashMovement",
-      "description": "Retiros parciales de efectivo (sangrías) o gastos menores",
+      "description": "Movimientos de efectivo en turno: sangrías, retiros justificados o ingresos",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
@@ -93,55 +118,62 @@
         "amount": { "type": "number" },
         "reason": { "type": "string" },
         "operatorId": { "type": "string" },
+        "operatorName": { "type": "string" },
         "timestamp": { "type": "string" },
-        "voucherFolio": { "type": "string" }
+        "voucherFolio": { "type": "string" },
+        "authorizedBySupervisor": { "type": "string" }
       },
-      "required": ["id", "shiftId", "type", "amount", "reason", "timestamp"]
+      "required": ["id", "shiftId", "type", "amount", "reason", "operatorId", "timestamp"]
     },
     "AuditLog": {
       "title": "AuditLog",
-      "description": "Registro inmutable de auditoría con sello SHA-256",
+      "description": "Registro append-only inmutable de incidencias operativas y aprobaciones express diferidas",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "timestamp": { "type": "string" },
-        "event": { "type": "string" },
-        "operatorId": { "type": "string" },
-        "operatorName": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string" },
         "details": { "type": "string" },
-        "hash": { "type": "string" }
+        "severity": { "type": "string", "enum": ["info", "warning", "critical"] },
+        "authorizedBy": { "type": "string" }
       },
-      "required": ["id", "timestamp", "event", "operatorId", "operatorName", "details"]
+      "required": ["id", "timestamp", "userId", "userName", "action", "details", "severity"]
     }
   },
   "firestore": {
     "/tickets/{ticketId}": {
       "schema": "Ticket",
-      "description": "Colección de tickets de estacionamiento"
+      "description": "Colección de tickets de estacionamiento regulados por Ley 20.967"
     },
     "/shifts/{shiftId}": {
       "schema": "Shift",
-      "description": "Colección de turnos y arqueos de caja"
+      "description": "Colección de turnos y arqueos ciegos con sello SHA-256"
     },
     "/slots/{slotId}": {
       "schema": "ParkingSlot",
-      "description": "Colección de los 32 slots de estacionamiento"
+      "description": "Colección de las 30 plazas físicas de Serrano 447"
     },
     "/agreements/{agreementId}": {
       "schema": "Agreement",
-      "description": "Colección de abonados y convenios comerciales"
+      "description": "Colección de convenios y abonados mensuales"
     },
     "/cash_movements/{movementId}": {
       "schema": "CashMovement",
-      "description": "Colección de sangrías y gastos de turnos"
+      "description": "Colección de sangrías y gastos operativos de caja"
     },
     "/audit_logs/{logId}": {
       "schema": "AuditLog",
-      "description": "Colección inmutable de registros de auditoría"
+      "description": "Bitácora inalterable append-only con validación de supervisor"
     },
     "/settings/{settingId}": {
       "schema": "object",
-      "description": "Configuración de tarifas y parámetros operativos de garita"
+      "description": "Parámetros del recinto, tarifas y tolerancias normativas"
+    },
+    "/customers/{customerId}": {
+      "schema": "object",
+      "description": "Directorio de clientes frecuentes y convenios asociados"
     }
   }
 }

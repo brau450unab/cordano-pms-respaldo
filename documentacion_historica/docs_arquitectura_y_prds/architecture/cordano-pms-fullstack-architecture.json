@@ -1,0 +1,262 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Cordano PMS — Arquitectura de Frontend y Backend",
+    "output": "cordano-pms-fullstack-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "full-flow",
+        "label": "Flujo Operativo Completo",
+        "focus": ["op-garita", "fe-landing-pos", "cloud-run-gateway", "backend-api", "db-firestore"],
+        "note": "Traza desde la acción física en garita hasta la persistencia final en la base de datos."
+      },
+      {
+        "id": "offline-resilience",
+        "label": "Resiliencia Offline-First",
+        "focus": ["op-garita", "fe-matrix", "fe-offline-db", "backend-api"],
+        "note": "Aislamiento de la cola local SQLite/IndexedDB ante contingencias de conectividad."
+      },
+      {
+        "id": "ai-multimodal",
+        "label": "Auditoría e IA Multimodal",
+        "focus": ["backend-api", "gemini-ai", "db-firestore", "gcs-storage"],
+        "note": "Inspección de patentes LPR y cuadratura criptográfica de arqueos con Gemini."
+      }
+    ],
+    "viewBox": [1240, 660]
+  },
+  "components": [
+    {
+      "id": "op-garita",
+      "type": "external",
+      "label": "Garita Serrano 447",
+      "sublabel": "Periféricos & Operador",
+      "tag": "ESC/POS + LPR 2D",
+      "pos": [60, 260],
+      "size": [160, 66]
+    },
+    {
+      "id": "fe-offline-db",
+      "type": "database",
+      "label": "Almacenamiento Local",
+      "sublabel": "IndexedDB / SQLite PWA",
+      "tag": "Tickets -O",
+      "brand": "sqlite",
+      "pos": [60, 440],
+      "size": [160, 66]
+    },
+    {
+      "id": "fe-landing-pos",
+      "type": "frontend",
+      "label": "Portal Web & POS",
+      "sublabel": "Landing / Turnos / Cobro",
+      "tag": "Keyboard-First F1-F9",
+      "brand": "react",
+      "pos": [350, 180],
+      "size": [170, 68]
+    },
+    {
+      "id": "fe-matrix",
+      "type": "frontend",
+      "label": "Matriz 30 Bahías",
+      "sublabel": "Canvas SVG Tiempo Real",
+      "tag": "Sectores A (15) y B (15)",
+      "pos": [350, 360],
+      "size": [170, 68]
+    },
+    {
+      "id": "cloud-run-gateway",
+      "type": "cloud",
+      "label": "Cloud Run Gateway",
+      "sublabel": "cordanopms.ai.studio :8080",
+      "tag": "HTTPS / WSS Ingress",
+      "brand": "google-cloud",
+      "pos": [640, 180],
+      "size": [180, 68]
+    },
+    {
+      "id": "backend-api",
+      "type": "backend",
+      "label": "Core API & Tarifas",
+      "sublabel": "Node.js 20 Microservicio",
+      "tag": "6 Endpoints REST",
+      "pos": [640, 360],
+      "size": [180, 68]
+    },
+    {
+      "id": "gemini-ai",
+      "type": "backend",
+      "label": "Motor IA Gemini",
+      "sublabel": "LPR OCR & Auditoría",
+      "tag": "Gemini 2.0 / 2.5",
+      "brand": "google-gemini",
+      "pos": [640, 520],
+      "size": [180, 68]
+    },
+    {
+      "id": "git-ci-cd",
+      "type": "external",
+      "label": "GitHub & Cloud Build",
+      "sublabel": "cordano-pms-oficial",
+      "tag": "CI/CD Automático",
+      "brand": "github",
+      "pos": [940, 140],
+      "size": [170, 66]
+    },
+    {
+      "id": "db-firestore",
+      "type": "database",
+      "label": "Cloud Firestore",
+      "sublabel": "NoSQL Base Central",
+      "tag": "Shifts, Tickets & Audit",
+      "brand": "firebase",
+      "pos": [940, 300],
+      "size": [170, 68]
+    },
+    {
+      "id": "gcs-storage",
+      "type": "cloud",
+      "label": "Cloud Storage",
+      "sublabel": "Buckets us-west1",
+      "tag": "PDF Tickets & Artifacts",
+      "brand": "google-cloud",
+      "pos": [940, 460],
+      "size": [170, 68]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "Recinto Físico Garita Serrano 447",
+      "wraps": ["op-garita", "fe-offline-db"]
+    },
+    {
+      "kind": "region",
+      "label": "Frontera Frontend SPA / PWA",
+      "wraps": ["fe-landing-pos", "fe-matrix"]
+    },
+    {
+      "kind": "region",
+      "label": "Frontera Backend Cloud Run (us-west1)",
+      "wraps": ["cloud-run-gateway", "backend-api", "gemini-ai"]
+    },
+    {
+      "kind": "region",
+      "label": "Persistencia Administrada Google Cloud",
+      "wraps": ["db-firestore", "gcs-storage"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "op-to-landing",
+      "from": "op-garita",
+      "to": "fe-landing-pos",
+      "label": "Interacción Garita",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "id": "op-to-matrix",
+      "from": "op-garita",
+      "to": "fe-matrix",
+      "label": "Eventos Bahía",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "matrix-to-offline",
+      "from": "fe-matrix",
+      "to": "fe-offline-db",
+      "label": "Copia Local",
+      "fromSide": "left",
+      "toSide": "right",
+      "variant": "dashed"
+    },
+    {
+      "id": "landing-to-gateway",
+      "from": "fe-landing-pos",
+      "to": "cloud-run-gateway",
+      "label": "HTTPS REST",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gateway-to-api",
+      "from": "cloud-run-gateway",
+      "to": "backend-api",
+      "label": "Proxy Interno",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "api-to-firestore",
+      "from": "backend-api",
+      "to": "db-firestore",
+      "label": "Persistencia NoSQL",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-to-gemini",
+      "from": "backend-api",
+      "to": "gemini-ai",
+      "label": "Inferencia Multimodal",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 24
+    },
+    {
+      "id": "api-to-gcs",
+      "from": "backend-api",
+      "to": "gcs-storage",
+      "label": "Almacén Comprobantes",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "dashed"
+    },
+    {
+      "id": "cicd-to-gateway",
+      "from": "git-ci-cd",
+      "to": "cloud-run-gateway",
+      "label": "Deploy Contenedor",
+      "fromSide": "left",
+      "toSide": "right",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Arquitectura Frontend",
+      "items": [
+        "Vite SPA / Next.js con soporte Offline-First para emisión ininterrumpida de tickets",
+        "Matriz interactiva de 30 bahías (Sector A 01-15 y B 16-30) con actualización <500ms",
+        "Control keyboard-first (F1-F9) y tipografía monoespaciada tabular para valores monetarios"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Arquitectura Backend",
+      "items": [
+        "Microservicio Cloud Run en Node.js 20 con autoescalado administrado en us-west1",
+        "Endpoints de dominio: /checkin, /checkout, /slots, /shifts, /audit y /cloudrun",
+        "Motor de auditoría financiera antifraude con arqueo ciego y firma criptográfica SHA-256"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Datos & Seguridad",
+      "items": [
+        "Google Cloud Firestore NoSQL para tickets, turnos y trazabilidad inmutable",
+        "Inferencia LPR y auditoría documental con modelos Gemini 2.0/2.5",
+        "Segregación estricta de roles: Administradores auditan y operadores recaudan"
+      ]
+    }
+  ]
+}

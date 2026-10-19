@@ -31,9 +31,19 @@ export type TicketStatus = 'activo' | 'pagado' | 'anulado';
 
 export type PaymentMethod = 'efectivo' | 'tarjeta_debito' | 'tarjeta_credito' | 'transferencia' | 'convenio';
 
-export type UserRole = 'operador' | 'administrador';
+export type UserRole = 'operador' | 'supervisor' | 'administrador';
 
 export type TariffType = 'estandar' | 'convenio' | 'mensual' | 'tarifa_plana' | 'especial';
+
+export interface UserPermissions {
+  canOperatePos: boolean; // Generar tickets, realizar cobros de caja
+  canOpenCloseShift: boolean; // Apertura y Arqueo Ciego de turno
+  canViewReports: boolean; // Dashboard de métricas, RevPAS, ventas
+  canViewAudit: boolean; // Bitácora SHA-256, autorizaciones PIN
+  canConfigureSystem: boolean; // Configuración de tarifas (Ley 20.967) y parámetros
+  canManageClients: boolean; // Submódulo de convenios y mensualidades
+  isLiveSupervisorMode: boolean; // Modo solo lectura cuando admin inspecciona garita
+}
 
 export interface User {
   id: string;
@@ -41,6 +51,9 @@ export interface User {
   role: UserRole;
   shiftId: string;
   email?: string;
+  username?: string;
+  rut?: string;
+  permissions?: UserPermissions;
 }
 
 export interface ParkingSlot {
@@ -53,7 +66,7 @@ export interface ParkingSlot {
   plateNumber?: string;
 }
 
-export type AgreementType = 'Convenio Mensual' | 'Convenio Comercial';
+export type AgreementType = 'Convenio Mensual' | 'Convenio Comercial' | 'Convenio Empresa' | 'Servicio Nocturno';
 export type AgreementStatus = 'al_dia' | 'por_vencer' | 'vencido';
 
 export interface Customer {
@@ -70,20 +83,31 @@ export interface Customer {
 
 export interface Agreement {
   id: string;
-  plateNumber: string; // Patente única del vehículo registrada
+  plateNumber: string; // Patente representativa o primera patente
+  plates?: string[]; // Lista de vehículos asociados
   companyName: string; // Empresa o razón social que agrupa el convenio
   rutCompany?: string; // RUT de la empresa
-  contactName: string; // Conductor habitual o contacto
+  contactName: string; // Encargado o conductor habitual
   phone: string;
   email?: string;
   agreementType: AgreementType;
-  monthlyFeeClp: number; // Valor cuota mensual en CLP (ej: $45.000 CLP)
+  monthlyFeeClp: number; // Monto de cobro mensual base (o por vehículo)
+  extraCharges?: number; // Cargos adicionales
+  billingDay?: number; // Día de corte / fecha de pago del mes (1 a 31)
   validUntil: string; // Fecha límite de vigencia (ISO string)
   status: AgreementStatus; // al_dia (verde), por_vencer (amarillo <= 7 días), vencido (rojo)
   lastPaymentDate?: string;
   lastPaymentAmount?: number;
   lastPaymentMethod?: string;
   lastPaymentVoucher?: string;
+  paymentHistory?: {
+    id: string;
+    date: string;
+    amount: number;
+    method: string;
+    voucher?: string;
+  }[];
+  debtBalance?: number; // Saldo de la deuda
   notes?: string;
   createdAt: string;
 }
@@ -102,7 +126,10 @@ export interface Ticket {
   entryTime: string; // ISO date string
   exitTime?: string; // ISO date string
   slotCode: string; // e.g. "A-01" or "SIN_ASIGNAR"
-  tariffType?: 'estandar' | 'especial';
+  tariffType?: TariffType;
+  tariffVersionId?: string; // ID inmutable de la versión de tarifa al momento de ingresar
+  frozenRate?: VehicleRate; // Snapshot inmutable de tarifa para proteger al cliente
+  frozenBillingModel?: BillingModel;
   customerName?: string;
   customerPhone?: string;
   customerEmail?: string;
@@ -113,6 +140,7 @@ export interface Ticket {
   discountAmount?: number;
   discountReason?: string;
   isLostTicket?: boolean;
+  isLostTicketResolvedByPlate?: boolean; // Ley N° 20.967: Resuelto por búsqueda de patente sin multa
   totalAmount?: number;
   paidAmount?: number;
   changeAmount?: number;
@@ -121,6 +149,9 @@ export interface Ticket {
   notes?: string;
   operatorEntryName: string;
   operatorExitName?: string;
+  dteFolio?: string; // Folio Boleta Electrónica SII
+  dteType?: TaxDocumentType; // Tipo 39 o 41
+  tedXml?: string; // Timbre Electrónico DTE (<TED>)
 }
 
 export interface VehicleRate {
@@ -136,13 +167,35 @@ export interface SubscriptionPlan {
   desc: string;
 }
 
+export type BillingModel = 'PER_MINUTE' | 'TRANCHE_30_10';
+export type TaxDocumentType = 39 | 41; // 39: Afecta (19% IVA), 41: Exenta
+
+export interface TariffVersion {
+  id: string;
+  versionNumber: number;
+  effectiveFrom: string; // ISO date
+  effectiveUntil?: string; // ISO date, undefined si activa
+  billingModel: BillingModel;
+  taxDocumentType: TaxDocumentType;
+  gracePeriodMinutes: number;
+  nightSurchargePercent: number;
+  weekendSurchargePercent: number;
+  vehicleRates: Record<VehicleType, VehicleRate>;
+  subsequentTrancheRates?: Record<VehicleType, number>;
+  createdBy: string;
+  reason?: string;
+}
+
 export interface TariffConfig {
-  gracePeriodMinutes: number; // e.g. 10 minutes free
-  lostTicketFee: number; // e.g. 10000 CLP
+  billingModel: BillingModel; // PER_MINUTE o TRANCHE_30_10 (Ley 20.967)
+  taxDocumentType: TaxDocumentType; // 39: Boleta Afecta, 41: Boleta Exenta (SII)
+  gracePeriodMinutes: number; // e.g. 15 minutos libres
   nightSurchargePercent: number; // e.g. 20%
   weekendSurchargePercent: number; // e.g. 15%
   vehicleRates: Record<VehicleType, VehicleRate>;
+  subsequentTrancheRates?: Record<VehicleType, number>; // Tarifa por tramos de 10 min
   subscriptionPlans?: SubscriptionPlan[];
+  activeVersionId?: string;
 }
 
 export interface ChileanCashBreakdown {
@@ -193,6 +246,7 @@ export interface Shift {
   startTime: string; // ISO string
   endTime?: string;
   initialCash: number; // Fondo inicial
+  initialCashDeclared?: number;
   initialCashBreakdown?: ChileanCashBreakdown;
   declaredCash?: number;
   declaredCard?: number;
@@ -225,6 +279,9 @@ export interface Shift {
   checklistCompletedAt?: string;
   lastChecklistSnoozeAt?: string;
   checklistSnoozeMinutes?: number;
+  rvdStatus?: 'pendiente' | 'emitido' | 'enviado_sii';
+  rvdFolio?: string;
+  rvdSummaryXml?: string;
 }
 
 export interface AuditLog {
