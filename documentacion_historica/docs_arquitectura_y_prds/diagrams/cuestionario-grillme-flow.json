@@ -1,0 +1,131 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Ruta de Decision y Cuestionario Grill-Me: ParkOps Cordano",
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "full-flow",
+        "label": "Ruta Completa",
+        "focus": ["etapa1", "etapa2", "etapa3", "etapa4", "etapa5", "etapa6"],
+        "note": "Secuencia de decisiones desde el modelo comercial hasta el despliegue en Cloud Run."
+      },
+      {
+        "id": "operativo-focus",
+        "label": "Foco Operativo Garita",
+        "focus": ["etapa2", "etapa3", "etapa4"],
+        "note": "Alineacion de experiencia POS, atajos keyboard-first y layout 30 plazas."
+      },
+      {
+        "id": "control-focus",
+        "label": "Control y Antifraude",
+        "focus": ["etapa4", "etapa5", "etapa6"],
+        "note": "Cierre ciego por denominacion, bitacora inmutable y Cloud Run."
+      }
+    ],
+    "output": "docs/diagrams/cuestionario-grillme-flow.html"
+  },
+  "lanes": [
+    { "id": "estrategia", "label": "Estrategia & Negocio" },
+    { "id": "ux", "label": "Sistema de Diseno & UX" },
+    { "id": "pos", "label": "Operacion POS Garita" },
+    { "id": "seguridad", "label": "Control & Antifraude" }
+  ],
+  "phases": [
+    { "id": "fundaciones", "label": "1. Fundaciones", "fromCol": 0, "toCol": 1 },
+    { "id": "operativa", "label": "2. Flujo Operativo", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "entrega", "label": "3. Blindaje & Cloud", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["etapa1", "etapa2", "etapa3", "etapa4", "etapa5", "etapa6"],
+  "nodes": [
+    {
+      "id": "etapa1",
+      "lane": "estrategia",
+      "col": 0,
+      "type": "external",
+      "label": "Etapa 1: Negocio & MVP",
+      "sublabel": "Serrano 447 • 30 Plazas",
+      "tag": "Decisiones Base",
+      "width": 184
+    },
+    {
+      "id": "etapa2",
+      "lane": "ux",
+      "col": 1,
+      "type": "frontend",
+      "label": "Etapa 2: Identidad Cordano",
+      "sublabel": "Borgoña + macOS Pathway",
+      "tag": "Tokens & UI",
+      "width": 184
+    },
+    {
+      "id": "etapa3",
+      "lane": "pos",
+      "col": 2,
+      "type": "frontend",
+      "label": "Etapa 3: POS & Check-in",
+      "sublabel": "Keyboard-First <10s",
+      "tag": "Flujo Operador",
+      "width": 184
+    },
+    {
+      "id": "etapa4",
+      "lane": "pos",
+      "col": 3,
+      "type": "backend",
+      "label": "Etapa 4: Layout & Kanban",
+      "sublabel": "2D Serrano 447 + Alertas",
+      "tag": "30 Slots Canónicos",
+      "width": 184
+    },
+    {
+      "id": "etapa5",
+      "lane": "seguridad",
+      "col": 4,
+      "type": "security",
+      "label": "Etapa 5: Caja Ciega & PIN",
+      "sublabel": "Desglose CLP + SHA-256",
+      "tag": "Antifraude Estricto",
+      "width": 184
+    },
+    {
+      "id": "etapa6",
+      "lane": "seguridad",
+      "col": 5,
+      "type": "cloud",
+      "label": "Etapa 6: Cloud Run & PWA",
+      "sublabel": "Offline-First + AI Studio",
+      "tag": "Producción Final",
+      "width": 184
+    }
+  ],
+  "edges": [
+    {
+      "from": "etapa1",
+      "to": "etapa2",
+      "label": "Define alcance"
+    },
+    {
+      "from": "etapa2",
+      "to": "etapa3",
+      "label": "Guia visual"
+    },
+    {
+      "from": "etapa3",
+      "to": "etapa4",
+      "label": "Asigna slots"
+    },
+    {
+      "from": "etapa4",
+      "to": "etapa5",
+      "label": "Consolida cobros"
+    },
+    {
+      "from": "etapa5",
+      "to": "etapa6",
+      "label": "Sella auditoria"
+    }
+  ]
+}

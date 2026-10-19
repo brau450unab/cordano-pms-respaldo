@@ -7,10 +7,6 @@ dist
 .system_generated
 *.log
 documentacion_historica
-.agent/
-.agents/
-.e2e/
-.impeccable/
-tester-army-e2e/
-scratch/
-ai-studio-context/
+tester-army-e2e
+.e2e
+.agent

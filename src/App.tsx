@@ -176,6 +176,13 @@ function MainAppContent() {
     }
   }, [isLoggedIn, user?.role, currentScreen, handleNavigate, showToast]);
 
+  // Auto-navegación si el usuario ya tiene sesión iniciada al entrar a la raíz '/'
+  useEffect(() => {
+    if (isLoggedIn && (window.location.pathname === '/' || window.location.pathname === '') && !window.location.hash) {
+      handleNavigate(user?.role === 'operador' ? 'pos' : 'menu', true);
+    }
+  }, [isLoggedIn, user?.role, handleNavigate]);
+
   // Global Keyboard Shortcuts (Regla de Dominio #1: Ergonomía de Garita)
   useEffect(() => {
     const handlePopState = () => {

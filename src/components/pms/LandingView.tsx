@@ -145,6 +145,36 @@ export const LandingView: React.FC<LandingViewProps> = ({
     onShowToast('Credenciales incorrectas.', 'error');
   };
 
+  const handleQuickLogin = (role: 'cajero' | 'admin') => {
+    if (role === 'admin') {
+      setUsername('braulio@automatizable.cl');
+      setPassword('admin123');
+      setLoginState('loading');
+      setTimeout(() => {
+        setLoginState('idle');
+        setUser(INITIAL_ADMIN);
+        setIsLoggedIn(true);
+        setShowLoginModal(false);
+        onShowToast('Bienvenido, Braulio Cordano (Administrador)', 'success');
+        onNavigate('menu');
+        onLoginSuccess('menu');
+      }, 400);
+    } else {
+      setUsername('cajero@cordano.cl');
+      setPassword('cajero123');
+      setLoginState('loading');
+      setTimeout(() => {
+        setLoginState('idle');
+        setUser(INITIAL_OPERATOR);
+        setIsLoggedIn(true);
+        setShowLoginModal(false);
+        onShowToast('Bienvenido al Turno, Cajero Garita (Operador)', 'success');
+        onNavigate('pos');
+        onLoginSuccess('pos');
+      }, 400);
+    }
+  };
+
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactForm.company.trim()) {
@@ -434,6 +464,28 @@ export const LandingView: React.FC<LandingViewProps> = ({
                 <Lock className="w-4 h-4 text-[#E2498A]" />
                 <span>{loginState === 'loading' ? 'Ingresando...' : 'Iniciar Sesión'}</span>
               </button>
+
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block text-center">
+                  Acceso Rápido Directo
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('cajero')}
+                    className="py-2.5 px-2 bg-pink-50 hover:bg-pink-100 border border-[#E2498A]/30 rounded-xl text-[11px] font-black text-[#C83472] transition-colors cursor-pointer text-center"
+                  >
+                    🔑 Cajero Garita
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickLogin('admin')}
+                    className="py-2.5 px-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl text-[11px] font-black text-slate-800 transition-colors cursor-pointer text-center"
+                  >
+                    🛡️ Administrador
+                  </button>
+                </div>
+              </div>
             </form>
           )}
 
@@ -454,9 +506,15 @@ export const LandingView: React.FC<LandingViewProps> = ({
              <span className="text-white font-black text-xl">P</span>
            </div>
            <div className="flex flex-col">
-             <span className="font-extrabold text-2xl tracking-tight text-[#1E1E2F] leading-none">
-               PARKING <span className="text-[#E2498A]">OPS</span>
-             </span>
+             <div className="flex items-center gap-2">
+               <span className="font-extrabold text-2xl tracking-tight text-[#1E1E2F] leading-none">
+                 PARKING <span className="text-[#E2498A]">OPS</span>
+               </span>
+               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black border border-emerald-200">
+                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                 v2.0.0 Master
+               </span>
+             </div>
              <span className="text-[11px] font-bold text-slate-500 tracking-wider uppercase mt-0.5">
                Cordano Iquique
              </span>
@@ -572,16 +630,25 @@ export const LandingView: React.FC<LandingViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="pt-1">
+                  <div className="pt-1 flex flex-col gap-2.5">
+                    <button
+                      onClick={() => {
+                        onNavigate('pos');
+                        onLoginSuccess('pos');
+                      }}
+                      className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                    >
+                      <span>🚀 Abrir Garita Operativa (POS)</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                     <button
                       onClick={() => {
                         onNavigate('menu');
                         onLoginSuccess('menu');
                       }}
-                      className="w-full py-4 bg-[#E2498A] hover:bg-[#C83472] text-white rounded-2xl text-base font-black shadow-lg shadow-[#E2498A]/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+                      className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-sm font-black transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <span>Ir a Dashboard</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span>📊 Menú Principal & Control de Turno</span>
                     </button>
                   </div>
                 </div>
@@ -646,6 +713,35 @@ export const LandingView: React.FC<LandingViewProps> = ({
                       <Lock className="w-4 h-4" />
                       <span>{loginState === 'loading' ? 'Ingresando...' : 'Iniciar Sesión'}</span>
                     </button>
+
+                    {/* Botones de Acceso Rápido Directo (Demo / Evaluación) */}
+                    <div className="pt-3 border-t border-slate-100 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                          Acceso Rápido 1-Clic
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-400 font-mono">v2.0 Master</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => handleQuickLogin('cajero')}
+                          className="py-3 px-3 bg-pink-50 hover:bg-pink-100/80 border border-[#E2498A]/30 rounded-xl text-xs font-black text-[#C83472] transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98]"
+                        >
+                          <span>🔑 Cajero Garita</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleQuickLogin('admin')}
+                          className="py-3 px-3 bg-slate-100 hover:bg-slate-200/80 border border-slate-300 rounded-xl text-xs font-black text-slate-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-[0.98]"
+                        >
+                          <span>🛡️ Administrador</span>
+                        </button>
+                      </div>
+                      <p className="text-center text-[10px] text-slate-400 font-medium">
+                        Operador: <code className="font-mono text-slate-600 font-bold">cajero@cordano.cl</code> | Admin: <code className="font-mono text-slate-600 font-bold">braulio@automatizable.cl</code>
+                      </p>
+                    </div>
                   </form>
                 </div>
               )}

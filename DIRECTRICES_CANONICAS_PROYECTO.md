@@ -18,15 +18,15 @@ El proyecto CORDANO PMS se compone de seis instancias formalmente catalogadas co
 | **3** | **Google Cloud Infrastructure** | GCP Project: `gen-lang-client-0862587160` · Cloud Run: `cordano-pms` (`us-west1`, puerto 8080) | **Infraestructura integral Cloud Run / Full Stack.** Recibe las actualizaciones y despliegues autorizados de la plataforma. |
 | **4** | **GitHub Respaldo (Restauración)** | [`https://github.com/brau450unab/cordano-pms-respaldo`](https://github.com/brau450unab/cordano-pms-respaldo) | **Punto de restauración de emergencia.** Su versión actual es idéntica a la publicada en producción (`checkpoint-restauracion-cordanopms-ai-studio`). **NO se modifica** en el desarrollo continuo; solo se actualiza cuando el usuario solicita explícitamente crear un nuevo punto de restauración con versiones estables. |
 | **5** | **GitHub Oficial (Actualizaciones)** | [`https://github.com/brau450unab/cordano-pms-oficial`](https://github.com/brau450unab/cordano-pms-oficial) | **Repositorio oficial de código vivo.** Rama `main` y rama fijada `punto-fijado-cordanopms-ai-studio`. Recibe de manera continua los cambios evolutivos del proyecto únicamente bajo orden explícita. |
-| **6** | **Localhost (Desarrollo Activo Centralizado)** | `http://localhost:3000` (Directorio oficial único: `C:\Users\BraulioAM\OneDrive - UNIVERSIDAD ANDRES BELLO\PROYECTOS ANTIGRAVITY\CORDANO PMS FINAL`) | **Única carpeta local activa y fuente de la verdad para ANTIGRAVITY.** Todas las carpetas previas están formalmente anuladas y obsoletas. |
+| **6** | **Localhost (Desarrollo Activo Centralizado)** | `http://localhost:3000` (Directorio oficial único: `C:\Users\BraulioAM\OneDrive - UNIVERSIDAD ANDRES BELLO\PROYECTOS ANTIGRAVITY\PROYECTO CORDANO ENTREGABLE`) | **Única carpeta local activa y fuente de la verdad para ANTIGRAVITY.** Todas las carpetas previas están formalmente purgadas y eliminadas. |
 
 ---
 
 ## 2. REGLAS DE TRABAJO MEDIANTE ANTIGRAVITY
 
 1. **Local-First Estricto en Carpeta Centralizada:**
-   - Todos los cambios, mejoras y actualizaciones solicitados en ANTIGRAVITY se aplican **directa y únicamente a la versión de `localhost` en `CORDANO PMS FINAL`**.
-   - Quedan terminantemente invalidadas y fuera del ciclo de actualización las carpetas `Downloads\cordano-pms-version-publicada` y `NUEVO PMS CORDANO`.
+   - Todos los cambios, mejoras y actualizaciones solicitados en ANTIGRAVITY se aplican **directa y únicamente a la versión de `localhost` en `PROYECTO CORDANO ENTREGABLE`**.
+   - Quedan terminantemente invalidadas y fuera del ciclo de actualización las carpetas `Downloads\cordano-pms-version-publicada` y `NUEVO PMS CORDANO` (purgadas y eliminadas).
    - Al terminar cualquier cambio en local, ANTIGRAVITY **debe preguntar obligatoriamente** al usuario si desea actualizar otra instancia, presentando las opciones de actualización (Google AI Studio, GitHub Oficial, Cloud Run, etc.).
 2. **Prototipado Visual en Google AI Studio:**
    - Cuando el desarrollo local continúe de manera correcta, el usuario podrá solicitar aplicar los cambios en Google AI Studio (`https://aistudio.google.com/app/apps/e1c08131-a20e-48b9-8ee7-ee1d6aede812?showAssistant=true&showPreview=true`) con el fin de realizar mejoras visuales y pruebas interactivas.
@@ -38,7 +38,7 @@ El proyecto CORDANO PMS se compone de seis instancias formalmente catalogadas co
 5. **GitHub Respaldo Congelado para Checkpoints Estables:**
    - La versión de GitHub Respaldo (`brau450unab/cordano-pms-respaldo`) **no se actualiza en el flujo regular**. Únicamente se modifica cuando el usuario solicite explícitamente generar un nuevo punto de restauración, preservando un histórico seguro de versiones estables.
 6. **Ciclo de Verificación y Agilidad Local:**
-   - Todo cambio solicitado sin indicación especial se efectúa en primera instancia en `localhost` (`CORDANO PMS FINAL`), y a continuación se pregunta si se desea replicar en Google AI Studio.
+   - Todo cambio solicitado sin indicación especial se efectúa en primera instancia en `localhost` (`PROYECTO CORDANO ENTREGABLE`), y a continuación se pregunta si se desea replicar en Google AI Studio.
    - Si el usuario solicita hacer esos cambios en Google AI Studio, en la **siguiente indicación que envíe**, ANTIGRAVITY debe **primero solicitar verificar si el usuario desea descargar los nuevos cambios de Google AI Studio** para incorporarlos a `localhost`.
    - *Objetivo:* Evitar que el agente consuma tiempo excesivo en solicitudes o sincronizaciones en línea innecesarias, garantizando la máxima agilidad de desarrollo local.
 
@@ -97,7 +97,7 @@ Toda la documentación conceptual, PRDs, diagramas y especificaciones de version
 
 ## 5. CHECKLIST OBLIGATORIO PARA CADA INTERACCIÓN DE ANTIGRAVITY
 
-- [ ] ¿El cambio se está implementando en `CORDANO PMS FINAL`?
+- [ ] ¿El cambio se está implementando en `PROYECTO CORDANO ENTREGABLE`?
 - [ ] ¿Se respetó el formato monetario `$ X.XXX` y `font-mono tabular-nums`?
 - [ ] ¿Se respetaron los colores oficiales (Rosa Cordano `#E2498A`, Slate `#F8FAFC`, Dark `#1E1E2F`)?
 - [ ] Al finalizar, ¿se preguntó al usuario qué otra instancia desea actualizar?

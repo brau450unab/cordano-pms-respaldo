@@ -6,14 +6,28 @@
 3. **Google Cloud Infrastructure (Cloud Run)**: GCP Project `gen-lang-client-0862587160`, Cloud Run `cordano-pms` (`us-west1`, puerto 8080) (Infraestructura integral full stack que recibe despliegues autorizados).
 4. **GitHub Respaldo (Punto de Restauración)**: [`https://github.com/brau450unab/cordano-pms-respaldo`](https://github.com/brau450unab/cordano-pms-respaldo) (Rama `checkpoint-restauracion-cordanopms-ai-studio`). Respaldo exclusivo de restauración con versiones estables. **NO se modifica** en el flujo diario; solo se actualiza cuando se solicita explícitamente crear un nuevo punto de restauración.
 5. **GitHub Oficial (Actualizaciones Continuas)**: [`https://github.com/brau450unab/cordano-pms-oficial`](https://github.com/brau450unab/cordano-pms-oficial) (Rama `main` y rama fijada `punto-fijado-cordanopms-ai-studio`). Recibe de forma continua las actualizaciones del proyecto **únicamente bajo orden explícita**.
-6. **Localhost (Desarrollo Activo Centralizado)**: `http://localhost:3000` (Directorio oficial único: `C:\Users\BraulioAM\OneDrive - UNIVERSIDAD ANDRES BELLO\PROYECTOS ANTIGRAVITY\CORDANO PMS FINAL`).
-   - **Regla Estricta de Carpeta Centralizada**: Esta es la **ÚNICA** carpeta activa del proyecto para Antigravity y desarrollo local. Cualquier otra carpeta anterior (`Downloads\cordano-pms-version-publicada`, `NUEVO PMS CORDANO`) queda **ANULADA, OBSOLETA Y EXCLUIDA DE ACTUALIZACIONES**. Todo cambio, ejecución y actualización futura se realiza obligatoriamente en `CORDANO PMS FINAL`.
+6. **Localhost (Desarrollo Activo Centralizado)**: `http://localhost:3000` (Directorio oficial único: `C:\Users\BraulioAM\OneDrive - UNIVERSIDAD ANDRES BELLO\PROYECTOS ANTIGRAVITY\PROYECTO CORDANO ENTREGABLE`).
+   - **Regla Estricta de Carpeta Centralizada**: Esta es la **ÚNICA** carpeta activa del proyecto para Antigravity y desarrollo local. Las carpetas anteriores (`cordano-pms-version-publicada`, `NUEVO PMS CORDANO`) han sido **PURGADAS Y ELIMINADAS**. Todo cambio, ejecución y actualización se realiza obligatoriamente en `PROYECTO CORDANO ENTREGABLE`.
+
+### 0.1. VERSIÓN CANÓNICA ACTIVA: v2.0.0 (MASTER RELEASE)
+- **Versión Vigente**: `v2.0.0` (Master Release - Directorio Oficial: `PROYECTO CORDANO ENTREGABLE`). Ver especificación completa en [VERSION_CANONICA_v2.0.md](file:///C:/Users/BraulioAM/OneDrive%20-%20UNIVERSIDAD%20ANDRES%20BELLO/PROYECTOS%20ANTIGRAVITY/PROYECTO%20CORDANO%20ENTREGABLE/VERSION_CANONICA_v2.0.md).
+- **Componentes Consolidados en v2.0.0**:
+  - Garita Operativa POS Split-Screen (`PosView.tsx`, `LiveOperationsView.tsx`).
+  - Matriz 2D Interactiva con Drag & Drop nativo y cambio rápido de plazas (`PatioMatrix2D.tsx`, `moveOrSwapVehicleSlot`).
+  - Ciclo Completo de Salida, Cobro y Emisión de Ticket Térmico 80mm (`CheckoutReceiptModal.tsx`, `generateExitReceiptPdf`, WhatsApp, ESC/POS).
+  - Cierre Ciego de Turno en Stepper de 4 etapas (`/operacion/cierre`, `CierreCajaCiego.tsx`, sellado SHA-256, Arqueo A4 con 2 firmas y 2 copias).
+  - Control de Turno y RBAC Estricto (bloqueo previo a apertura de turno, dominio exclusivo del cajero de turno `isShiftOwner`, visor para el resto).
+  - Notificaciones fijadas en esquina inferior izquierda (`bottom-4 left-4`).
+- **Clasificación de Versiones Anteriores (Legacy / Deprecated)**:
+  - `Downloads\cordano-pms-version-publicada`: **Versión Anterior v1.0.0 (Publicada previa)**. Congelada y obsoleta.
+  - `NUEVO PMS CORDANO`: **Versión Prototipo v0.x**. Anulada.
+  - Repositorios y ramas históricas: Puntos de restauración de versiones anteriores.
 
 ---
 
 ## 1. REGLAS DE TRABAJO MEDIANTE ANTIGRAVITY
 1. **Local-First Estricto en Carpeta Centralizada & Consulta de Actualización**:
-   - Todo cambio, mejora o actualización solicitada se aplica directa y únicamente en la versión de `localhost` en `CORDANO PMS FINAL`.
+   - Todo cambio, mejora o actualización solicitada se aplica directa y únicamente en la versión de `localhost` en `PROYECTO CORDANO ENTREGABLE`.
    - Al terminar los cambios en local, ANTIGRAVITY **debe preguntar si se desea actualizar otra instancia**, presentando las opciones de actualización.
 2. **Prototipado Visual en Google AI Studio**:
    - Si el proyecto avanza correctamente en local, el usuario solicitará reflejar los cambios en Google AI Studio (`https://aistudio.google.com/app/apps/e1c08131-a20e-48b9-8ee7-ee1d6aede812?showAssistant=true&showPreview=true`) para pruebas y mejoras visuales.
@@ -33,7 +47,7 @@
 ## 2. CONTEXTO CANÓNICO DE CONVERSACIONES Y ARCHIVO HISTÓRICO
 - **DOCUMENTACIÓN (`33563bff-fe19-497c-b065-97d247aa58f8`)**: PRDs, roles (Operador vs. Admin), modelo de datos, recinto físico Serrano 447 (Iquique, 30 plazas: Sector A 01–15, Sector B 16–30), y flujo de **Aprobaciones Express Diferidas** (las excepciones en garita se liberan con justificación obligatoria del cajero y su validación con PIN de Supervisor se posterga en lote al Cierre de Turno para no trabar el flujo vehicular).
 - **INTERFAZ (`6eeff568-afba-40ff-994d-eab716bddd53`)**: UX de garita en split-screen (Check-in/Check-out), atajos `F1`–`F10`, y paleta oficial Cordano: Rosa corporativo (`#E2498A` / `#C83472`), Slate claro (`#F8FAFC`) y Dark mode (`#1E1E2F` / `#2D2D44`). Sin colores arbitrarios.
-- **ARCHIVO HISTÓRICO**: Centralizado íntegramente en la subcarpeta `CORDANO PMS FINAL/documentacion_historica` (`docs_arquitectura_y_prds/`, `contexto_conversaciones/`, `docs_versiones_archivadas/`).
+- **ARCHIVO HISTÓRICO**: Centralizado íntegramente en la subcarpeta `documentacion_historica/` (`docs_arquitectura_y_prds/`, `contexto_conversaciones/`, `docs_versiones_archivadas/`).
 
 ---
 

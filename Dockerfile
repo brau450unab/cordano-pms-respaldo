@@ -26,11 +26,11 @@ ENV PORT=8080
 # Instalar servidor estático liviano y limpiar caché
 RUN npm install -g serve && npm cache clean --force
 
-# Copiar exclusivamente los artefactos compilados
+# Copiar exclusivamente los artefactos compilados (incluyendo dist/serve.json)
 COPY --from=builder /app/dist ./dist
 
 # Puerto estándar para Cloud Run
 EXPOSE 8080
 
-# Servidor estático con soporte SPA (Single Page Application fallback a index.html)
+# Servidor estático con soporte SPA y control estricto de caché
 CMD ["serve", "-s", "dist", "-l", "8080"]

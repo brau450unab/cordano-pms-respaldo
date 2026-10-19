@@ -211,10 +211,13 @@ export const PlatformNavbar: React.FC<PlatformNavbarProps> = ({
              <span className="text-white font-black text-base sm:text-lg">P</span>
           </div>
           <div className="flex flex-col">
-             <span className="font-extrabold text-white text-sm sm:text-base tracking-tight leading-none group-hover:text-pink-300 transition-colors">
-               PARKING <span className="text-[#E2498A]">OPS</span>
-             </span>
-             <span className="text-[9px] sm:text-[10px] text-gray-400 font-semibold mt-0.5 tracking-wide hidden xs:inline">Cordano</span>
+             <div className="flex items-center gap-1.5">
+               <span className="font-extrabold text-white text-sm sm:text-base tracking-tight leading-none group-hover:text-pink-300 transition-colors">
+                 PARKING <span className="text-[#E2498A]">OPS</span>
+               </span>
+               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black tracking-widest uppercase bg-[#E2498A]/20 text-[#E2498A] border border-[#E2498A]/30">v2.0</span>
+             </div>
+             <span className="text-[9px] sm:text-[10px] text-gray-400 font-semibold mt-0.5 tracking-wide hidden xs:inline">Cordano Iquique</span>
           </div>
         </div>
 
